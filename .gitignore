@@ -1,9 +1,0 @@
-*.png
-*.pdf
-TEST*
-FPFS
-FPFS-data
-*.pyc
-*.ipynb_checkpoints
-*OLDsimulate.py
-.gitignore
