@@ -48,16 +48,22 @@ class Stamp(object):
 
 
 class LensTransform1(object):
-    def __init__(self, gamma1, gamma2, kappa):
+    def __init__(self, gamma1, gamma2, kappa, non_affine=False,
+                scale=None, hlr=None):
         """Initialize the transform object of 2D grids
         Args:
             gamma1 (float):     the first component of lensing shear field
             gamma2 (float):     the second component of lensing shear field
             kappa (float):      the lensing convergence field
         """
-        self.s2l_mat = np.array(
-            [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
-        )
+        
+        self.non_affine = non_affine
+        self.scale = scale
+        self.hlr = hlr
+        self.gamma1 = gamma1
+        self.gamma2 = gamma2
+        self.kappa = kappa
+        
         return
 
     def transform(self, coords):
@@ -65,7 +71,36 @@ class LensTransform1(object):
         Args:
             coords:   coordinates (x, y) of the pixel centers [arcsec]
         """
-        return self.s2l_mat @ coords
+    
+        if not self.non_affine:
+            
+            s2l_mat = np.array([[1 - self.kappa - self.gamma1, -self.gamma2], 
+                                [-self.gamma2, 1 - self.kappa + self.gamma1]])
+            
+            return s2l_mat @ coords
+        
+        ### TO-DO: currently stuff is hardcoded since it was a quick mock-up ####
+            ### Everything below here will need tidied up ### 
+        x, y = coords
+        
+        x_prime = (1 - self.gamma1_coord(x,y))*x - self.gamma2_coord(x,y)*y
+        y_prime = (1 + self.gamma1_coord(x,y))*y - self.gamma2_coord(x,y)*x
+        
+        return np.array([x_prime, y_prime])
+        
+    def gamma1_coord(self,x,y):
+        
+        radial_dist = np.sqrt((x - 33)**2 + (y - 33)**2)
+        rwf = (radial_dist * self.scale) / self.hlr #hlr
+        
+        return self.gamma1 * rwf**1
+    
+    def gamma2_coord(self,x,y):
+        
+        radial_dist = np.sqrt((x - 33)**2 + (y - 33)**2)
+        rwf = (radial_dist * self.scale) / self.hlr #hlr
+        
+        return self.gamma2 * rwf**1
         
         
         
