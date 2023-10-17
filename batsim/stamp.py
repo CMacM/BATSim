@@ -4,7 +4,7 @@ import numpy as np
 class Stamp(object):
     def __init__(self, coords=None, nn=32, scale=0.2, centering='galsim'):
         """Initialize the 2D stamp object. This class enables distorting
-        an image by changing the samplinng position with non-affine
+        an image by changing the sampling position with non-affine
         transformation
 
         Args:
