@@ -96,7 +96,7 @@ class IaTransform(object):
 
 
 class LensTransform(object):
-    def __init__(self, gamma1, gamma2, kappa, center=[0,0]):
+    def __init__(self, gamma1, gamma2, kappa, center=[-0.,-0.]):
         """Initialize the transform object of 2D grids
         Args:
             gamma1 (float):     the first component of lensing shear field
@@ -105,7 +105,7 @@ class LensTransform(object):
             xref (float):       reference coordinate x [in units of pixels]
             xref (float):       reference coordinate y [in units of pixels]
         """
-        self.ref_vec = np.array(center)
+        self.ref_vec = np.array([[center[0]],[center[1]]])
         self.s2l_mat = np.array(
             [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
         )

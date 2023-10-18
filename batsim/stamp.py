@@ -21,9 +21,9 @@ class Stamp(object):
         
         if coords is None:
             indx = (np.arange(-int(nn / 2), 
-                             int((nn + 1) / 2), 1) * scale) + self.centering
+                             int((nn + 1) / 2), 1) * scale)
             indy = (np.arange(-int(nn / 2), 
-                             int((nn + 1) / 2), 1) * scale) + self.centering
+                             int((nn + 1) / 2), 1) * scale)
             inds = np.meshgrid(indy, indx, indexing="ij")
             self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
         else:
@@ -46,7 +46,7 @@ class Stamp(object):
             outcome (ndarray):  2D galaxy image on the grids
         """
         
-        pixel_values = np.array([gal_obj.xValue(cc) for cc in self.coords.T])
+        pixel_values = np.array([gal_obj.xValue(cc + self.centering) for cc in self.coords.T])
 
         return np.reshape(pixel_values, self.shape)
 
