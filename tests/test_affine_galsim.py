@@ -1,5 +1,5 @@
 # This function test the implementation of affine transform and compare it with
-# Galsim
+# Galsim. This test does not include PSF convolution.
 import os
 import galsim
 import numpy as np
@@ -16,7 +16,7 @@ def test_affine_galsim():
     hlr = 1.4
 
     # create galaxy to be sampled by shear stamp objects
-    sersic_gal = galsim.Sersic(n=0.5, half_light_radius=hlr, flux=flux, trunc=0)
+    sersic_gal = galsim.Sersic(n=1.0, half_light_radius=hlr, flux=flux, trunc=0)
 
     # lensing shear and kappa convergence
     gamma1 = 0.2
