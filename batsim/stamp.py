@@ -10,19 +10,22 @@ class Stamp(object):
         Args:
             nn (int):      number of grids on x and y direction
             scale (float): pixel scale in units of arcsec
+            centerting (str): the centering convention, we following Galsim,
+                                where the galaxy is centered at (nn/2, nn/2)
         """
         self.scale = scale
         if centering  == 'galsim':
-            self.centering = (0.5*scale)
+            self.centering = (0.5 * scale)
         else:
-            print('Centering type not implemented yet, \ 
-                  please shift the galsim object directly')
+            print("Centering type not implemented yet",
+                "please shift the galsim object directly",
+            )
             self.centering = 0
-        
+
         if coords is None:
-            indx = np.arange(-int(nn / 2), 
+            indx = np.arange(-int(nn / 2),
                              int((nn + 1) / 2), 1) * scale
-            indy = np.arange(-int(nn / 2), 
+            indy = np.arange(-int(nn / 2),
                              int((nn + 1) / 2), 1) * scale
             inds = np.meshgrid(indy, indx, indexing="ij")
             self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
@@ -45,7 +48,7 @@ class Stamp(object):
         Returns:
             outcome (ndarray):  2D galaxy image on the grids
         """
-        pixel_values = np.array([gal_obj.xValue(cc+self.centering) 
+        pixel_values = np.array([gal_obj.xValue(cc + self.centering)
                                                  for cc in self.coords.T])
 
         return np.reshape(pixel_values, self.shape)
@@ -56,14 +59,3 @@ class Stamp(object):
         self.coords = transform_obj.transform(self.coords)
         self.transformed = True
         return
-        
-        
-        
-    
-
-    
-        
-    
-
-
-        
