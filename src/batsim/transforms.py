@@ -38,7 +38,7 @@ class FlexionTransform(object):
     
 
 class IaTransform(object):
-    def __init__(self, scale, hlr, A1=-0.00136207, A2=0, 
+    def __init__(self, scale, hlr, A=0.00136207, phi=0, 
                  beta=0.82404653, center=[0,0]):
         """
             Class to apply IA shear transform to a galsim image
@@ -52,9 +52,10 @@ class IaTransform(object):
             scale : The scale of the pixels in arcsec (float)
             hlr : The half light radius of the galaxy to transform
         """
-
-        self.A1 = A1
-        self.A2 = A2
+        
+        # intialise important class variables
+        self.A = A
+        self.phi = phi
         self.beta = beta
         self.scale = scale
         self.hlr = hlr
@@ -69,30 +70,48 @@ class IaTransform(object):
             shear value depending on its distance from the 
             center of the image.
         """
+        
+        # unpack x and y coordinates
         x, y = coords
         
-        x_prime = ((1 - self.get_g1(x,y))*x - self.get_g2(x,y)*y)
-        y_prime = ((1 + self.get_g1(x,y))*y - self.get_g2(x,y)*x)
+        # transform coordinates with raidal dependence
+        x_prime = ((1 - self.get_e1(x,y))*x - self.get_e2(x,y)*y)
+        y_prime = ((1 + self.get_e1(x,y))*y - self.get_e2(x,y)*x)
         
         return np.array([x_prime, y_prime])
 
-    def get_g1(self,x,y):
+    def get_e1(self,x,y):
         """
-            Get g1 term for a set of image coordinates.
+            Get e1 term for a set of image coordinates.
         """
+        
+        # find distance from image center as ratio to hlr
         radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
         rwf = (radial_dist) / self.hlr
+        
+        # compute alignment amplitude at radius
+        A_rwf = self.A * rwf**self.beta
+        
+        # get shear component for corresponding alignment amplitude
+        e1 = A_rwf * np.cos(2*self.phi)
 
-        return self.A1 * rwf**self.beta
+        return e1
     
-    def get_g2(self,x,y):
+    def get_e2(self,x,y):
         """
-            Get g2 term for set of image coordinates.
+            Get e2 term for set of image coordinates.
         """
+        # find distance from image center as ratio to hlr
         radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
         rwf = (radial_dist) / self.hlr
+        
+        # compute alignment amplitude at radius
+        A_rwf = self.A * rwf**self.beta
+        
+        # get shear component for corresponding alignment amplitude
+        e2 = A_rwf * np.sin(2*self.phi)
 
-        return self.A2 * rwf**self.beta
+        return e2
 
 
 class LensTransform(object):
