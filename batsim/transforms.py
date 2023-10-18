@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import galsim
 
 class FlexionTransform(object):
@@ -50,7 +50,7 @@ class IaTransform(object):
         self.hlr = hlr
         self.xcen = center[0]
         self.ycen = center[1]
-        
+
         return
 
     def transform(self, coords):
@@ -58,29 +58,54 @@ class IaTransform(object):
         Args:
             coords:   coordinates (x, y) of the pixel centers [arcsec]
         """
-        
+
         ### TO-DO: currently stuff is hardcoded since it was a quick mock-up ####
-            ### Everything below here will need tidied up ### 
+            ### Everything below here will need tidied up ###
         x, y = coords
-        
+
         norm = np.sqrt(1 - self.get_g1(x,y)**2 - self.get_g2(x,y)**2)
-        
+
         x_prime = norm * ((1 - self.get_g1(x,y))*x - self.get_g2(x,y)*y)
         y_prime = norm * ((1 + self.get_g1(x,y))*y - self.get_g2(x,y)*x)
-        
-        
+
+
         return np.array([x_prime, y_prime])
-        
+
     def get_g1(self,x,y):
-        
+
         radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
         rwf = (radial_dist * self.scale) / self.hlr #hlr
-        
+
         return self.g1 * rwf**1
-    
+
     def get_g2(self,x,y):
-        
+
         radial_dist = np.sqrt((x - self.xcen)**2 + (y - self.ycen)**2)
         rwf = (radial_dist * self.scale) / self.hlr #hlr
-        
+
         return self.g2 * rwf**1
+
+
+class LensTransform(object):
+    def __init__(self, gamma1, gamma2, kappa, xref=-0., yref=-0.):
+        """Initialize the transform object of 2D grids
+        Args:
+            gamma1 (float):     the first component of lensing shear field
+            gamma2 (float):     the second component of lensing shear field
+            kappa (float):      the lensing convergence field
+            xref (float):       reference coordinate x [in units of pixels]
+            xref (float):       reference coordinate y [in units of pixels]
+        """
+        self.ref_vec = np.array([[xref], [yref]])
+        self.s2l_mat = np.array(
+            [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
+        )
+        return
+
+    def transform(self, coords):
+        """transform the center of pixels from lensed plane to pre-lensed plane
+        Args:
+            coords:   coordinates (x, y) of the pixel centers [arcsec]
+        """
+        coords_relative = coords - self.ref_vec
+        return self.s2l_mat @ coords_relative + self.ref_vec
