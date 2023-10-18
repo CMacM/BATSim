@@ -2,9 +2,9 @@ import galsim
 import numpy as np
 
 class Stamp(object):
-    def __init__(self, coords=None, nn=32, scale=0.2, centering='galsim'):
+    def __init__(self, coords=None, nn=32, scale=0.2, centering='fpfs'):
         """Initialize the 2D stamp object. This class enables distorting
-        an image by changing the sampling position with non-affine
+        an image by changing the samplinng position with non-affine
         transformation
 
         Args:
@@ -14,16 +14,16 @@ class Stamp(object):
         self.scale = scale
         if centering  == 'galsim':
             self.centering = (0.5*scale)
-        else:
-            print('Centering type not implemented yet, \ 
-                  please shift the galsim object directly')
+        elif centering == 'fpfs':
             self.centering = 0
+        else:
+            self.centering = centering
         
         if coords is None:
-            indx = np.arange(-int(nn / 2), 
-                             int((nn + 1) / 2), 1) * scale
-            indy = np.arange(-int(nn / 2), 
-                             int((nn + 1) / 2), 1) * scale
+            indx = (np.arange(-int(nn / 2), 
+                             int((nn + 1) / 2), 1) * scale) + self.centering
+            indy = (np.arange(-int(nn / 2), 
+                             int((nn + 1) / 2), 1) * scale) + self.centering
             inds = np.meshgrid(indy, indx, indexing="ij")
             self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
         else:
@@ -45,8 +45,8 @@ class Stamp(object):
         Returns:
             outcome (ndarray):  2D galaxy image on the grids
         """
-        pixel_values = np.array([gal_obj.xValue(cc+self.centering) 
-                                                 for cc in self.coords.T])
+        
+        pixel_values = np.array([gal_obj.xValue(cc) for cc in self.coords.T])
 
         return np.reshape(pixel_values, self.shape)
 
