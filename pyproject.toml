@@ -3,6 +3,7 @@ name = "batsim"
 license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
+    { name = "Charlie MacMahon" email = "c.macmahon@ncl.ac.uk" }
     { name = "Andy Park", email = "chanhyup@andrew.cmu.edu" }
 ]
 classifiers = [
