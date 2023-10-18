@@ -29,8 +29,9 @@ def test_affine_galsim():
     mu = 1/((1-kappa)**2 - gamma1**2 - gamma2**2)
 
     # # apply lensing shear to galaxy
-    stamp = Stamp(nn=nn, scale=scale)
-    lens = LensTransform(gamma1=g1, gamma2=g2, kappa=kappa, xref=-0.5*scale, yref=-0.5*scale)
+    stamp = Stamp(nn=nn, scale=scale, centering='galsim')
+    lens = LensTransform(gamma1=g1, gamma2=g2, 
+                         kappa=kappa, center=[-0.5*scale, -0.5*scale])
     stamp.transform_grids(lens)
 
     # get galaxy array from stamp object
