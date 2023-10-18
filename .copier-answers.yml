@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier
+_commit: v1.4.3
+_src_path: gh:lincc-frameworks/python-project-template
+author_email: chanhyup@andrew.cmu.edu
+author_name: Andy Park
+custom_install: false
+package_name: batsim
+project_license: MIT
+project_name: batsim
