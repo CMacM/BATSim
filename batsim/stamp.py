@@ -56,14 +56,3 @@ class Stamp(object):
         self.coords = transform_obj.transform(self.coords)
         self.transformed = True
         return
-        
-        
-        
-    
-
-    
-        
-    
-
-
-        
