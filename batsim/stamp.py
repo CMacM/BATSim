@@ -10,9 +10,12 @@ class Stamp(object):
         Args:
             nn (int):      number of grids on x and y direction
             scale (float): pixel scale in units of arcsec
+            centerting (str): the centering convention, we following Galsim,
+                                where the galaxy is centered at (nn/2, nn/2)
         """
         self.scale = scale
         if centering  == 'galsim':
+<<<<<<< HEAD
             self.centering = (0.5*scale)
         elif centering == 'fpfs':
             self.centering = 0
@@ -24,6 +27,20 @@ class Stamp(object):
                              int((nn + 1) / 2), 1) * scale) + self.centering
             indy = (np.arange(-int(nn / 2), 
                              int((nn + 1) / 2), 1) * scale) + self.centering
+=======
+            self.centering = (0.5 * scale)
+        else:
+            print("Centering type not implemented yet",
+                "please shift the galsim object directly",
+            )
+            self.centering = 0
+
+        if coords is None:
+            indx = np.arange(-int(nn / 2),
+                             int((nn + 1) / 2), 1) * scale
+            indy = np.arange(-int(nn / 2),
+                             int((nn + 1) / 2), 1) * scale
+>>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
             inds = np.meshgrid(indy, indx, indexing="ij")
             self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
         else:
@@ -45,8 +62,13 @@ class Stamp(object):
         Returns:
             outcome (ndarray):  2D galaxy image on the grids
         """
+<<<<<<< HEAD
         
         pixel_values = np.array([gal_obj.xValue(cc) for cc in self.coords.T])
+=======
+        pixel_values = np.array([gal_obj.xValue(cc + self.centering)
+                                                 for cc in self.coords.T])
+>>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
 
         return np.reshape(pixel_values, self.shape)
 
@@ -56,6 +78,7 @@ class Stamp(object):
         self.coords = transform_obj.transform(self.coords)
         self.transformed = True
         return
+<<<<<<< HEAD
         
         
         
@@ -67,3 +90,5 @@ class Stamp(object):
 
 
         
+=======
+>>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
