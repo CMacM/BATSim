@@ -1,13 +1,6 @@
 import numpy as np
 import galsim
 
-<<<<<<< HEAD:src/batsim/transforms.py
-=======
-<<<<<<< HEAD
-class AffineLensTransform(object):
-    def __init__(self, g1, g2, kappa):
-=======
->>>>>>> main:batsim/transforms.py
 class FlexionTransform(object):
     
     """Feel Free to merge this method with the next one. I wanted
@@ -43,26 +36,6 @@ class FlexionTransform(object):
         theta_1 = -1/2*np.einsum('in,ijk,jl,lo,km,mo->no',self.s2l_mat_inv,self.D,self.s2l_mat_inv,coords,self.s2l_mat_inv,coords)
         return theta_0 + theta_1
     
-<<<<<<< HEAD:src/batsim/transforms.py
-=======
-class IaTransform(object):
-    def __init__(self, g1, g2, center, scale, hlr):
->>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
-        """Initialize the transform object of 2D grids
-        Args:
-            gamma1 (float):     the first component of lensing shear field
-            gamma2 (float):     the second component of lensing shear field
-            kappa (float):      the lensing convergence field
-        """
-        
-        self.s2l_mat = np.array([[1 - kappa - g1, -g2], 
-                                 [-g2, 1 - kappa + g1]])
-        
-        return
-    
-    def transform(self, coords):
-        return self.s2l_mat @ coords
->>>>>>> main:batsim/transforms.py
 
 class IaTransform(object):
     def __init__(self, scale, hlr, A=0.00136207, phi=0, 
@@ -86,34 +59,17 @@ class IaTransform(object):
         self.beta = beta
         self.scale = scale
         self.hlr = hlr
-<<<<<<< HEAD:src/batsim/transforms.py
         self.xcen = center[0]
         self.ycen = center[1]
         
-=======
-<<<<<<< HEAD
-        self.xcen = center[0] * scale
-        self.ycen = center[1] * scale
-         
-=======
-        self.xcen = center[0]
-        self.ycen = center[1]
-
->>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
->>>>>>> main:batsim/transforms.py
         return
 
     def transform(self, coords):
         """
-<<<<<<< HEAD:src/batsim/transforms.py
-=======
-<<<<<<< HEAD
->>>>>>> main:batsim/transforms.py
             Transform each coordinate with a different
             shear value depending on its distance from the 
             center of the image.
         """
-<<<<<<< HEAD:src/batsim/transforms.py
         
         # unpack x and y coordinates
         x, y = coords
@@ -130,48 +86,6 @@ class IaTransform(object):
         """
         
         # find distance from image center as ratio to hlr
-=======
-        x, y = coords
-        
-        x_prime = ((1 - self.get_g1(x,y))*x - self.get_g2(x,y)*y)
-        y_prime = ((1 + self.get_g1(x,y))*y - self.get_g2(x,y)*x)
-        
-=======
-
-        ### TO-DO: currently stuff is hardcoded since it was a quick mock-up ####
-            ### Everything below here will need tidied up ###
-        x, y = coords
-
-        norm = np.sqrt(1 - self.get_g1(x,y)**2 - self.get_g2(x,y)**2)
-
-        x_prime = norm * ((1 - self.get_g1(x,y))*x - self.get_g2(x,y)*y)
-        y_prime = norm * ((1 + self.get_g1(x,y))*y - self.get_g2(x,y)*x)
-
-
->>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
-        return np.array([x_prime, y_prime])
-
-    def get_g1(self,x,y):
-<<<<<<< HEAD
-        """
-            Get g1 term for a set of image coordinates.
-        """
-        radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
-        rwf = (radial_dist) / self.hlr
-
-        return self.A1 * rwf**self.beta
-    
-    def get_g2(self,x,y):
-        """
-            Get g2 term for set of image coordinates.
-        """
-        radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
-        rwf = (radial_dist) / self.hlr
-
-        return self.A2 * rwf**self.beta
-=======
-
->>>>>>> main:batsim/transforms.py
         radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
         rwf = (radial_dist) / self.hlr
         
@@ -206,7 +120,6 @@ class IaTransform(object):
 
         return g2
 
-
 class LensTransform(object):
     def __init__(self, gamma1, gamma2, kappa, center=[-0.,-0.]):
         """Initialize the transform object of 2D grids
@@ -230,7 +143,3 @@ class LensTransform(object):
         """
         coords_relative = coords - self.ref_vec
         return self.s2l_mat @ coords_relative + self.ref_vec
-<<<<<<< HEAD:src/batsim/transforms.py
-=======
->>>>>>> 7910f724af76c1a1a61e60076c219bc877335c4d
->>>>>>> main:batsim/transforms.py
