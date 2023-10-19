@@ -20,9 +20,9 @@ class Stamp(object):
             self.centering = centering
         
         if coords is None:
-            indx = (np.arange(-int(nn / 2), 
+            indx = (np.arange(-int(nn / 2),
                              int((nn + 1) / 2), 1) * scale)
-            indy = (np.arange(-int(nn / 2), 
+            indy = (np.arange(-int(nn / 2),
                              int((nn + 1) / 2), 1) * scale)
             inds = np.meshgrid(indy, indx, indexing="ij")
             self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])

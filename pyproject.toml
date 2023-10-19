@@ -3,7 +3,7 @@ name = "batsim"
 license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
-    { name = "Charlie MacMahon", email = "c.macmahon@ncl.ac.uk" }
+    { name = "Charlie MacMahon", email = "c.macmahon@ncl.ac.uk" },
     { name = "Andy Park", email = "chanhyup@andrew.cmu.edu" }
 ]
 classifiers = [
@@ -17,7 +17,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "ipykernel", # Support for Jupyter notebooks
-    "galsim" # galaxy image simulation
+    "galsim", # galaxy image simulation
     "numpy", # Used for many calculations
     "matplotlib", # Used for batplot
 ]
