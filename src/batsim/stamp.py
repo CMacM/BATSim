@@ -13,7 +13,7 @@ class Stamp(object):
         """
         self.scale = scale
         if centering  == 'galsim':
-            self.centering = (0.5*scale)
+            self.centering = 0.5*scale
         elif centering == 'fpfs':
             self.centering = 0
         else:

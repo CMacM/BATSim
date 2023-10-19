@@ -3,10 +3,14 @@ import galsim
 
 class FlexionTransform(object):
     
-    """Feel Free to merge this method with the next one. I wanted
-    to be a little more careful because I don't know how to manuever with centers."""
+    """
+        Feel Free to merge this method with the next one. I wanted
+        to be a little more careful because I don't know how to manuever 
+        with centers.
+    """
+    
     def __init__(self, gamma1, gamma2, kappa, F1=0, F2=0, G1=0, G2=0):
-        """Initialize the transform object of 2D grids
+        """Initialize the transform object of 2D grids.
         Args:
             gamma1 (float):     the first component of lensing shear field
             gamma2 (float):     the second component of lensing shear field
@@ -23,17 +27,26 @@ class FlexionTransform(object):
         return
 
     def transform(self, coords):
-        """transform the center of pixels from lensed plane to pre-lensed plane
-        Args:
-            coords:   coordinates (x, y) of the pixel centers [arcsec]
+        """
+            Transform the center of pixels from lensed plane to 
+            pre-lensed plane.
+            Args:
+                coords: coordinates (x, y) of the pixel centers [arcsec]
         """
         return self.s2l_mat @ coords + np.einsum('ijk,jl,kl->il',self.D,coords,coords)    
     
     def inverse_transform(self, coords):
-        """Details about this inverse transformation can be found here:
-        https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf"""
+        """
+            Details about this inverse transformation can be found 
+            here:
+            https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf
+        """
         theta_0 = np.einsum('ij,jk',self.s2l_mat_inv,coords)
-        theta_1 = -1/2*np.einsum('in,ijk,jl,lo,km,mo->no',self.s2l_mat_inv,self.D,self.s2l_mat_inv,coords,self.s2l_mat_inv,coords)
+        theta_1 = -1/2*np.einsum('in,ijk,jl,lo,km,mo->no',
+                                 self.s2l_mat_inv,self.D,
+                                 self.s2l_mat_inv,coords,
+                                 self.s2l_mat_inv,coords
+                                )
         return theta_0 + theta_1
     
 
@@ -66,9 +79,9 @@ class IaTransform(object):
 
     def transform(self, coords):
         """
-            Transform each coordinate with a different
-            shear value depending on its distance from the 
-            center of the image.
+            Transform each coordinate with a different shear 
+            value depending on its distance from the center 
+            of the image.
         """
         
         # unpack x and y coordinates
@@ -122,13 +135,14 @@ class IaTransform(object):
 
 class LensTransform(object):
     def __init__(self, gamma1, gamma2, kappa, center=[-0.,-0.]):
-        """Initialize the transform object of 2D grids
-        Args:
-            gamma1 (float):     the first component of lensing shear field
-            gamma2 (float):     the second component of lensing shear field
-            kappa (float):      the lensing convergence field
-            xref (float):       reference coordinate x [in units of pixels]
-            xref (float):       reference coordinate y [in units of pixels]
+        """
+            Initialize the transform object of 2D grids.
+            Args:
+                gamma1 (float):   the first component of lensing shear field
+                gamma2 (float):   the second component of lensing shear field
+                kappa (float):    the lensing convergence field
+                xref (float):     reference coordinate x [in units of pixels]
+                xref (float):     reference coordinate y [in units of pixels]
         """
         self.ref_vec = np.array([[center[0]],[center[1]]])
         self.s2l_mat = np.array(
@@ -137,9 +151,11 @@ class LensTransform(object):
         return
 
     def transform(self, coords):
-        """transform the center of pixels from lensed plane to pre-lensed plane
-        Args:
-            coords:   coordinates (x, y) of the pixel centers [arcsec]
+        """
+            Transform the center of pixels from lensed plane to 
+            pre-lensed plane.
+            Args:
+                coords:   coordinates (x, y) of the pixel centers [arcsec]
         """
         coords_relative = coords - self.ref_vec
         return self.s2l_mat @ coords_relative + self.ref_vec
