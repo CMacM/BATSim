@@ -3,7 +3,7 @@ name = "batsim"
 license = {file = "LICENSE"}
 readme = "README.md"
 authors = [
-    { name = "Charlie MacMahon" email = "c.macmahon@ncl.ac.uk" }
+    { name = "Charlie MacMahon", email = "c.macmahon@ncl.ac.uk" }
     { name = "Andy Park", email = "chanhyup@andrew.cmu.edu" }
 ]
 classifiers = [
@@ -39,7 +39,7 @@ dev = [
     "nbsphinx", # Used to integrate Python notebooks into Sphinx documentation
     "ipython", # Also used in building notebooks into Sphinx
     "asv==0.5.1", # Used to compute performance benchmarks
-    "fpfs"
+    #"fpfs"
 ]
 
 [build-system]
