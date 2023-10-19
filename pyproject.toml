@@ -17,6 +17,9 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "ipykernel", # Support for Jupyter notebooks
+    "galsim" # galaxy image simulation
+    "numpy", # Used for many calculations
+    "matplotlib", # Used for batplot
 ]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
@@ -35,9 +38,8 @@ dev = [
     "nbconvert", # Needed for pre-commit check to clear output from Python notebooks
     "nbsphinx", # Used to integrate Python notebooks into Sphinx documentation
     "ipython", # Also used in building notebooks into Sphinx
-    "matplotlib", # Used in sample notebook intro_notebook.ipynb
-    "numpy", # Used in sample notebook intro_notebook.ipynb
     "asv==0.5.1", # Used to compute performance benchmarks
+    "fpfs"
 ]
 
 [build-system]
@@ -52,7 +54,7 @@ write_to = "src/batsim/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests",
+    "tests/batsim",
 ]
 
 [tool.coverage.run]

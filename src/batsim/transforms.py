@@ -96,9 +96,9 @@ class IaTransform(object):
         e1 = A_rwf * np.cos(2*self.phi)
         
         # convert to g1 componet of shear for matrix application
-        conv_shear = galsim.Shear(e1=e1)
-
-        return conv_shear.g1
+        g1 = np.asarray([galsim.Shear(e1=e).g1 for e in e1])
+        
+        return g1
     
     def get_e2(self,x,y):
         """
@@ -115,9 +115,10 @@ class IaTransform(object):
         e2 = A_rwf * np.sin(2*self.phi)
         
         # convert to g1 componet of shear for matrix application
-        conv_shear = galsim.Shear(e2=e2)
+        #g2 = np.empty
+        g2 = np.asarray([galsim.Shear(e2=e).g2 for e in e2])
 
-        return conv_shear.g2
+        return g2
 
 
 class LensTransform(object):
