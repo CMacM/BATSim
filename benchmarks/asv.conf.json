@@ -25,10 +25,8 @@
     "html_dir": "_html",
     "build_cache_size": 8,
     "benchmarks": {
-        "compare_shear_speed": {
-            "name": "benchmarks:compare_shear_speed",
+            "name": "time_shear_speed",
             "params": [],
             "number": 1
-        }
     }
 }
