@@ -11,6 +11,8 @@ class WCS(object):
         _, header = fitsio.read(file_name, header=True)
 
         self._set_ab(header)
+        
+        return
 
 
     def _set_ab(self, header):
@@ -26,11 +28,8 @@ class WCS(object):
         a[1, 0] += 1.
         b[0, 1] += 1.
         self.ab = np.array([a, b])
-
-    
-
-
-    def uv(self, x, y):
+        
+        return
 
 
 

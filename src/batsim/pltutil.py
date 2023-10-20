@@ -1,4 +1,5 @@
 import numpy as np
+import galsim
 import matplotlib.pyplot as plt
 from astropy.visualization import simple_norm
 
@@ -153,9 +154,6 @@ def stitch_images(images, direction='horizontal', spacing=None):
                 i = i + 1 # update for next iteration
             return super_image    
     # TODO: Allow for empty space to be inserted between images
-    elif spacing is not None:
-        print('This functionality has not yet been implemented')
-        return
     
 def split_image(image, nsplit, direction='horizontal', spacing=None):
     ''' Utility function which can be used to split galsim images
@@ -217,6 +215,3 @@ def split_image(image, nsplit, direction='horizontal', spacing=None):
                 i = i + 1 # update for next iteration
             return split_images
     # TODO: Allow for empty space to be inserted between images
-    elif spacing is not None:
-        print('This functionality has not yet been implemented')
-        return
