@@ -66,6 +66,10 @@ class IaTransform(object):
             scale : The scale of the pixels in arcsec (float)
             hlr : The half light radius of the galaxy to transform
         """
+        
+        if center == None:
+            center = [0,0]
+        
         # intialise important class variables
         self.A = A
         self.phi = phi
@@ -134,7 +138,7 @@ class IaTransform(object):
         return g2
 
 class LensTransform(object):
-    def __init__(self, gamma1, gamma2, kappa, center=[-0.,-0.]):
+    def __init__(self, gamma1, gamma2, kappa, center=None):
         """
             Initialize the transform object of 2D grids.
             Args:
@@ -144,6 +148,10 @@ class LensTransform(object):
                 xref (float):     reference coordinate x [in units of pixels]
                 xref (float):     reference coordinate y [in units of pixels]
         """
+        
+        if center==None:
+            center=[0,0]
+        
         self.ref_vec = np.array([[center[0]],[center[1]]])
         self.s2l_mat = np.array(
             [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
