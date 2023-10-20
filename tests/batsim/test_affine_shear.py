@@ -51,6 +51,5 @@ def test_affine_galsim():
     np.testing.assert_array_almost_equal(gal_array, gal_galsim)
     return
 
-
 if __name__ == "__main__":
     test_affine_galsim()

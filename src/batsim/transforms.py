@@ -90,14 +90,17 @@ class IaTransform(object):
 
         # unpack x and y coordinates
         x, y = coords
+        
+        g1 = self.get_g1(x,y)
+        g2 = self.get_g2(x,y)
 
         # transform coordinates with raidal dependence
-        x_prime = ((1 - self.get_e1(x,y))*x - self.get_e2(x,y)*y)
-        y_prime = ((1 + self.get_e1(x,y))*y - self.get_e2(x,y)*x)
+        x_prime = ((1 - g1)*x - g2*y)
+        y_prime = ((1 + g1)*y - g2*x)
 
         return np.array([x_prime, y_prime])
 
-    def get_e1(self,x,y):
+    def get_g1(self,x,y):
         """
             Get e1 term for a set of image coordinates.
         """
@@ -117,7 +120,7 @@ class IaTransform(object):
 
         return g1
 
-    def get_e2(self,x,y):
+    def get_g2(self,x,y):
         """
             Get e2 term for set of image coordinates.
         """
