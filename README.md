@@ -1,6 +1,6 @@
 # BATSim
 
-BATSim is designed to enable the application of non-affine shear transformations to GalSim images. It works by trasnforming the stamp pixel grid, distroting the location of the pixel centers. When a GalSim image is sampled on this distorted grid, the resulting image will be sheared due to the transformation of the pixel grid. 
+BATSim is designed to enable the application of non-affine shear transformations to GalSim images. It works by trasnforming the stamp pixel grid, distorting the location of the pixel centers. When a GalSim image is sampled onto this distorted grid, the resulting image will be sheared due to the transformation of the pixel grid. 
 
 Non-affine transforms can simualate complex shear effects such as intrinsic alignment, flexion, and field distrotion maps. Custom transform functions can also be passed to Stamp objects.
 
@@ -12,7 +12,7 @@ To install, first clone the repository:
 ```shell
 git clone https://github.com/CMacM/BATSim.git
 ```
-Then change to the cloned directiory and run pip install to build from the setup.toml file.
+Then change to the cloned directiory and run pip install to build from the pyproject.toml file.
 ```shell
 cd BATSim
 pip install -e . --user
