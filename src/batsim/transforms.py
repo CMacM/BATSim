@@ -59,14 +59,23 @@ class IaTransform(object):
                  beta=0.82404653, center=None):
         """
             Args:
-            g1 : The g1 component of shear (float)
-            g2 : The g2 component of shear (float)
-            center : Coordinates which 
-                     define the image center (Lists | Tuple | Array)
-            scale : The scale of the pixels in arcsec (float)
-            hlr : The half light radius of the galaxy to transform
+                scale : The scale of the pixels in arcsec (float)
+                hlr : The half light radius of the galaxy to transform
+                A : Intrinsic alignment amplitude, this is the shear
+                    applied at the half light radius in the distortion
+                    definition of shear. Defaults to best fit of Georgieu+19
+                    (float)
+                beta : Index of the power law used to scale the alignment
+                       strength with radius. Defaults to best fit of 
+                       Georgieu+19 (float)
+                phi : Angle in rads at which alignment should occur. Defaults to
+                      zero, which is equivalent to alignment along the vertical
+                      axis. (float)
+                center : Coordinates which define the image center from which
+                         radius is calculated. (Lists | Tuple | Array)
         """
         
+        # If a center has not been provided, default to [0,0]
         if center == None:
             center = [0,0]
         
@@ -83,7 +92,7 @@ class IaTransform(object):
 
     def transform(self, coords):
         """
-            Transform each coordinate with a different shear 
+            Transforms each coordinate with a different shear 
             value depending on its distance from the center 
             of the image.
         """
@@ -91,8 +100,7 @@ class IaTransform(object):
         # unpack x and y coordinates
         x, y = coords
         
-        g1 = self.get_g1(x,y)
-        g2 = self.get_g2(x,y)
+        g1, g2 = self.get_g1g2(x,y)
 
         # transform coordinates with raidal dependence
         x_prime = ((1 - g1)*x - g2*y)
@@ -100,9 +108,11 @@ class IaTransform(object):
 
         return np.array([x_prime, y_prime])
 
-    def get_g1(self,x,y):
+    def get_g1g2(self,x,y):
         """
-            Get e1 term for a set of image coordinates.
+            Scales the amplitude according to power law, then
+            gets the g1 and g2 components to construct the shear
+            matrix.
         """
 
         # find distance from image center as ratio to hlr
@@ -112,33 +122,59 @@ class IaTransform(object):
         # compute alignment amplitude at radius
         A_rwf = self.A * rwf**self.beta
 
-        # get shear component for corresponding alignment amplitude
+        # get shear components for corresponding alignment amplitude
         e1 = A_rwf * np.cos(2*self.phi)
-
-        # convert to g1 componet of shear for matrix application
-        g1 = np.asarray([galsim.Shear(e1=e).g1 for e in e1])
-
-        return g1
-
-    def get_g2(self,x,y):
-        """
-            Get e2 term for set of image coordinates.
-        """
-        # find distance from image center as ratio to hlr
-        radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
-        rwf = (radial_dist) / self.hlr
-
-        # compute alignment amplitude at radius
-        A_rwf = self.A * rwf**self.beta
-
-        # get shear component for corresponding alignment amplitude
         e2 = A_rwf * np.sin(2*self.phi)
+        
+        # convert to g in same way galsim does
+        absesq = e1**2 + e2**2
 
-        # convert to g1 componet of shear for matrix application
-        #g2 = np.empty
-        g2 = np.asarray([galsim.Shear(e2=e).g2 for e in e2])
-
-        return g2
+        # test to make sure level of distortion is reasonable
+        if type(absesq) == np.float64 and absesq > 1:
+            raise ValueError("Requested distortion exceeds 1.",
+                                   np.sqrt(absesq), 0., 1.)
+        elif type(absesq) ==  np.ndarray and any(absesq) > 1:
+            raise ValueError("Requested distortion exceeds 1.",
+                                   np.sqrt(absesq), 0., 1.)
+            
+        # define g from e1 and e2
+        g = (e1 + 1j * e2) * self.e2g(absesq)
+        
+        # return real (g1) and imaginary (g2) components
+        return g.real, g.imag
+    
+    # conversion used in galsim source code
+    # modified to use binary arrays to speed up condition checking
+    def e2g(self, absesq):
+        if type(absesq) == np.ndarray:
+            # this section of code is designed to avoid the use of a for loop
+            # to maximise speed. Stable is a vector which will == 1 if a value
+            # in absesq is big enough to use the simple calculation, and a
+            # 0 if the Taylor expansion is needed for stability.
+            stable = 2*np.ones(len(absesq))
+            drill = 1e-10
+            # if there are values greater than 1, continue with a deeper drill
+            while stable.max() > 1:
+                stable = np.floor((absesq/1.e-4)**(drill)).astype(int)
+                drill = drill/10 
+            # unstable values set to zero, stable values included    
+            e2g = stable * (1. / (1. + np.sqrt(1.-absesq)))
+            # now we invert to have unstable values as 1's
+            unstable = abs(stable - 1).astype(int)
+            # we add the unstable values to the array now, with the stable set to zero
+            e2g += unstable * (0.5 + absesq*(0.125 
+                                             + absesq*(0.0625 
+                                                       + absesq*0.0390625)))
+            # finally, return the array of conversion values
+            return e2g
+        # for if we just want a single shear value
+        elif type(absesq) == np.float64:
+            if absesq > 1.e-4:
+                #return (1. - np.sqrt(1.-absesq)) / absesq
+                return 1. / (1. + np.sqrt(1.-absesq))
+            else:
+                # Avoid numerical issues near e=0 using Taylor expansion
+                return 0.5 + absesq*(0.125 + absesq*(0.0625 + absesq*0.0390625))
 
 class LensTransform(object):
     def __init__(self, gamma1, gamma2, kappa, center=None):

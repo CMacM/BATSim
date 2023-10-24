@@ -8,7 +8,7 @@ Non-affine transforms can simualate complex shear effects such as intrinsic alig
 
 The package is not currently available on PyPI while in early development.
 
-To install, clone the repository clone the repository:
+To install, first clone the repository:
 ```shell
 git clone https://github.com/CMacM/BATSim.git
 ```
@@ -17,5 +17,7 @@ Then change to the cloned directiory and run pip install to build from the setup
 cd BATSim
 pip install -e . --user
 ```
+
+![BATSim Logo](batsim_logo.png)
 
 (repo icon created using images by Frepik and brgfx on Freepik)

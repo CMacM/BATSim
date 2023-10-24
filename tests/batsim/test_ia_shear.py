@@ -49,9 +49,9 @@ def test_ia_shear():
     y = np.array([0])
 
     # get the expected g1 at the half light radius
-    test_shear = IA_pow.get_g1(x,y)
+    test_g1, _ = IA_pow.get_g1g2(x,y)
     # shear at hlr should = input amplitude
-    np.testing.assert_almost_equal(test_shear, 0.2)
+    np.testing.assert_almost_equal(test_g1, 0.2)
 
     # now do same but for coord outside hlr
     # set coords for hlr
@@ -59,9 +59,9 @@ def test_ia_shear():
     y = np.array([1.2*hlr])
 
     # get the expected g1 at the half light radius
-    test_shear = IA_pow.get_g1(x,y)
+    test_g1, _ = IA_pow.get_g1g2(x,y)
     # outside shear should be greater than hlr shear
-    np.testing.assert_array_less(0.2, test_shear)
+    np.testing.assert_array_less(0.2, test_g1)
 
     # now do same but for coord inside hlr
     # set coords for hlr
@@ -69,9 +69,9 @@ def test_ia_shear():
     y = np.array([0.8*hlr])
 
     # get the expected g1 at the half light radius
-    test_shear = IA_pow.get_g1(x,y)
+    test_g1, _ = IA_pow.get_g1g2(x,y)
     # inside shear should be less than hlr shear
-    np.testing.assert_array_less(test_shear, 0.2)
+    np.testing.assert_array_less(test_g1, 0.2)
     return
 
 if __name__ == "__main__":
