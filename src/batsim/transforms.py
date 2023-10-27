@@ -63,13 +63,13 @@ class IaTransform(object):
                 hlr : The half light radius of the galaxy to transform
                 A : Intrinsic alignment amplitude, this is the shear
                     applied at the half light radius in the distortion
-                    definition of shear. Defaults to best fit of Georgieu+19
+                    definition of shear. Defaults to best fit of Georgiou+19
                     (float)
                 beta : Index of the power law used to scale the alignment
                        strength with radius. Defaults to best fit of 
-                       Georgieu+19 (float)
+                       Georgiou+19 (float)
                 phi : Angle in rads at which alignment should occur. Defaults to
-                      zero, which is equivalent to alignment along the vertical
+                      zero, which is equivalent to alignment along the horizontal
                       axis. (float)
                 center : Coordinates which define the image center from which
                          radius is calculated. (Lists | Tuple | Array)
