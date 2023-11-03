@@ -150,11 +150,11 @@ class IaTransform(object):
             # if absesq is big enough to use the simple calculation, and a
             # 0 if the Taylor expansion is needed for stability.
             # if there are values greater than 1, continue with a deeper drill
-            stable = abseq > 1e-4
+            stable = absesq > 1e-4
             # unstable values set to False, stable values included    
             e2g = stable * (1. / (1. + np.sqrt(1.-absesq)))
             # now we invert to have unstable values as True
-            unstable = abseq <= 1e-4
+            unstable = absesq <= 1e-4
             # we add the unstable values to the array now, with the stable set to zero
             e2g += unstable * (0.5 + absesq*(0.125 
                                              + absesq*(0.0625 
