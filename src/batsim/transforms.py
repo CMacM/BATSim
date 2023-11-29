@@ -160,20 +160,14 @@ class IaTransform(object):
     # modified to use binary arrays to speed up condition checking
     def e2g(self, absesq):
         if type(absesq) == np.ndarray:
-            # this section of code is designed to avoid the use of a for loop
-            # to maximise speed. Stable is a vector which will == 1 if a value
-            # in absesq is big enough to use the simple calculation, and a
+            # if absesq is big enough to use the simple calculation, and a
             # 0 if the Taylor expansion is needed for stability.
-            stable = 2*np.ones(len(absesq))
-            drill = 1e-10
             # if there are values greater than 1, continue with a deeper drill
-            while stable.max() > 1:
-                stable = np.floor((absesq/1.e-4)**(drill)).astype(int)
-                drill = drill/10 
-            # unstable values set to zero, stable values included    
+            stable = absesq > 1e-4
+            # unstable values set to False, stable values included    
             e2g = stable * (1. / (1. + np.sqrt(1.-absesq)))
-            # now we invert to have unstable values as 1's
-            unstable = abs(stable - 1).astype(int)
+            # now we invert to have unstable values as True
+            unstable = absesq <= 1e-4
             # we add the unstable values to the array now, with the stable set to zero
             e2g += unstable * (0.5 + absesq*(0.125 
                                              + absesq*(0.0625 
