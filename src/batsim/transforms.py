@@ -1,5 +1,6 @@
 import numpy as np
 import galsim
+import warnings
 
 class FlexionTransform(object):
 
@@ -74,10 +75,11 @@ class IaTransform(object):
                 center : Coordinates which define the image center from which
                          radius is calculated. (Lists | Tuple | Array)
         """
-        
         # If a center has not been provided, default to [0,0]
         if center == None:
             center = [0,0]
+        
+        self.ref_vec = np.array([[center[0]],[center[1]]])
         
         # intialise important class variables
         self.A = A
@@ -96,17 +98,28 @@ class IaTransform(object):
             value depending on its distance from the center 
             of the image.
         """
-
-        # unpack x and y coordinates
-        x, y = coords
+        npix = np.sqrt(len(coords[0]))
+        size_ratio = (npix/2 * self.scale) / self.hlr
         
-        g1, g2 = self.get_g1g2(x,y)
+        if size_ratio < 2.5:
+            warnings.simplefilter("always")
+            warning_message = ("The stamp provided is only %1.2f"
+                               " times larger than the galaxy. To ensure" 
+                               " accurate results, the stamp needs to be at"
+                               " least 2.5 times larger.")%size_ratio
+            warnings.warn(warning_message)
+            
+        # unpack x and y coordinates
+        coords_relative = coords - self.ref_vec
+        x, y = coords_relative
+        
+        g1, g2 = self.get_g1g2(x,y) 
 
         # transform coordinates with raidal dependence
         x_prime = ((1 - g1)*x - g2*y)
         y_prime = ((1 + g1)*y - g2*x)
 
-        return np.array([x_prime, y_prime])
+        return np.array([x_prime, y_prime]) + self.ref_vec
 
     def get_g1g2(self,x,y):
         """
