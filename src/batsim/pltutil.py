@@ -100,10 +100,23 @@ def make_plot_image(data):
     fig = plt.imshow(data, aspect="equal", cmap="RdYlBu_r", origin="lower", norm=sn)
     return fig
 
+
 def stitch_images(images, direction='horizontal', spacing=None):
-    ''' Utility function which can be used to stitch galsim images
-    toghether so multiple are included in the same stamp.'''
-    
+    """
+    Stitch multiple images together to create a single composite image.
+
+    Args:
+        images (list): A list of images to be stitched together.
+        direction (str, optional): The direction of stitching. Can be 'horizontal' or 'vertical'. Defaults to 'horizontal'.
+        spacing (int, optional): The spacing between images. If None, images will be stitched with no gap between them. Defaults to None.
+
+    Returns:
+        galsim.ImageF: The stitched composite image.
+
+    Raises:
+        None
+
+    """
     # read in sizes of the individual images
     # MUST BE SAME FOR ALL IMAGES RIGHT NOW
     nx = images[0].xmax

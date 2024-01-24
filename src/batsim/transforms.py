@@ -101,13 +101,13 @@ class IaTransform(object):
         npix = np.sqrt(len(coords[0]))
         size_ratio = (npix/2 * self.scale) / self.hlr
         
-        if size_ratio < 2.5:
-            warnings.simplefilter("always")
-            warning_message = ("The stamp provided is only %1.2f"
-                               " times larger than the galaxy. To ensure" 
-                               " accurate results, the stamp needs to be at"
-                               " least 2.5 times larger.")%size_ratio
-            warnings.warn(warning_message)
+        # if size_ratio < 2.5:
+        #     warnings.simplefilter("always")
+        #     warning_message = ("The stamp provided is only %1.2f"
+        #                        " times larger than the galaxy. To ensure" 
+        #                        " accurate results, the stamp needs to be at"
+        #                        " least 2.5 times larger.")%size_ratio
+        #     warnings.warn(warning_message)
             
         # unpack x and y coordinates
         coords_relative = coords - self.ref_vec

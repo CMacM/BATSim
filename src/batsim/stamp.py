@@ -1,5 +1,6 @@
 import galsim
 import numpy as np
+import warnings
 
 class Stamp(object):
     def __init__(self, coords=None, nn=32, scale=0.2, centering='fpfs'):
@@ -57,3 +58,28 @@ class Stamp(object):
         self.transformed = True
         return
     
+def interp_and_convolve(gal_arr, psf_obj, scale):
+    """
+    Interpolates the given galaxy array as a galsim image, 
+    and then convolves it with a given PSF object.
+
+    Parameters:
+    - gal_arr (numpy.ndarray): The galaxy flux array.
+    - psf_obj (galsim.GSObject): The Point Spread Function (PSF) object.
+    - scale (float): The scale of the image.
+
+    Returns:
+    - convolved (galsim.GSObject): The convolved object.
+
+    """
+
+    # draw an image from the batsim flux array
+    gal_im = galsim.Image(gal_arr, scale=scale)
+    
+    # intepolate the batsim image as a galsim object
+    gal_obj = galsim.InterpolatedImage(gal_im, scale=scale,  normalization='sb', depixelize=False)
+    
+    # convolve interpolated object with PSF 
+    convolved = galsim.Convolve([gal_obj, psf_obj])
+    
+    return convolved
