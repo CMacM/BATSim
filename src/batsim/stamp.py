@@ -1,6 +1,7 @@
 import galsim
 import numpy as np
 import warnings
+import cpplayer
 
 class Stamp(object):
     def __init__(self, coords=None, nn=32, scale=0.2, centering='fpfs'):
@@ -47,7 +48,8 @@ class Stamp(object):
             outcome (ndarray):  2D galaxy image on the grids
         """
         
-        pixel_values = np.array([gal_obj.xValue(cc + self.centering) for cc in self.coords.T])
+        #pixel_values = np.array([gal_obj.xValue(cc + self.centering) for cc in self.coords.T])
+        pixel_values = cpplayer.getFluxvec(gal_obj._sbp, (self.coords.T + self.centering))
 
         return np.reshape(pixel_values, self.shape)
 

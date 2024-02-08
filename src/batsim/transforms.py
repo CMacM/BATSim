@@ -57,7 +57,7 @@ class IaTransform(object):
         as a function of distance from the center of a galaxy.
     """
     def __init__(self, scale, hlr, A=0.00136207, phi=0,
-                 beta=0.82404653, center=None):
+                 beta=0.82404653, center=None, clip_radius=5):
         """
             Args:
                 scale : The scale of the pixels in arcsec (float)
@@ -89,6 +89,7 @@ class IaTransform(object):
         self.hlr = hlr
         self.xcen = center[0]
         self.ycen = center[1]
+        self.clip_radius = clip_radius
 
         return
 
@@ -111,6 +112,7 @@ class IaTransform(object):
             
         # unpack x and y coordinates
         coords_relative = coords - self.ref_vec
+
         x, y = coords_relative
         
         g1, g2 = self.get_g1g2(x,y) 
@@ -118,8 +120,10 @@ class IaTransform(object):
         # transform coordinates with raidal dependence
         x_prime = ((1 - g1)*x - g2*y)
         y_prime = ((1 + g1)*y - g2*x)
+        
+        coords_realtive_transformed = np.array([x_prime, y_prime])
 
-        return np.array([x_prime, y_prime]) + self.ref_vec
+        return coords_realtive_transformed + self.ref_vec
 
     def get_g1g2(self,x,y):
         """
@@ -129,8 +133,10 @@ class IaTransform(object):
         """
 
         # find distance from image center as ratio to hlr
-        radial_dist = np.sqrt(abs(x - self.xcen)**2 + abs(y - self.ycen)**2)
+        radial_dist = np.sqrt(abs(x)**2 + abs(y)**2)
         rwf = (radial_dist) / self.hlr
+        allow_shear = rwf <= self.clip_radius
+        rwf = rwf * allow_shear
 
         # compute alignment amplitude at radius
         A_rwf = self.A * rwf**self.beta
