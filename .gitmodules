@@ -1,0 +1,3 @@
+[submodule "extern/GalSim"]
+	path = extern/GalSim
+	url = https://github.com/GalSim-developers/GalSim.git
