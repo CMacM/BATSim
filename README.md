@@ -12,10 +12,18 @@ To install, first clone the repository:
 ```shell
 git clone https://github.com/CMacM/BATSim.git
 ```
-Then change to the cloned directiory and run pip install to build from the pyproject.toml file.
+
+Next we need to build GalSim as a submodule and build its shared c++ library for BATSim to interface with. IMPORTANT: GalSim should be built from the submodule directory as specified, this is to ensure the GalSim python bindings are compiled against the same libraries as the BATSim libraries.
 ```shell
-cd BATSim
-pip install -e . --user
+cd BATSim/extern/GalSim
+pip install . --user
+python setup.py build_shared_clib
+```
+
+Finally, we can change back to the BATSim parent directory and pip install.
+```shell
+cd ../..
+pip install . --user
 ```
 
 ![BATSim Logo](batsim_logo.png)

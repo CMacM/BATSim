@@ -1,7 +1,7 @@
 import galsim
 import numpy as np
 import warnings
-import cpplayer
+from . import _gsinterface
 
 class Stamp(object):
     def __init__(self, coords=None, nn=32, scale=0.2, centering='fpfs'):
@@ -49,9 +49,12 @@ class Stamp(object):
         """
         
         #pixel_values = np.array([gal_obj.xValue(cc + self.centering) for cc in self.coords.T])
-        pixel_values = cpplayer.getFluxvec(gal_obj._sbp, (self.coords.T + self.centering))
-
-        return np.reshape(pixel_values, self.shape)
+        coords = (self.coords.T + self.centering)
+        x_coords = coords[:,0].tolist()
+        y_coords = coords[:,1].tolist()
+        pixel_values = _gsinterface.getFluxVec(gal_obj._sbp, x_coords, y_coords)
+        self.flux_array = np.reshape(pixel_values, self.shape)
+        return self.flux_array
 
     def transform_grids(self, transform_obj):
         if not hasattr(transform_obj, "transform"):
