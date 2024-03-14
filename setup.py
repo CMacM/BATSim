@@ -67,8 +67,8 @@ gsinterface = Extension(
     runtime_library_dirs=[galsim_lib_path],
     libraries=['galsim', 'galsim.2.5'],
     language='c++',
-    extra_compile_args=['-std=c++11', '-fopenmp', '-O3'],
-    extra_link_args=['-flto','-fopenmp','-Wl,-rpath,'+galsim_lib_path]
+    extra_compile_args=['-std=c++11', '-fopenacc', '-fopenmp', '-O3'],
+    extra_link_args=['-flto', '-fopenacc', '-fopenmp','-Wl,-rpath,'+galsim_lib_path]
 )
 
 scripts = ['src/batsim']

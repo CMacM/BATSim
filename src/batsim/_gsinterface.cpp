@@ -1,16 +1,20 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+
 #include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <vector>
 #include <complex>
 #include <cstring>
+
 #include "GalSim.h"
 #include "fftw3.h"
-#include <omp.h>
 #include <Eigen/Dense>
+
+#include <omp.h>
+#include <openacc.h>
 
 namespace py = pybind11;
 
@@ -32,14 +36,10 @@ std::vector<std::vector<T>> reshapeTo2D(const std::vector<T>& arr) {
     return result;
 }
 
-// Adjust the function to accept a py::object instead of a direct reference
-// to galsim::SBProfile. This allows passing Python objects.
 std::vector<double> getFluxVec(py::object profileObj, 
                                const std::vector<double>& xCoords, 
                                const std::vector<double>& yCoords) {
     galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
-
-    
 
     // Pre-construct a vector of Position objects
     std::vector<galsim::Position<double>> positions;
@@ -50,6 +50,7 @@ std::vector<double> getFluxVec(py::object profileObj,
 
     // Get flux values at multiple x,y coordinates using the pre-constructed positions
     std::vector<double> fluxes(xCoords.size());
+    // OMP
     #pragma omp parallel for
     for(size_t i = 0; i < positions.size(); ++i) {
         double flux = profile.xValue(positions[i]);
@@ -57,6 +58,58 @@ std::vector<double> getFluxVec(py::object profileObj,
     }
     return fluxes;
 }
+
+std::vector<double> getFluxVecGPU(py::object profileObj, 
+                               const std::vector<double>& xCoords, 
+                               const std::vector<double>& yCoords) {
+    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
+    std::vector<double> fluxes(xCoords.size());
+
+    // Transfer data to the GPU and execute the computation
+    #pragma acc data copyin(xCoords, yCoords, profile) copyout(fluxes)
+    {
+        // Pre-construct a vector of Position objects
+        std::vector<galsim::Position<double>> positions;
+        positions.reserve(xCoords.size());
+
+        #pragma acc parallel loop
+        for(size_t i = 0; i < xCoords.size(); ++i) {
+            positions.emplace_back(xCoords[i], yCoords[i]);
+        }
+
+        #pragma acc kernels
+        for(size_t i = 0; i < positions.size(); ++i) {
+            // Directly using xCoords[i], yCoords[i] assuming a hypothetical scenario
+            // where profile.xValue can operate on these directly in a GPU-compatible manner.
+            double flux = profile.xValue(positions[i]);
+            fluxes[i] = flux;
+        }
+    }
+
+    return fluxes;
+}
+
+std::vector<double> getRsqVec(py::object profileObj,
+                              const std::vector<double>& xCoords, 
+                              const std::vector<double>& yCoords,
+                              const double inv_r0_sq) {
+
+    galsim::SBSersic& profile = py::cast<galsim::SBSersic&>(profileObj);
+    std::vector<double> fluxes(xCoords.size());
+
+    std::vector<double> rsq(xCoords.size());
+    #pragma omp parallel for
+    for(size_t i = 0; i < xCoords.size(); ++i) {
+        rsq[i] = (xCoords[i] * xCoords[i] + yCoords[i] * yCoords[i])*inv_r0_sq;
+
+    }
+
+    info = SBSersic::SersicInfo;
+
+   return rsq;
+}
+
+
 
 std::vector<double> convolveImage(py::object gal_obj,
                                   py::object psf_obj,
@@ -178,6 +231,10 @@ PYBIND11_MODULE(_gsinterface, m) {
     m.doc() = "Get flux values at multiple x,y coordinates";
     m.def("getFluxVec", &getFluxVec, "Get flux values at multiple x,y coordinates",
           py::arg("profileObj"), py::arg("xCoords"), py::arg("yCoords"));
+    m.def("getFluxVecGPU", &getFluxVecGPU, "Get flux values at multiple x,y coordinates",
+          py::arg("profileObj"), py::arg("xCoords"), py::arg("yCoords"));
+    m.def("getRsqVec", &getRsqVec, "Get rsq values at multiple x,y coordinates",
+            py::arg("xCoords"), py::arg("yCoords"), py::arg("inv_r0_sq"));
     m.def("version", &version, "Get version of the module");
     m.def("convolveImage", &convolveImage, "Convolve two images",
           py::arg("gal_obj"), py::arg("psf_obj"), py::arg("galx"), py::arg("galy"), 
