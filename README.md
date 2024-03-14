@@ -16,6 +16,8 @@ git clone https://github.com/CMacM/BATSim.git
 Next we need to build GalSim as a submodule and build its shared c++ library for BATSim to interface with. IMPORTANT: GalSim should be built from the submodule directory as specified, this is to ensure the GalSim python bindings are compiled against the same libraries as the BATSim libraries.
 ```shell
 cd BATSim/extern/GalSim
+git submodule init
+git submodule update
 pip install . --user
 python setup.py build_shared_clib
 ```
