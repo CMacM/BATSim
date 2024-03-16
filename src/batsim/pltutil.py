@@ -1,6 +1,6 @@
-import numpy as np
 import galsim
 import matplotlib.pyplot as plt
+import numpy as np
 from astropy.visualization import simple_norm
 
 colors = [
@@ -78,6 +78,7 @@ def make_figure_axes(ny=1, nx=1, square=True):
         raise ValueError("Do not have option: ny=%s, nx=%s" % (ny, nx))
     return fig, axes
 
+
 def determine_cuts(data):
     """
     Determine min_cut and max_cut for the data using median and standard deviation.
@@ -101,7 +102,7 @@ def make_plot_image(data):
     return fig
 
 
-def stitch_images(images, direction='horizontal', spacing=None):
+def stitch_images(images, direction="horizontal", spacing=None):
     """
     Stitch multiple images together to create a single composite image.
 
@@ -126,7 +127,7 @@ def stitch_images(images, direction='horizontal', spacing=None):
     # Check is images should be stitched with no gap between them
     if spacing is None:
         # Check for direction of stitching
-        if direction=='horizontal':
+        if direction == "horizontal":
             # Determine required size of final 'super' image
             # And create an empty canvas to draw to
             Nx = len(images) * nx
@@ -136,18 +137,17 @@ def stitch_images(images, direction='horizontal', spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(xmin = 1 + (i*nx), 
-                                        xmax = nx + (i*nx),
-                                        ymin = 1,
-                                        ymax = ny)
-                                       
+                bounds = galsim.BoundsI(
+                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
+                )
+
                 super_image.setSubImage(bounds, image)
-                
-                i = i + 1 # update for next iteration
+
+                i = i + 1  # update for next iteration
             return super_image
-        
+
         # Same as above but for vertical stitching
-        elif direction=='vertical': 
+        elif direction == "vertical":
             # Determine required size of final 'super' image
             # And create an empty canvas to draw to
             Ny = len(images) * ny
@@ -157,29 +157,29 @@ def stitch_images(images, direction='horizontal', spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(xmin = 1, 
-                                        xmax = nx,
-                                        ymin = 1 + (i*ny),
-                                        ymax = ny + (i*ny))
-                                       
+                bounds = galsim.BoundsI(
+                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
+                )
+
                 super_image.setSubImage(bounds, image)
-            
-                i = i + 1 # update for next iteration
-            return super_image    
+
+                i = i + 1  # update for next iteration
+            return super_image
     # TODO: Allow for empty space to be inserted between images
-    
-def split_image(image, nsplit, direction='horizontal', spacing=None):
-    ''' Utility function which can be used to split galsim images
-    into smaller individual stamps.'''
+
+
+def split_image(image, nsplit, direction="horizontal", spacing=None):
+    """Utility function which can be used to split galsim images
+    into smaller individual stamps."""
     # read in sizes of the image
     Nx = image.xmax
     Ny = image.ymax
     scale = image.scale
-    
+
     # Check if images have gaps between them
     if spacing is None:
         # Check for direction of spliting
-        if direction=='horizontal':
+        if direction == "horizontal":
             # Determine required size of each split image
             nx = Nx / nsplit
             ny = Ny
@@ -190,21 +190,20 @@ def split_image(image, nsplit, direction='horizontal', spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(xmin = 1 + (i*nx), 
-                                        xmax = nx + (i*nx),
-                                        ymin = 1,
-                                        ymax = ny)  
-                
+                bounds = galsim.BoundsI(
+                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
+                )
+
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)
                 # Determine the bounds within which image should be
                 split_images.append(split_image)
-                
-                i = i + 1 # update for next iteration 
+
+                i = i + 1  # update for next iteration
             return split_images
-        
+
         # Same as above but for vertical stitching
-        elif direction=='vertical':
+        elif direction == "vertical":
             # Determine required size of each split image
             ny = Ny / nsplit
             nx = Nx
@@ -215,16 +214,15 @@ def split_image(image, nsplit, direction='horizontal', spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(xmin = 1, 
-                                        xmax = nx,
-                                        ymin = 1 + (i*ny),
-                                        ymax = ny + (i*ny))   
-                
+                bounds = galsim.BoundsI(
+                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
+                )
+
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)
                 # Determine the bounds within which image should be
                 split_images.append(split_image)
-                
-                i = i + 1 # update for next iteration
+
+                i = i + 1  # update for next iteration
             return split_images
     # TODO: Allow for empty space to be inserted between images

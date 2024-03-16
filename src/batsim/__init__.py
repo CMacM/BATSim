@@ -1,18 +1,8 @@
-# Basically copied from the galsim __init__.py
-import os
-from pathlib import Path
-
+# flake8: noqa
 from ._version import __version__
 
 version = __version__
 
-batsim_dir = Path(__file__).parent
-galsim_dir = Path(batsim_dir).parent.parent / 'extern' / 'GalSim'
-include_dir = Path(galsim_dir) / 'include'
-from . import _gsinterface
-lib_file = os.path.abspath(_gsinterface.__file__)
-
+from . import WCS, _gsinterface, pltutil, stamp
+from .sim import *
 from .transforms import *
-from .stamp import *
-from .pltutil import *
-#from . import WCS

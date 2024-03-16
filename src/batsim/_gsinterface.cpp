@@ -1,185 +1,102 @@
 #include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-#include <algorithm>
-#include <iostream>
-#include <cmath>
+#include <pybind11/numpy.h>
+#include "GalSim.h"
+#include <omp.h>
 #include <vector>
 #include <complex>
-#include <cstring>
-#include "GalSim.h"
-#include "fftw3.h"
-#include <omp.h>
-#include <Eigen/Dense>
 
 namespace py = pybind11;
 
-template <typename T>
-std::vector<std::vector<T>> reshapeTo2D(const std::vector<T>& arr) {
-    int length = arr.size();
-    int dim = std::sqrt(length);
-    if (dim * dim != length) {
-        throw std::runtime_error("The length of the array is not a perfect square.");
-    }
-    std::vector<std::vector<T>> result(dim, std::vector<T>(dim));
-
-    for (int i = 0; i < length; ++i) {
-        int row = i / dim;
-        int col = i % dim;
-        result[row][col] = arr[i];
+py::array_t<double> getFluxVec(
+    const py::object& profileObj,
+    const py::array_t<double>& xyCoords
+){
+    if (xyCoords.ndim() != 2 || xyCoords.shape(0) != 2) {
+        throw std::runtime_error("xyCoords must be a 2D array with shape (2, n)");
     }
 
+    auto xy = xyCoords.unchecked<2>(); // Access without bounds checking for efficiency
+    size_t n_points = xyCoords.shape(1);
+    std::vector<double> fluxes(n_points);
+
+    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
+    #pragma omp parallel for
+    for(size_t i = 0; i < n_points; ++i) {
+        fluxes[i] = profile.xValue(galsim::Position<double>(xy(0, i), xy(1, i)));
+    }
+
+    size_t dim = std::sqrt(n_points);
+    return py::array_t<double>({dim, dim}, fluxes.data());
+}
+
+// Utility function to generate rfftfreq
+std::vector<double> rfftfreq(int n, double scale) {
+    std::vector<double> result(n/2 + 1);
+    for(int i = 0; i <= n / 2; ++i) {
+        result[i] = i / (scale * n);
+    }
     return result;
 }
 
-// Adjust the function to accept a py::object instead of a direct reference
-// to galsim::SBProfile. This allows passing Python objects.
-std::vector<double> getFluxVec(py::object profileObj, 
-                               const std::vector<double>& xCoords, 
-                               const std::vector<double>& yCoords) {
+// Utility function to generate fftfreq
+std::vector<double> fftfreq(int n, double scale) {
+    std::vector<double> result(n);
+    double val = 1.0 / (n * scale);
+    for(int i = 0; i < n; ++i) {
+        if (i < (n + 1) / 2) {
+            result[i] = i * val;
+        } else {
+            result[i] = (i - n) * val;
+        }
+    }
+    return result;
+}
+
+py::array_t<std::complex<double>> mulFourier(
+    double scale,
+    const py::object& profileObj,
+    const py::array_t<std::complex<double>>& gal_kprof
+){
+
+    // Prepare two kx, ky grids
+    size_t dim_y = gal_kprof.shape(0);
+    size_t dim_x = dim_y / 2 + 1;
+    size_t n_points = dim_x * dim_y;
+    auto x = rfftfreq(dim_y, scale / M_PI / 2.0);
+    auto y = fftfreq(dim_y, scale / M_PI / 2.0);
+
+    // Prepare the output array, galaxy array and psf gsobj
+    auto gal = gal_kprof.unchecked<2>();
+    std::vector<std::complex<double>> fluxes(n_points);
     galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
 
-    
-
-    // Pre-construct a vector of Position objects
-    std::vector<galsim::Position<double>> positions;
-    positions.reserve(xCoords.size());
-    for(size_t i = 0; i < xCoords.size(); ++i) {
-        positions.emplace_back(xCoords[i], yCoords[i]);
-    }
-
-    // Get flux values at multiple x,y coordinates using the pre-constructed positions
-    std::vector<double> fluxes(xCoords.size());
     #pragma omp parallel for
-    for(size_t i = 0; i < positions.size(); ++i) {
-        double flux = profile.xValue(positions[i]);
-        fluxes[i] = flux;
-    }
-    return fluxes;
-}
-
-std::vector<double> convolveImage(py::object gal_obj,
-                                  py::object psf_obj,
-                                  const std::vector<double>& galx,
-                                  const std::vector<double>& galy,
-                                  const std::vector<double>& psfx,
-                                  const std::vector<double>& psfy,
-                                  const double& rescale) {
-
-    // Get flux values at multiple x,y coordinates using the pre-constructed positions
-    std::vector<double> gal_fluxes = getFluxVec(gal_obj, galx, galy);  
-    std::vector<double> psf_fluxes = getFluxVec(psf_obj, psfx, psfy);
-
-    // Define sizes and required padding
-    const int gal_nn = sqrt(galx.size());
-    const int psf_nn = sqrt(psfx.size());
-
-    int pad_width = 0;
-    if (gal_nn > psf_nn) {
-        pad_width = (gal_nn - psf_nn) / 2;
-    }
-    else if (psf_nn > gal_nn) {
-        pad_width = (psf_nn - gal_nn) / 2;
+    for(size_t i = 0; i < n_points; ++i) {
+        fluxes[i] = gal(i / dim_x, i % dim_x) * profile.kValue(
+            galsim::Position<double>(
+                x[i % dim_x],
+                y[i / dim_x]
+            )
+        );
     }
 
-    // Compute sizes for cropping in Fourier space
-    const int nn_cut = int(gal_nn / rescale);
-    const int maxN = gal_nn / 2 + nn_cut / 2;
-    const int minN = gal_nn / 2 - nn_cut / 2;
-
-    // Allocate FFTW complex arrays for forward and backward transforms
-    fftw_complex *gal_data, *psf_data, *conv_data, *cropped_data;
-    fftw_plan p_fwd_gal, p_fwd_psf, p_bwd_conv;
-
-    gal_data = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * gal_nn * gal_nn);
-    psf_data = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * gal_nn * gal_nn); // Padding to galaxy size
-    conv_data = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * gal_nn * gal_nn);
-    cropped_data = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * nn_cut * nn_cut);
-
-    // Plans for forward and inverse FFTs
-    p_fwd_gal = fftw_plan_dft_2d(gal_nn, gal_nn, gal_data, gal_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    p_fwd_psf = fftw_plan_dft_2d(gal_nn, gal_nn, psf_data, psf_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    p_bwd_conv = fftw_plan_dft_2d(nn_cut, nn_cut, cropped_data, cropped_data, FFTW_BACKWARD, FFTW_ESTIMATE);
-
-    // Copy galaxy data into the FFTW input
-    #pragma omp parallel for
-    for (int i = 0; i < gal_nn; ++i) {
-        for (int j = 0; j < gal_nn; ++j) {
-            int index = i * gal_nn + j;
-            gal_data[index][0] = gal_fluxes[index]; // Real part
-            gal_data[index][1] = 0; // Imaginary part is zero
-        }
-    }
-
-    // Zero-pad and copy PSF data into the FFTW input
-    memset(psf_data, 0, sizeof(fftw_complex) * gal_nn * gal_nn); // Initialize with zeros
-    #pragma omp parallel for
-    for (int i = 0; i < psf_nn; ++i) {
-        for (int j = 0; j < psf_nn; ++j) {
-            int index = (i + pad_width) * gal_nn + (j + pad_width);
-            psf_data[index][0] = psf_fluxes[i * psf_nn + j]; // Real part
-            psf_data[index][1] = 0; // Imaginary part is zero
-        }
-    }
-
-    // Execute forward FFTs
-    fftw_execute(p_fwd_gal);
-    fftw_execute(p_fwd_psf);
-
-    // Multiply in frequency domain (convolution)
-    #pragma omp parallel for
-    for (int i = 0; i < gal_nn * gal_nn; ++i) {
-        conv_data[i][0] = (gal_data[i][0] * psf_data[i][0] - gal_data[i][1] * psf_data[i][1]) / (gal_nn * gal_nn);
-        conv_data[i][1] = (gal_data[i][0] * psf_data[i][1] + gal_data[i][1] * psf_data[i][0]) / (gal_nn * gal_nn);
-    }
-
-    // Crop in Fourier space (select a smaller region)
-    #pragma omp parallel for
-    for (int i = minN; i < maxN; ++i) {
-        for (int j = minN; j < maxN; ++j) {
-            int index_src = i * gal_nn + j;
-            int index_dst = (i - minN) * nn_cut + (j - minN);
-            cropped_data[index_dst][0] = conv_data[index_src][0];
-            cropped_data[index_dst][1] = conv_data[index_src][1];
-        }
-    }
-
-    // Execute inverse FFT on the cropped data
-    fftw_execute(p_bwd_conv);
-
-    // Output the real part of the result, normalized
-    std::vector<double> real_prof(nn_cut * nn_cut);
-    #pragma omp parallel for
-    for (int i = 0; i < nn_cut; ++i) {
-        for (int j = 0; j < nn_cut; ++j) {
-            int index = i * nn_cut + j;
-            // Normalize by the size of the transform to account for FFTW's unnormalized IFFT
-            real_prof[index] = cropped_data[index][0] / (nn_cut * nn_cut);
-        }
-    }
-
-    // Cleanup
-    fftw_destroy_plan(p_fwd_gal);
-    fftw_destroy_plan(p_fwd_psf);
-    fftw_destroy_plan(p_bwd_conv);
-    fftw_free(gal_data);
-    fftw_free(psf_data);
-    fftw_free(conv_data);
-    fftw_free(cropped_data);
-
-    return real_prof;
-}
-
-std::string version() {
-    return galsim::version();
+    return py::array_t<std::complex<double>>({dim_y, dim_x}, fluxes.data());
 }
 
 PYBIND11_MODULE(_gsinterface, m) {
-    m.doc() = "Get flux values at multiple x,y coordinates";
-    m.def("getFluxVec", &getFluxVec, "Get flux values at multiple x,y coordinates",
-          py::arg("profileObj"), py::arg("xCoords"), py::arg("yCoords"));
-    m.def("version", &version, "Get version of the module");
-    m.def("convolveImage", &convolveImage, "Convolve two images",
-          py::arg("gal_obj"), py::arg("psf_obj"), py::arg("galx"), py::arg("galy"), 
-          py::arg("psfx"), py::arg("psfy"), py::arg("rescale"));
+    m.doc() = "Pybind11 interface for GalSim flux and Fourier computations";
+    m.def(
+        "getFluxVec", &getFluxVec,
+            "Get flux values at multiple x,y coordinates",
+        py::arg("profileObj"),
+        py::arg("xyCoords")
+    );
+    m.def(
+        "mulFourier", &mulFourier,
+            "Get Fourier transform values at multiple kx, ky coordinates",
+        py::arg("scale"),
+        py::arg("profileObj"),
+        py::arg("gal_kprof")
+    );
 }
