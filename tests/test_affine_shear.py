@@ -40,7 +40,7 @@ def test_affine_galsim(gamma1=0.2, gamma2=0.0, kappa=0.0):
     gal_galsim = (
         sersic_gal.lens(g1=g1, g2=g2, mu=mu)
         .shift(0.5 * scale, 0.5 * scale)
-        .drawImage(nx=64, ny=64, scale=scale, method="no_pixel")
+        .drawImage(nx=nn, ny=nn, scale=scale, method="no_pixel")
     )
     # use no_pixel to draw image's flux but do not use pixel top-hat response
     gal_galsim = gal_galsim.array

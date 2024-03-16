@@ -29,27 +29,30 @@ def simulate_galaxy(
     outcome (ndarray):  2D galaxy image on the grids
     """
     if psf_obj is not None:
-        npad = int(psf_obj.calculateFWHM() / scale + 0.5) * 4
+        npad = int(psf_obj.calculateFWHM() / scale + 0.5) * 2
     else:
         npad = 0
-    stamp = Stamp(nn=nn + npad * 2, scale=scale)
+
+    nn_new = max(int(2 ** np.ceil(np.log2(nn + npad * 2))), 64)
+    off = int(nn_new - nn) // 2
+    nn = nn_new
+
+    stamp = Stamp(nn=nn, scale=scale)
     if transform_obj is not None:
         # Distort galaxy
         gal_coords = transform_obj.transform(stamp.coords)
     else:
         gal_coords = stamp.coords
-    gal_prof = _gsinterface.getFluxVec(gal_obj._sbp, gal_coords)
+    gal_prof = _gsinterface.getFluxVec(gal_obj._sbp, gal_coords) * stamp.pixel_area
 
     if psf_obj is not None:
         # Convolution in Fourier space
-        psf_coords = stamp.coords
-        gal_kprof = _gsinterface.mulFourier(
+        gal_prof = _gsinterface.convolvePsf(
             scale,
             psf_obj._sbp,
-            rfft2(gal_prof),
+            gal_prof,
         )
-        gal_prof = irfft2(gal_kprof, stamp.shape)[npad:-npad, npad:-npad]
 
-    # normailize to flux
-    gal_prof = gal_prof * stamp.pixel_area
+    if off > 0:
+        gal_prof = gal_prof[off:-off, off:-off]
     return gal_prof

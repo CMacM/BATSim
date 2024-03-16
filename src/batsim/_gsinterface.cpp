@@ -1,10 +1,12 @@
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include "GalSim.h"
 #include <omp.h>
 #include <vector>
 #include <complex>
+#include <fftw3.h>
+#include <cmath>
+
 
 namespace py = pybind11;
 
@@ -53,35 +55,74 @@ std::vector<double> fftfreq(int n, double scale) {
     return result;
 }
 
-py::array_t<std::complex<double>> mulFourier(
+
+
+py::array_t<double> convolvePsf(
     double scale,
     const py::object& profileObj,
-    const py::array_t<std::complex<double>>& gal_kprof
+    const py::array_t<double>& gal_prof
 ){
+    auto input_buf = gal_prof.request();
+    size_t dim = input_buf.shape[0];
 
-    // Prepare two kx, ky grids
-    size_t dim_y = gal_kprof.shape(0);
-    size_t dim_x = dim_y / 2 + 1;
-    size_t n_points = dim_x * dim_y;
-    auto x = rfftfreq(dim_y, scale / M_PI / 2.0);
-    auto y = fftfreq(dim_y, scale / M_PI / 2.0);
+    // Allocate FFTW arrays
+    double* in = fftw_alloc_real(dim * dim);
+    fftw_complex* out = fftw_alloc_complex(dim * (dim / 2 + 1));
 
-    // Prepare the output array, galaxy array and psf gsobj
-    auto gal = gal_kprof.unchecked<2>();
-    std::vector<std::complex<double>> fluxes(n_points);
+    // Copy the input data to FFTW input
+    std::memcpy(in, input_buf.ptr, sizeof(double) * dim * dim);
+
+    // Plan and execute forward FFT
+    fftw_plan p_forward = fftw_plan_dft_r2c_2d(dim, dim, in, out, FFTW_ESTIMATE);
+    fftw_execute(p_forward);
+
+    // Frequency grids
+    auto x_freqs = rfftfreq(dim, scale / M_PI / 2.0);
+    auto y_freqs = fftfreq(dim, scale / M_PI / 2.0);
+    // Galsim object
     galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
 
+    // Process FFT result using profileObj
     #pragma omp parallel for
-    for(size_t i = 0; i < n_points; ++i) {
-        fluxes[i] = gal(i / dim_x, i % dim_x) * profile.kValue(
-            galsim::Position<double>(
-                x[i % dim_x],
-                y[i / dim_x]
-            )
-        );
+    for (size_t y = 0; y < dim; ++y) {
+        for (size_t x = 0; x < (dim / 2 + 1); ++x) {
+            size_t index = y * (dim / 2 + 1) + x;
+            std::complex<double> fft_val(out[index][0], out[index][1]);
+            std::complex<double> result = fft_val * profile.kValue(
+                galsim::Position<double>(
+                    x_freqs[x],
+                    y_freqs[y]
+                )
+            );
+            out[index][0] = result.real();
+            out[index][1] = result.imag();
+        }
     }
 
-    return py::array_t<std::complex<double>>({dim_y, dim_x}, fluxes.data());
+    // Allocate array for inverse FFT result
+    double* ifft_out = fftw_alloc_real(dim * dim);
+
+    // Plan and execute inverse FFT
+    fftw_plan p_backward = fftw_plan_dft_c2r_2d(dim, dim, out, ifft_out, FFTW_ESTIMATE);
+    fftw_execute(p_backward);
+
+    // Normalize the inverse FFT result
+    for (size_t i = 0; i < dim * dim; ++i) {
+        ifft_out[i] /= (dim * dim);
+    }
+
+    // Wrap the result in a numpy array
+    auto result = py::array_t<double>(input_buf.size, ifft_out);
+    result.resize({dim, dim});
+
+    // Cleanup
+    fftw_destroy_plan(p_forward);
+    fftw_destroy_plan(p_backward);
+    fftw_free(in);
+    fftw_free(out);
+    fftw_free(ifft_out);
+
+    return result;
 }
 
 PYBIND11_MODULE(_gsinterface, m) {
@@ -93,10 +134,10 @@ PYBIND11_MODULE(_gsinterface, m) {
         py::arg("xyCoords")
     );
     m.def(
-        "mulFourier", &mulFourier,
-            "Get Fourier transform values at multiple kx, ky coordinates",
+        "convolvePsf", &convolvePsf,
+            "Convolve galaxy profile with PSF",
         py::arg("scale"),
         py::arg("profileObj"),
-        py::arg("gal_kprof")
+        py::arg("gal_prof")
     );
 }
