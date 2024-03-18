@@ -29,15 +29,13 @@ class CustomBuildExt(build_ext):
         if conda_prefix:
             include_dirs.append(os.path.join(conda_prefix, "include"))
             include_dirs.append(os.path.join(conda_prefix, "include/galsim"))
-            include_dirs.append(
-                os.path.join(conda_prefix, "include/eigen3/Eigen")
-            )
+            include_dirs.append(os.path.join(conda_prefix, "include/eigen3/"))
             lib_dirs.append(os.path.join(conda_prefix, "lib"))
         else:
             # Fallback or other logic to locate GalSim
             include_dirs.append("/usr/local/include")
             include_dirs.append("/usr/local/include/galsim")
-            include_dirs.append("/usr/local/include/eigen3/Eigen")
+            include_dirs.append("/usr/local/include/eigen3")
             lib_dirs.append("/usr/local/lib")
 
         return include_dirs, lib_dirs
