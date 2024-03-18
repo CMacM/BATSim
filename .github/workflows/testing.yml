@@ -42,7 +42,7 @@ jobs:
 
         python -m pip install --upgrade pip
         pip install -U setuptools
-        echo "$(ls /usr/share/miniconda/envs/test/include/)"
+        echo "$(ls /usr/share/miniconda/envs/test/include/eigen3/)"
 
         pip install . --user
 
