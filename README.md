@@ -7,24 +7,22 @@ sampled onto this distorted grid, the resulting image will be sheared due to
 the transformation of the pixel grid.
 
 Non-affine transforms can simualate complex shear effects such as intrinsic
-alignment, flexion, and field distrotion maps. Custom transform functions can
-also be passed to Stamp objects.
+alignment, flexion, and optical field distrotion maps. Custom transform
+functions can also be passed to Stamp objects.
 
 ## Installation
 
 The package is not currently available on PyPI while in early development.
 
-To install, first clone the repository:
+First clone the repository:
 ```shell
 git clone https://github.com/CMacM/BATSim.git
 ```
 
-Next we need to build GalSim as a submodule and build its shared c++ library
-for BATSim to interface with. IMPORTANT: GalSim should be built from the
-submodule directory as specified, this is to ensure the GalSim python bindings
-are compiled against the same libraries as the BATSim libraries.
+Then install the package
 ```shell
 cd BATSim
+conda install --file requirements.txt -c conda-forge
 pip install . --user
 ```
 
