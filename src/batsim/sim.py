@@ -23,6 +23,8 @@ def simulate_galaxy(
     gal_obj (galsim):   Galsim galaxy object to sample on the grids
     transform_obj :     Coordinate transform object
     psf_obj (galsim):   Galsim PSF object to smear the image
+    truncation_ratio (float):
+                        ratio of the truncation to the momentum radius of galaxy
 
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
@@ -35,16 +37,17 @@ def simulate_galaxy(
         downsample_ratio = 1
     else:
         scale = min(gal_obj.nyquist_scale, psf_obj.nyquist_scale / 4.0)
-        scale = min(scale, pix_scale * 0.5)
+        scale = min(scale, pix_scale / 4.0)
         pad_arcsec = psf_obj.calculateFWHM()
         # set the maximum oversample ratio to 32
-        downsample_ratio = int(min(np.floor(pix_scale / scale), 32))
+        downsample_ratio = int(np.ceil(pix_scale / scale))
         scale = pix_scale / downsample_ratio
 
     # Get number of grids to generate simulation
-    npad = int(pad_arcsec / scale + 0.5) * 2
+    npad = int(pad_arcsec / scale + 0.5) * 4
     nn = int(gal_obj.calculateMomentRadius() / scale * truncation_ratio) + npad * 2
     nn = max(int(2 ** np.ceil(np.log2(nn))), ngrid * downsample_ratio)
+    # print(downsample_ratio, nn)
 
     # Initialize and Distort Coordinates
     stamp = Stamp(nn=nn, scale=scale)
