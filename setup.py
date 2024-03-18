@@ -7,13 +7,14 @@ class CustomBuildExt(build_ext):
     def run(self):
         # Dynamically set include_dirs and library_dirs before building
         # extensions
-        galsim_include, galsim_lib, galsim_include2 = self.find_galsim_paths()
+        include_dirs, lib_dirs = self.find_galsim_paths()
 
         for ext in self.extensions:
-            ext.include_dirs.append(galsim_include)
-            ext.include_dirs.append(galsim_include2)
-            ext.library_dirs.append(galsim_lib)
-            ext.runtime_library_dirs.append(galsim_lib)  # For Linux
+            for _ in include_dirs:
+                ext.include_dirs.append(_)
+            for _ in lib_dirs:
+                ext.library_dirs.append(_)
+                ext.runtime_library_dirs.append(_)  # For Linux
 
         super().run()
 
@@ -23,18 +24,21 @@ class CustomBuildExt(build_ext):
 
         # Example: Assuming GalSim is installed in a conda environment
         conda_prefix = os.environ.get("CONDA_PREFIX")
+        include_dirs = []
+        lib_dirs = []
         if conda_prefix:
-            galsim_include = os.path.join(conda_prefix, "include")
-            galsim_include2 = os.path.join(
-                conda_prefix, "include/galsim")
-            galsim_lib = os.path.join(conda_prefix, "lib")
+            include_dirs.append(os.path.join(conda_prefix, "include"))
+            include_dirs.append(os.path.join(conda_prefix, "include/galsim"))
+            include_dirs.append(os.path.join(conda_prefix, "include/Eigen"))
+            lib_dirs.append(os.path.join(conda_prefix, "lib"))
         else:
             # Fallback or other logic to locate GalSim
-            galsim_include = "/usr/local/include"
-            galsim_include2 = "/usr/local/include/galsim"
-            galsim_lib = "/usr/local/lib"
+            include_dirs.append("/usr/local/include")
+            include_dirs.append("/usr/local/include/galsim")
+            include_dirs.append("/usr/local/include/Eigen")
+            lib_dirs.append("/usr/local/lib")
 
-        return galsim_include, galsim_lib, galsim_include2
+        return include_dirs, lib_dirs
 
 
 # Define your extension module
