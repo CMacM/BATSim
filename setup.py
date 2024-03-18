@@ -1,6 +1,7 @@
 import os
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
+import pybind11
 
 
 class CustomBuildExt(build_ext):
@@ -45,6 +46,7 @@ class CustomBuildExt(build_ext):
 gsinterface = Extension(
     "batsim._gsinterface",
     sources=["src/batsim/_gsinterface.cpp"],
+    include_dirs=[pybind11.get_include()],
     libraries=["galsim"],
     language="c++",
     extra_compile_args=["-std=c++11", "-fopenmp", "-O3"],

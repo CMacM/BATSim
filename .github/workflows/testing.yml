@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
 
     steps:
     - name: Git checkout currect repo
@@ -39,7 +39,7 @@ jobs:
         conda config --set always_yes yes
         conda install mamba
         mamba install flake8 pytest numpy galsim black fitsio \
-          matplotlib astropy pybind11==2.10.4
+          matplotlib astropy pybind11
 
         python -m pip install --upgrade pip
         pip install -U setuptools
