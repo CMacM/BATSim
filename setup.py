@@ -1,18 +1,17 @@
 import os
-import sys
-
-import pybind11
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 
 class CustomBuildExt(build_ext):
     def run(self):
-        # Dynamically set include_dirs and library_dirs before building extensions
-        galsim_include, galsim_lib = self.find_galsim_paths()
+        # Dynamically set include_dirs and library_dirs before building
+        # extensions
+        galsim_include, galsim_lib, galsim_include2 = self.find_galsim_paths()
 
         for ext in self.extensions:
             ext.include_dirs.append(galsim_include)
+            ext.include_dirs.append(galsim_include2)
             ext.library_dirs.append(galsim_lib)
             ext.runtime_library_dirs.append(galsim_lib)  # For Linux
 
@@ -26,13 +25,16 @@ class CustomBuildExt(build_ext):
         conda_prefix = os.environ.get("CONDA_PREFIX")
         if conda_prefix:
             galsim_include = os.path.join(conda_prefix, "include")
+            galsim_include2 = os.path.join(
+                conda_prefix, "include/galsim")
             galsim_lib = os.path.join(conda_prefix, "lib")
         else:
             # Fallback or other logic to locate GalSim
             galsim_include = "/usr/local/include"
+            galsim_include2 = "/usr/local/include/galsim"
             galsim_lib = "/usr/local/lib"
 
-        return galsim_include, galsim_lib
+        return galsim_include, galsim_lib, galsim_include2
 
 
 # Define your extension module

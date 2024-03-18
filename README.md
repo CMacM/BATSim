@@ -24,22 +24,10 @@ for BATSim to interface with. IMPORTANT: GalSim should be built from the
 submodule directory as specified, this is to ensure the GalSim python bindings
 are compiled against the same libraries as the BATSim libraries.
 ```shell
-# update submodule
 cd BATSim
-git submodule update --init --recursive
-
-# build Galsim
-cd BATSim/extern/GalSim
-pip install . --user
-python setup.py build_shared_clib
-```
-
-Finally, we can change back to the BATSim parent directory and pip install.
-```shell
-cd ../..
 pip install . --user
 ```
 
-![BATSim Logo](batsim_logo.png)
+![BATSim Logo](./image/batsim_logo.png)
 
 (repo icon created using images by Frepik and brgfx on Freepik)
