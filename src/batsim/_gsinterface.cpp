@@ -100,7 +100,7 @@ py::array_t<double> convolvePsf(
     fftw_execute(p_forward);
 
     // Galsim object
-    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
+    const galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
 
     // Process FFT result using gsobj
     #pragma omp parallel for
@@ -144,23 +144,37 @@ py::array_t<double> convolvePsf(
 
     int dim2_center = dim2 / 2;
     int res_center = ngrid / 2;
-    int start_x = std::max(0, res_center - dim2_center);
-    int start_y = std::max(0, res_center - dim2_center);
-    int end_x = std::min(ngrid, res_center + dim2_center + 1);
-    int end_y = std::min(ngrid, res_center + dim2_center + 1);
 
     // Normalize the inverse FFT result
-    const size_t norm_factor = dim2 * dim2;
-    for (int y = start_y; y < end_y; ++y) {
-        for (int x = start_x; x < end_x; ++x) {
-            // Calculate the corresponding source index in ifft_out
-            int xf = x - res_center + dim2_center;
+    const int norm_factor = dim2 * dim2;
+    if (dim2_center >= res_center) {
+        // shrinking
+        int start = 0;
+        int end = ngrid;
+        for (int y = start; y < end; ++y) {
             int yf = y - res_center + dim2_center;
-            if (xf >= 0 && xf < dim2 && yf >= 0 && yf < dim2) {
+            for (int x = start; x < end; ++x) {
+                // Calculate the corresponding source index in ifft_out
+                int xf = x - res_center + dim2_center;
                 // Copy and normalize
                 r(y, x) = ifft_out[yf * dim2 + xf] / norm_factor;
             }
         }
+    }
+    else {
+        // padding zeros
+        int start = res_center - dim2_center;
+        int end = res_center + dim2_center;
+        for (int y = start; y < end; ++y) {
+            int yf = y - res_center + dim2_center;
+            for (int x = start; x < end; ++x) {
+                // Calculate the corresponding source index in ifft_out
+                int xf = x - res_center + dim2_center;
+                // Copy and normalize
+                r(y, x) = ifft_out[yf * dim2 + xf] / norm_factor;
+            }
+        }
+
     }
 
     // Cleanup fftw

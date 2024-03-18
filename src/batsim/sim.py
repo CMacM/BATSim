@@ -5,14 +5,7 @@ from . import _gsinterface
 from .stamp import Stamp
 
 
-def simulate_galaxy(
-    ngrid,
-    pix_scale,
-    gal_obj,
-    transform_obj=None,
-    psf_obj=None,
-    truncation_ratio=20.0,
-):
+def simulate_galaxy(ngrid, pix_scale, gal_obj, transform_obj=None, psf_obj=None, truncate_ratio=1.0):
     """The function samples the surface density field of a galaxy at the grids
     This function only conduct sampling; PSF and pixel response are not
     included.
@@ -23,8 +16,8 @@ def simulate_galaxy(
     gal_obj (galsim):   Galsim galaxy object to sample on the grids
     transform_obj :     Coordinate transform object
     psf_obj (galsim):   Galsim PSF object to smear the image
-    truncation_ratio (float):
-                        ratio of the truncation to the momentum radius of galaxy
+    truncate_ratio (float):
+                        truncate at truncate_ratio times good_image_size
 
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
@@ -38,15 +31,23 @@ def simulate_galaxy(
     else:
         scale = min(gal_obj.nyquist_scale, psf_obj.nyquist_scale / 4.0)
         scale = min(scale, pix_scale / 4.0)
-        pad_arcsec = psf_obj.calculateFWHM()
-        # set the maximum oversample ratio to 32
-        downsample_ratio = int(np.ceil(pix_scale / scale))
+        pad_arcsec = psf_obj.calculateMomentRadius(
+            size=32,
+            scale=pix_scale / 2.0,
+        )
+        # set the maximum oversample ratio to 64
+        dr = int(2 ** np.ceil(np.log2(pix_scale / scale)))
+        downsample_ratio = min(dr, 128)
         scale = pix_scale / downsample_ratio
 
     # Get number of grids to generate simulation
     npad = int(pad_arcsec / scale + 0.5) * 4
-    nn = int(gal_obj.calculateMomentRadius() / scale * truncation_ratio) + npad * 2
-    nn = max(int(2 ** np.ceil(np.log2(nn))), ngrid * downsample_ratio)
+    nn = npad * 2 + min(
+        gal_obj.getGoodImageSize(pixel_scale=scale) * truncate_ratio,
+        ngrid * downsample_ratio,
+    )
+    # set a upper limit of the stampe size for the simulation
+    nn = min(int(2 ** np.ceil(np.log2(nn))), 4096)
     # print(downsample_ratio, nn)
 
     # Initialize and Distort Coordinates
