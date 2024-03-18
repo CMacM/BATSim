@@ -38,7 +38,8 @@ jobs:
       run: |
         conda config --set always_yes yes
         conda install mamba
-        mamba install flake8 pytest numpy galsim black fitsio matplotlib astropy
+        mamba install flake8 pytest numpy galsim black fitsio \
+          matplotlib astropy pybind11==2.10.4
 
         python -m pip install --upgrade pip
         pip install -U setuptools
