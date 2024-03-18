@@ -26,8 +26,8 @@ def test_affine_galsim(gamma1=0.2, gamma2=0.0, kappa=0.0):
 
     # get galaxy array from stamp object
     gal_array = batsim.simulate_galaxy(
-        nn=nn,
-        scale=scale,
+        ngrid=nn,
+        pix_scale=scale,
         gal_obj=sersic_gal,
         transform_obj=lens,
     )

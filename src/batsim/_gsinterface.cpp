@@ -11,24 +11,28 @@
 namespace py = pybind11;
 
 py::array_t<double> getFluxVec(
-    const py::object& profileObj,
-    const py::array_t<double>& xyCoords
+    const double scale,
+    const py::object& gsobj,
+    const py::array_t<double>& xy_coords
 ){
-    if (xyCoords.ndim() != 2 || xyCoords.shape(0) != 2) {
-        throw std::runtime_error("xyCoords must be a 2D array with shape (2, n)");
+    if (xy_coords.ndim() != 2 || xy_coords.shape(0) != 2) {
+        throw std::runtime_error("xy_coords must be a 2D array with shape (2, n)");
     }
 
-    auto xy = xyCoords.unchecked<2>(); // Access without bounds checking for efficiency
-    size_t n_points = xyCoords.shape(1);
+    auto xy = xy_coords.unchecked<2>();
+    const int n_points = xy_coords.shape(1);
     std::vector<double> fluxes(n_points);
 
-    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
+    double area = scale * scale;
+    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
     #pragma omp parallel for
-    for(size_t i = 0; i < n_points; ++i) {
-        fluxes[i] = profile.xValue(galsim::Position<double>(xy(0, i), xy(1, i)));
+    for(int i = 0; i < n_points; ++i) {
+        fluxes[i] = profile.xValue(
+            galsim::Position<double>(xy(0, i), xy(1, i))
+        ) * area;
     }
 
-    size_t dim = std::sqrt(n_points);
+    int dim = std::sqrt(n_points);
     return py::array_t<double>({dim, dim}, fluxes.data());
 }
 
@@ -55,73 +59,112 @@ std::vector<double> fftfreq(int n, double scale) {
     return result;
 }
 
+bool is_c_contiguous(const py::array& arr) {
+    return arr.flags() & py::array::c_style;
+}
 
-
+// Convolve gal_prof (defined in configuration space) with Galsim PSF object
+// Then perform a down sampling
 py::array_t<double> convolvePsf(
-    double scale,
-    const py::object& profileObj,
-    const py::array_t<double>& gal_prof
+    const double scale,
+    const py::object& gsobj,
+    const py::array_t<double>& gal_prof,
+    const int downsample_ratio,
+    const int ngrid
 ){
-    auto input_buf = gal_prof.request();
-    size_t dim = input_buf.shape[0];
 
-    // Allocate FFTW arrays
-    double* in = fftw_alloc_real(dim * dim);
+    bool test = is_c_contiguous(gal_prof);
+    if (! test) {
+        throw std::runtime_error(
+            "Input galaxy array is not continuous in memory"
+        );
+    }
+    auto info = gal_prof.request();
+    int dim = info.shape[0];
+
+    // down sampled scale and dimension
+    double scale2 = scale * downsample_ratio;
+    int dim2 = dim / downsample_ratio;
+
+    // Frequency grids for the down sampled signal
+    const auto x_freqs2 = rfftfreq(dim2, scale2 / M_PI / 2.0);
+    const auto y_freqs2 = fftfreq(dim2, scale2 / M_PI / 2.0);
+
+    // Allocate FFTW arrays with pointers
+    double* in = static_cast<double*>(info.ptr);
     fftw_complex* out = fftw_alloc_complex(dim * (dim / 2 + 1));
-
-    // Copy the input data to FFTW input
-    std::memcpy(in, input_buf.ptr, sizeof(double) * dim * dim);
+    fftw_complex* out2 = fftw_alloc_complex(dim2 * (dim2 / 2 + 1));
 
     // Plan and execute forward FFT
     fftw_plan p_forward = fftw_plan_dft_r2c_2d(dim, dim, in, out, FFTW_ESTIMATE);
     fftw_execute(p_forward);
 
-    // Frequency grids
-    auto x_freqs = rfftfreq(dim, scale / M_PI / 2.0);
-    auto y_freqs = fftfreq(dim, scale / M_PI / 2.0);
     // Galsim object
-    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(profileObj);
+    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
 
-    // Process FFT result using profileObj
+    // Process FFT result using gsobj
     #pragma omp parallel for
-    for (size_t y = 0; y < dim; ++y) {
-        for (size_t x = 0; x < (dim / 2 + 1); ++x) {
-            size_t index = y * (dim / 2 + 1) + x;
+    for (int y2 = 0; y2 < dim2; ++y2) {
+        int y = (y2 >= dim2 / 2) ? (dim - dim2 + y2) : y2;
+        for (int x2 = 0; x2 < (dim2 / 2 + 1); ++x2) {
+            int x = x2;
+            int index = y * (dim / 2 + 1) + x;
+            int index2 = y2 * (dim2 / 2 + 1) + x2;
             std::complex<double> fft_val(out[index][0], out[index][1]);
             std::complex<double> result = fft_val * profile.kValue(
                 galsim::Position<double>(
-                    x_freqs[x],
-                    y_freqs[y]
+                    x_freqs2[x2],
+                    y_freqs2[y2]
                 )
             );
-            out[index][0] = result.real();
-            out[index][1] = result.imag();
+            out2[index2][0] = result.real();
+            out2[index2][1] = result.imag();
+        }
+    }
+    // Cleanup fftw
+    fftw_destroy_plan(p_forward);
+    fftw_free(out);
+
+    // Allocate array for inverse FFT result
+    double* ifft_out = fftw_alloc_real(dim2 * dim2);
+    // Plan and execute inverse FFT
+    fftw_plan p_backward = fftw_plan_dft_c2r_2d(dim2, dim2, out2, ifft_out, FFTW_ESTIMATE);
+    fftw_execute(p_backward);
+    // Cleanup fftw
+    fftw_destroy_plan(p_backward);
+    fftw_free(out2);
+
+    // Wrap the result in a numpy array
+    // prevent memory leakage
+    auto result = py::array_t<double>({ngrid, ngrid});
+    // Use unchecked for faster access
+    auto r = result.mutable_unchecked<2>();
+    // Fill with 0
+    std::fill(result.mutable_data(), result.mutable_data() + ngrid * ngrid, 0.0);
+
+    int dim2_center = dim2 / 2;
+    int res_center = ngrid / 2;
+    int start_x = std::max(0, res_center - dim2_center);
+    int start_y = std::max(0, res_center - dim2_center);
+    int end_x = std::min(ngrid, res_center + dim2_center + 1);
+    int end_y = std::min(ngrid, res_center + dim2_center + 1);
+
+    // Normalize the inverse FFT result
+    const size_t norm_factor = dim2 * dim2;
+    for (int y = start_y; y < end_y; ++y) {
+        for (int x = start_x; x < end_x; ++x) {
+            // Calculate the corresponding source index in ifft_out
+            int xf = x - res_center + dim2_center;
+            int yf = y - res_center + dim2_center;
+            if (xf >= 0 && xf < dim2 && yf >= 0 && yf < dim2) {
+                // Copy and normalize
+                r(y, x) = ifft_out[yf * dim2 + xf] / norm_factor;
+            }
         }
     }
 
-    // Allocate array for inverse FFT result
-    double* ifft_out = fftw_alloc_real(dim * dim);
-
-    // Plan and execute inverse FFT
-    fftw_plan p_backward = fftw_plan_dft_c2r_2d(dim, dim, out, ifft_out, FFTW_ESTIMATE);
-    fftw_execute(p_backward);
-
-    // Normalize the inverse FFT result
-    for (size_t i = 0; i < dim * dim; ++i) {
-        ifft_out[i] /= (dim * dim);
-    }
-
-    // Wrap the result in a numpy array
-    auto result = py::array_t<double>(input_buf.size, ifft_out);
-    result.resize({dim, dim});
-
-    // Cleanup
-    fftw_destroy_plan(p_forward);
-    fftw_destroy_plan(p_backward);
-    fftw_free(in);
-    fftw_free(out);
+    // Cleanup fftw
     fftw_free(ifft_out);
-
     return result;
 }
 
@@ -130,14 +173,17 @@ PYBIND11_MODULE(_gsinterface, m) {
     m.def(
         "getFluxVec", &getFluxVec,
             "Get flux values at multiple x,y coordinates",
-        py::arg("profileObj"),
-        py::arg("xyCoords")
+        py::arg("scale"),
+        py::arg("gsobj"),
+        py::arg("xy_coords")
     );
     m.def(
         "convolvePsf", &convolvePsf,
             "Convolve galaxy profile with PSF",
         py::arg("scale"),
-        py::arg("profileObj"),
-        py::arg("gal_prof")
+        py::arg("gsobj"),
+        py::arg("gal_prof"),
+        py::arg("downsample_ratio"),
+        py::arg("ngrid")
     );
 }
