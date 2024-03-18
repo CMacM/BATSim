@@ -46,6 +46,8 @@ jobs:
 
         pip install . --user
 
+        python tests/test_affine_shear.py
+
 
     - name: Lint with black
       shell: bash -l {0}
