@@ -5,7 +5,15 @@ from . import _gsinterface
 from .stamp import Stamp
 
 
-def simulate_galaxy(ngrid, pix_scale, gal_obj, transform_obj=None, psf_obj=None, truncate_ratio=1.0):
+def simulate_galaxy(
+    ngrid,
+    pix_scale,
+    gal_obj,
+    transform_obj=None,
+    psf_obj=None,
+    truncate_ratio=1.0,
+    maximum_num_grids=4096,
+):
     """The function samples the surface density field of a galaxy at the grids
     This function only conduct sampling; PSF and pixel response are not
     included.
@@ -18,6 +26,8 @@ def simulate_galaxy(ngrid, pix_scale, gal_obj, transform_obj=None, psf_obj=None,
     psf_obj (galsim):   Galsim PSF object to smear the image
     truncate_ratio (float):
                         truncate at truncate_ratio times good_image_size
+    maximum_num_grids (int):
+                        maximum number of grids for simulation in real space
 
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
@@ -47,7 +57,7 @@ def simulate_galaxy(ngrid, pix_scale, gal_obj, transform_obj=None, psf_obj=None,
         ngrid * downsample_ratio,
     )
     # set a upper limit of the stampe size for the simulation
-    nn = min(int(2 ** np.ceil(np.log2(nn))), 4096)
+    nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
     # print(downsample_ratio, nn)
 
     # Initialize and Distort Coordinates
