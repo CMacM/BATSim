@@ -68,7 +68,9 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    install_requires=["numpy", "pybind11>=2.2", "fitsio", "matplotlib"],
+    install_requires=[
+        "numpy", "pybind11>=2.2", "fitsio", "matplotlib", "astropy",
+    ],
     ext_modules=[gsinterface],
     cmdclass={"build_ext": CustomBuildExt},
 )
