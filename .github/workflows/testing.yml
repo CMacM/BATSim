@@ -39,14 +39,12 @@ jobs:
         conda config --set always_yes yes
         conda install mamba
         mamba install flake8 pytest numpy galsim black fitsio \
-          matplotlib astropy pybind11
+          matplotlib astropy
 
         python -m pip install --upgrade pip
         pip install -U setuptools
 
         pip install . --user
-
-        python tests/test_affine_shear.py
 
 
     - name: Lint with black
