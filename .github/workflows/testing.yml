@@ -38,11 +38,10 @@ jobs:
       run: |
         conda config --set always_yes yes
         conda install mamba
-        mamba install flake8 pytest numpy galsim black fitsio
+        mamba install flake8 pytest numpy galsim black fitsio matplotlib
 
         python -m pip install --upgrade pip
         pip install -U setuptools
-        echo "$(ls /usr/share/miniconda/envs/test/include/eigen3/)"
 
         pip install . --user
 
