@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 py::array_t<double> getFluxVec(
     const double scale,
-    const py::object& gsobj,
+    const galsim::SBProfile& gsobj,
     const py::array_t<double>& xy_coords
 ){
     if (xy_coords.ndim() != 2 || xy_coords.shape(0) != 2) {
@@ -24,10 +24,9 @@ py::array_t<double> getFluxVec(
     std::vector<double> fluxes(n_points);
 
     double area = scale * scale;
-    galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
     #pragma omp parallel for
     for(int i = 0; i < n_points; ++i) {
-        fluxes[i] = profile.xValue(
+        fluxes[i] = gsobj.xValue(
             galsim::Position<double>(xy(0, i), xy(1, i))
         ) * area;
     }
@@ -67,7 +66,7 @@ bool is_c_contiguous(const py::array& arr) {
 // Then perform a down sampling
 py::array_t<double> convolvePsf(
     const double scale,
-    const py::object& gsobj,
+    const galsim::SBProfile& gsobj,
     const py::array_t<double>& gal_prof,
     const int downsample_ratio,
     const int ngrid
@@ -99,9 +98,6 @@ py::array_t<double> convolvePsf(
     fftw_plan p_forward = fftw_plan_dft_r2c_2d(dim, dim, in, out, FFTW_ESTIMATE);
     fftw_execute(p_forward);
 
-    // Galsim object
-    const galsim::SBProfile& profile = py::cast<galsim::SBProfile&>(gsobj);
-
     // Process FFT result using gsobj
     #pragma omp parallel for
     for (int y2 = 0; y2 < dim2; ++y2) {
@@ -111,7 +107,7 @@ py::array_t<double> convolvePsf(
             int index = y * (dim / 2 + 1) + x;
             int index2 = y2 * (dim2 / 2 + 1) + x2;
             std::complex<double> fft_val(out[index][0], out[index][1]);
-            std::complex<double> result = fft_val * profile.kValue(
+            std::complex<double> result = fft_val * gsobj.kValue(
                 galsim::Position<double>(
                     x_freqs2[x2],
                     y_freqs2[y2]
@@ -139,8 +135,6 @@ py::array_t<double> convolvePsf(
     auto result = py::array_t<double>({ngrid, ngrid});
     // Use unchecked for faster access
     auto r = result.mutable_unchecked<2>();
-    // Fill with 0
-    std::fill(result.mutable_data(), result.mutable_data() + ngrid * ngrid, 0.0);
 
     int dim2_center = dim2 / 2;
     int res_center = ngrid / 2;
@@ -149,11 +143,9 @@ py::array_t<double> convolvePsf(
     const int norm_factor = dim2 * dim2;
     if (dim2_center >= res_center) {
         // shrinking
-        int start = 0;
-        int end = ngrid;
-        for (int y = start; y < end; ++y) {
+        for (int y = 0; y < ngrid; ++y) {
             int yf = y - res_center + dim2_center;
-            for (int x = start; x < end; ++x) {
+            for (int x = 0; x < ngrid; ++x) {
                 // Calculate the corresponding source index in ifft_out
                 int xf = x - res_center + dim2_center;
                 // Copy and normalize
@@ -162,7 +154,8 @@ py::array_t<double> convolvePsf(
         }
     }
     else {
-        // padding zeros
+        // padding zeros (dim2 < dim_res)
+        std::fill(result.mutable_data(), result.mutable_data() + ngrid * ngrid, 0.0);
         int start = res_center - dim2_center;
         int end = res_center + dim2_center;
         for (int y = start; y < end; ++y) {
