@@ -13,6 +13,7 @@ def simulate_galaxy(
     psf_obj=None,
     truncate_ratio=1.0,
     maximum_num_grids=4096,
+    draw_method="auto",
 ):
     """The function samples the surface density field of a galaxy at the grids
     This function only conduct sampling; PSF and pixel response are not
@@ -32,10 +33,10 @@ def simulate_galaxy(
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
     """
+    
     # Get scale used to make simulation
     if psf_obj is None:
         scale = pix_scale
-        psf_obj = galsim.Gaussian(fwhm=1e-10, flux=1.0)
         pad_arcsec = 0.0
         downsample_ratio = 1
     else:
@@ -67,12 +68,30 @@ def simulate_galaxy(
         gal_coords = transform_obj.transform(stamp.coords)
     else:
         gal_coords = stamp.coords
+
     # Record flux
     gal_prof = _gsinterface.getFluxVec(
         scale=scale,
         gsobj=gal_obj._sbp,
         xy_coords=gal_coords,
     )
+
+    # Determine pixel response method
+    if draw_method == "auto":
+        pixel_response = galsim.Pixel(scale=pix_scale)
+        # Check to see if there is a psf, if not, just use pixel response
+        if psf_obj is None:
+            psf_obj = pixel_response
+        else:
+            psf_obj = galsim.Convolve([psf_obj, pixel_response])
+    elif draw_method == "no_pixel":
+        # If no psf or pixel response required, return the galaxy profile
+        if psf_obj is None:
+            return gal_prof
+        else:
+            pass
+    else:
+        raise ValueError("draw_method must be 'auto' or 'no_pixel'.")  
 
     # Convolution in Fourier space
     gal_prof = _gsinterface.convolvePsf(
