@@ -29,69 +29,62 @@ def simulate_galaxy(
                         truncate at truncate_ratio times good_image_size
     maximum_num_grids (int):
                         maximum number of grids for simulation in real space
+    draw_method (str):  method to draw the galaxy image, "auto" will convolve with
+                        pixel response, "no_pixel" is as it implies
 
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
     """
-    
-    # Get scale used to make simulation
-    if psf_obj is None:
+
+    # Initialize variables based on PSF presence
+    if psf_obj is None and draw_method == "no_pixel":
+        # In this case we just get the fluxes for the requested stamp size
         scale = pix_scale
-        pad_arcsec = 0.0
-        downsample_ratio = 1
+        nn = int(ngrid)
     else:
-        scale = min(gal_obj.nyquist_scale, psf_obj.nyquist_scale / 4.0)
-        scale = min(scale, pix_scale / 4.0)
-        pad_arcsec = psf_obj.calculateMomentRadius(
-            size=32,
-            scale=pix_scale / 2.0,
-        )
-        # set the maximum oversample ratio to 64
-        dr = int(2 ** np.ceil(np.log2(pix_scale / scale)))
-        downsample_ratio = min(dr, 128)
+        # Compute the effective scale for simulation
+        if psf_obj is None:
+            scale = pix_scale / 4.0
+            pad_arcsec = 0.0
+            downsample_ratio = 1
+        else:
+            scale = min(gal_obj.nyquist_scale, psf_obj.nyquist_scale / 4.0, pix_scale / 4.0)
+            pad_arcsec = psf_obj.calculateMomentRadius(size=32, scale=pix_scale / 2.0)
+            downsample_ratio = min(int(2 ** np.ceil(np.log2(pix_scale / scale))), 128)
+        
         scale = pix_scale / downsample_ratio
 
-    # Get number of grids to generate simulation
-    npad = int(pad_arcsec / scale + 0.5) * 4
-    nn = npad * 2 + min(
-        gal_obj.getGoodImageSize(pixel_scale=scale) * truncate_ratio,
-        ngrid * downsample_ratio,
-    )
-    # set a upper limit of the stampe size for the simulation
-    nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
-    # print(downsample_ratio, nn)
+        # Calculate the number of grids considering padding and truncation
+        npad = int(pad_arcsec / scale + 0.5) * 4
+        nn = npad * 2 + min(gal_obj.getGoodImageSize(pixel_scale=scale) 
+                            * truncate_ratio, ngrid * downsample_ratio
+                            )
+        nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
 
     # Initialize and Distort Coordinates
     stamp = Stamp(nn=nn, scale=scale)
     if transform_obj is not None:
-        # Distort galaxy
         gal_coords = transform_obj.transform(stamp.coords)
     else:
         gal_coords = stamp.coords
 
-    # Record flux
+    # Sample the galaxy flux
     gal_prof = _gsinterface.getFluxVec(
         scale=scale,
         gsobj=gal_obj._sbp,
-        xy_coords=gal_coords,
-    )
+        xy_coords=gal_coords
+        )
 
-    # Determine pixel response method
-    if draw_method == "auto":
-        pixel_response = galsim.Pixel(scale=pix_scale)
-        # Check to see if there is a psf, if not, just use pixel response
-        if psf_obj is None:
-            psf_obj = pixel_response
-        else:
-            psf_obj = galsim.Convolve([psf_obj, pixel_response])
-    elif draw_method == "no_pixel":
-        # If no psf or pixel response required, return the galaxy profile
-        if psf_obj is None:
-            return gal_prof
-        else:
-            pass
+    # No convolution necessary in this case so just return the fluxes
+    if draw_method == "no_pixel" and psf_obj is None:
+        return gal_prof
+
+    # Construct pixel response
+    pixel_response = galsim.Pixel(scale=pix_scale)
+    if psf_obj is None:
+        psf_obj = pixel_response
     else:
-        raise ValueError("draw_method must be 'auto' or 'no_pixel'.")  
+        psf_obj = galsim.Convolve([psf_obj, pixel_response])
 
     # Convolution in Fourier space
     gal_prof = _gsinterface.convolvePsf(
@@ -99,6 +92,7 @@ def simulate_galaxy(
         gsobj=psf_obj._sbp,
         gal_prof=gal_prof,
         downsample_ratio=downsample_ratio,
-        ngrid=ngrid,
-    )
+        ngrid=ngrid
+        )
+
     return gal_prof
