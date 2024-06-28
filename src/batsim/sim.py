@@ -1,5 +1,7 @@
 import galsim
 import numpy as np
+import os
+import multiprocessing as mp
 
 from . import _gsinterface
 from .stamp import Stamp
@@ -96,3 +98,62 @@ def simulate_galaxy(
         )
 
     return gal_prof
+
+def simulate_galaxy_batch(
+        ngrid,
+        pix_scale,
+        gal_obj_list,
+        transform_obj=None,
+        psf_obj=None,
+        truncate_ratio=1.0,
+        maximum_num_grids=4096,
+        draw_method="auto",
+        nproc=4
+):
+    
+    """
+    The function samples the surface density field of a galaxy at the grids
+
+    Args:
+
+    ngrid (int):        number of grids
+    pix_scale (float):  pixel scale
+    gal_obj_list (list):   List of Galsim galaxy objects to sample on the grids
+    transform_obj :     Coordinate transform object
+    psf_obj (galsim):   Galsim PSF object to smear the image
+    truncate_ratio (float):    truncate at truncate_ratio times good_image_size
+    maximum_num_grids (int):   maximum number of grids for simulation in real space
+    draw_method (str):  method to draw the galaxy image, "auto" will convolve with
+                        pixel response, "no_pixel" is as it implies
+    nproc (int):        Number of processors to use for multiprocessing. Default is 4
+    """
+
+    original_omp_num_threads = os.environ.get('OMP_NUM_THREADS', None)
+    os.environ['OMP_NUM_THREADS'] = '1'
+
+    mp.set_start_method('spawn', force=True)
+
+    with mp.Pool(nproc) as p:
+        
+        args_list = [
+                        (
+                        ngrid, 
+                        pix_scale, 
+                        gal_obj, 
+                        transform_obj, 
+                        psf_obj, 
+                        truncate_ratio, 
+                        maximum_num_grids, 
+                        draw_method
+                        ) for gal_obj in gal_obj_list
+                    ]
+        
+        outcome = p.starmap(simulate_galaxy, args_list)
+
+    if original_omp_num_threads is None:
+        del os.environ['OMP_NUM_THREADS']
+    else:
+        os.environ['OMP_NUM_THREADS'] = original_omp_num_threads
+
+    return outcome
+

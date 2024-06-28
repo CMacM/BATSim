@@ -122,7 +122,6 @@ class IaTransform(object):
         of the image.
         """
         npix = np.sqrt(len(coords[0]))
-        size_ratio = (npix / 2 * self.scale) / self.hlr
 
         # if size_ratio < 2.5:
         #     warnings.simplefilter("always")
@@ -157,8 +156,9 @@ class IaTransform(object):
         # find distance from image center as ratio to hlr
         radial_dist = np.sqrt(abs(x) ** 2 + abs(y) ** 2)
         rwf = (radial_dist) / self.hlr
-        allow_shear = rwf <= self.clip_radius
-        rwf = rwf * allow_shear
+
+        # fix shear beyond rfw >= clip_radius
+        rwf = np.clip(rwf, 0, self.clip_radius)
 
         # compute alignment amplitude at radius
         A_rwf = self.A * rwf**self.beta
