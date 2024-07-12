@@ -16,6 +16,7 @@ def simulate_galaxy(
     truncate_ratio=1.0,
     maximum_num_grids=4096,
     draw_method="auto",
+    force_ngrid=False
 ):
     """The function samples the surface density field of a galaxy at the grids
     This function only conduct sampling; PSF and pixel response are not
@@ -33,7 +34,8 @@ def simulate_galaxy(
                         maximum number of grids for simulation in real space
     draw_method (str):  method to draw the galaxy image, "auto" will convolve with
                         pixel response, "no_pixel" is as it implies
-
+    force_ngrid (bool): If True, force the number of grids to be ngrid even if a smaller
+                        number of grids is sufficient for the simulation
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
     """
@@ -63,6 +65,12 @@ def simulate_galaxy(
                             )
         nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
 
+    print(nn)
+    if force_ngrid and nn < ngrid:
+        nn = ngrid
+        scale = pix_scale
+
+    print(nn, scale)
     # Initialize and Distort Coordinates
     stamp = Stamp(nn=nn, scale=scale)
     if transform_obj is not None:
@@ -108,7 +116,8 @@ def simulate_galaxy_batch(
         truncate_ratio=1.0,
         maximum_num_grids=4096,
         draw_method="auto",
-        nproc=4
+        nproc=4,
+        force_ngrid=False
 ):
     
     """
@@ -137,14 +146,15 @@ def simulate_galaxy_batch(
         
         args_list = [
                         (
-                        ngrid, 
+                        ngrid,
                         pix_scale, 
                         gal_obj, 
                         transform_obj, 
                         psf_obj, 
                         truncate_ratio, 
                         maximum_num_grids, 
-                        draw_method
+                        draw_method,
+                        force_ngrid
                         ) for gal_obj in gal_obj_list
                     ]
         
