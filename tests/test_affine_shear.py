@@ -64,7 +64,7 @@ def test_affine_psf(gamma1=0.2, gamma2=0.0, kappa=0.0):
         gal_obj=sersic_gal,
         transform_obj=lens,
         psf_obj=psf,
-        draw_method="no_pixel"
+        draw_method="auto"
     )
 
     # apply the distortion with Galsim note that we need to use lens instead of
@@ -73,7 +73,7 @@ def test_affine_psf(gamma1=0.2, gamma2=0.0, kappa=0.0):
     # Gary Yang)
     gal_galsim = (
         smeared_gal.shift(0.5 * scale, 0.5 * scale).drawImage(
-            nx=nn, ny=nn, scale=scale, method="no_pixel"
+            nx=nn, ny=nn, scale=scale, method="auto"
         )
     ).array
     np.testing.assert_array_almost_equal(gal_array, gal_galsim, decimal=4)
