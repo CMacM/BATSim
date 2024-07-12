@@ -45,9 +45,7 @@ def shear_and_shift(n_pix, pixel_scale, gal, psf_obj, shift_x, shift_y, gamma1, 
         transform_obj=flexion_transform, # transform class telling BATSim what coordinate to request flux at
         psf_obj=psf_obj, # PSF to convolve with image after shearing
         draw_method="auto", # Include pixel response
-        force_ngrid=False, # Force the number of pixels in each dimension for simulation if calculated size is smaller
-        maximum_num_grids=8000 # Controls maximum possible sim size, 
-                                # may lead to clipping of flux at edges of light profile for large galaxies if set too low 
+        force_ngrid=True, # Force the number of pixels in each dimension for simulation if calculated size is smaller
     )
     
     # shift the image so the galaxy is not at the center
@@ -56,11 +54,10 @@ def shear_and_shift(n_pix, pixel_scale, gal, psf_obj, shift_x, shift_y, gamma1, 
     return img
 
 # define parameters to be passed to function
-n_pix = 512
-pixel_scale = 0.1
+n_pix = 1000
+pixel_scale = 0.2
 psf_obj = galsim.Moffat(beta=3.5, fwhm=0.8, trunc=4*0.8)
 
-# load in cosmos galaxy catalogue
 cosmos = galsim.COSMOSCatalog()
 
 # for an example we just randomise everything
@@ -73,13 +70,13 @@ shift_x = rng.uniform(-n_pix*0.5, n_pix*0.5, len(gal_list))
 shift_y = rng.uniform(-n_pix*0.5, n_pix*0.5, len(gal_list))
 
 # shear parameters
-gamma1 = rng.uniform(-0.01, 0.01, len(gal_list))
-gamma2 = rng.uniform(-0.01, 0.01, len(gal_list))
-kappa = rng.uniform(-0.01, 0.01, len(gal_list))
-F1 = rng.uniform(-0.01, 0.01, len(gal_list))
-F2 = rng.uniform(-0.01, 0.01, len(gal_list))
-G1 = rng.uniform(-0.01, 0.01, len(gal_list))
-G2 = rng.uniform(-0.01, 0.01, len(gal_list))
+gamma1 = rng.uniform(-0.1, 0.1, len(gal_list))
+gamma2 = rng.uniform(-0.1, 0.1, len(gal_list))
+kappa = rng.uniform(-0.1, 0.1, len(gal_list))
+F1 = rng.uniform(-0.05, 0.05, len(gal_list))
+F2 = rng.uniform(-0.05, 0.05, len(gal_list))
+G1 = rng.uniform(-0.05, 0.05, len(gal_list))
+G2 = rng.uniform(-0.05, 0.05, len(gal_list))
 
 # Force galsim into single threading so we can batch process galaxies
 original_omp_num_threads = os.environ.get("OMP_NUM_THREADS", None)
@@ -105,7 +102,7 @@ args_list = [
 ]
 
 # collect resulting images in a list
-outcome = progress_starmap(shear_and_shift, args_list, n_cpu=cpu_count()//2) # use half the cores
+outcome = progress_starmap(shear_and_shift, args_list, n_cpu=40)
 
 # return OMP env variable to default state
 if original_omp_num_threads is None:
