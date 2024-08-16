@@ -65,12 +65,11 @@ def simulate_galaxy(
                             )
         nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
 
-    print(nn)
-    if force_ngrid and nn < ngrid:
+    if force_ngrid and nn <= ngrid:
         nn = ngrid
         scale = pix_scale
+        downsample_ratio = 1
 
-    print(nn, scale)
     # Initialize and Distort Coordinates
     stamp = Stamp(nn=nn, scale=scale)
     if transform_obj is not None:
