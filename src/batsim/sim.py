@@ -16,7 +16,9 @@ def simulate_galaxy(
     truncate_ratio=1.0,
     maximum_num_grids=4096,
     draw_method="auto",
-    force_ngrid=False
+    force_ngrid=False,
+    delta_image_x=0.0,
+    delta_image_y=0.0,
 ):
     """The function samples the surface density field of a galaxy at the grids
     This function only conduct sampling; PSF and pixel response are not
@@ -32,14 +34,19 @@ def simulate_galaxy(
                         truncate at truncate_ratio times good_image_size
     maximum_num_grids (int):
                         maximum number of grids for simulation in real space
-    draw_method (str):  method to draw the galaxy image, "auto" will convolve with
-                        pixel response, "no_pixel" is as it implies
-    force_ngrid (bool): If True, force the number of grids to be ngrid even if a smaller
-                        number of grids is sufficient for the simulation
+    draw_method (str):  method to draw the galaxy image, "auto" will convolve
+                        with pixel response, "no_pixel" is as it implies
+    force_ngrid (bool): If True, force the number of grids to be ngrid even if
+                        a smaller number of grids is sufficient for the
+                        simulation
     Returns:
     outcome (ndarray):  2D galaxy image on the grids
     """
 
+    gobj = gal_obj.shift(
+        delta_image_x * pix_scale,
+        delta_image_y * pix_scale,
+    )
     # Initialize variables based on PSF presence
     if psf_obj is None and draw_method == "no_pixel":
         # In this case we just get the fluxes for the requested stamp size
@@ -52,25 +59,24 @@ def simulate_galaxy(
             pad_arcsec = 0.0
             downsample_ratio = 1
         else:
-            scale = min(gal_obj.nyquist_scale, psf_obj.nyquist_scale / 4.0, pix_scale / 4.0)
-            pad_arcsec = psf_obj.calculateMomentRadius(size=32, scale=pix_scale / 2.0)
+            scale = min(gobj.nyquist_scale, pix_scale / 4.0)
+            pad_arcsec = psf_obj.calculateMomentRadius(
+                size=32, scale=pix_scale / 2.0)
             downsample_ratio = min(int(2 ** np.ceil(np.log2(pix_scale / scale))), 128)
-        
+
         scale = pix_scale / downsample_ratio
 
         # Calculate the number of grids considering padding and truncation
         npad = int(pad_arcsec / scale + 0.5) * 4
-        nn = npad * 2 + min(gal_obj.getGoodImageSize(pixel_scale=scale) 
-                            * truncate_ratio, ngrid * downsample_ratio
-                            )
+        nn = npad * 2 + min(
+            gobj.getGoodImageSize(scale)
+            * truncate_ratio, ngrid * downsample_ratio
+        )
         nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
 
-    print(nn)
     if force_ngrid and nn < ngrid:
         nn = ngrid
         scale = pix_scale
-
-    print(nn, scale)
     # Initialize and Distort Coordinates
     stamp = Stamp(nn=nn, scale=scale)
     if transform_obj is not None:
@@ -81,21 +87,24 @@ def simulate_galaxy(
     # Sample the galaxy flux
     gal_prof = _gsinterface.getFluxVec(
         scale=scale,
-        gsobj=gal_obj._sbp,
+        gsobj=gobj._sbp,
         xy_coords=gal_coords
-        )
-
+    )
     # No convolution necessary in this case so just return the fluxes
-    if draw_method == "no_pixel" and psf_obj is None:
-        return gal_prof
-
-    # Construct pixel response
-    pixel_response = galsim.Pixel(scale=pix_scale)
-    if psf_obj is None:
-        psf_obj = pixel_response
+    if draw_method == "no_pixel":
+        if psf_obj is None:
+            return gal_prof
+        else:
+            pass
+    elif draw_method == "auto":
+        # Construct pixel response
+        pixel_response = galsim.Pixel(scale=pix_scale)
+        if psf_obj is None:
+            psf_obj = pixel_response
+        else:
+            psf_obj = galsim.Convolve([psf_obj, pixel_response])
     else:
-        psf_obj = galsim.Convolve([psf_obj, pixel_response])
-
+        raise ValueError("do not support draw_method=%s" %draw_method)
     # Convolution in Fourier space
     gal_prof = _gsinterface.convolvePsf(
         scale=scale,
@@ -103,9 +112,9 @@ def simulate_galaxy(
         gal_prof=gal_prof,
         downsample_ratio=downsample_ratio,
         ngrid=ngrid
-        )
-
+    )
     return gal_prof
+
 
 def simulate_galaxy_batch(
         ngrid,
@@ -119,7 +128,7 @@ def simulate_galaxy_batch(
         nproc=4,
         force_ngrid=False
 ):
-    
+
     """
     The function samples the surface density field of a galaxy at the grids
 
@@ -143,21 +152,21 @@ def simulate_galaxy_batch(
     mp.set_start_method('spawn', force=True)
 
     with mp.Pool(nproc) as p:
-        
+
         args_list = [
                         (
                         ngrid,
-                        pix_scale, 
-                        gal_obj, 
-                        transform_obj, 
-                        psf_obj, 
-                        truncate_ratio, 
-                        maximum_num_grids, 
+                        pix_scale,
+                        gal_obj,
+                        transform_obj,
+                        psf_obj,
+                        truncate_ratio,
+                        maximum_num_grids,
                         draw_method,
                         force_ngrid
                         ) for gal_obj in gal_obj_list
                     ]
-        
+
         outcome = p.starmap(simulate_galaxy, args_list)
 
     if original_omp_num_threads is None:

@@ -71,7 +71,6 @@ py::array_t<double> convolvePsf(
     const int downsample_ratio,
     const int ngrid
 ){
-
     bool test = is_c_contiguous(gal_prof);
     if (! test) {
         throw std::runtime_error(
@@ -130,46 +129,37 @@ py::array_t<double> convolvePsf(
     fftw_destroy_plan(p_backward);
     fftw_free(out2);
 
-    // Wrap the result in a numpy array
-    // prevent memory leakage
+    // Normalize once; FFTW inverse is unnormalized
+    const double inv_norm = 1.0 / static_cast<double>(dim2) / static_cast<double>(dim2);
+
     auto result = py::array_t<double>({ngrid, ngrid});
-    // Use unchecked for faster access
     auto r = result.mutable_unchecked<2>();
 
-    int dim2_center = dim2 / 2;
-    int res_center = ngrid / 2;
+    // Define source and destination rectangles centered
+    const int src_w = dim2, src_h = dim2;
+    const int dst_w = ngrid, dst_h = ngrid;
 
-    // Normalize the inverse FFT result
-    const int norm_factor = dim2 * dim2;
-    if (dim2_center >= res_center) {
-        // shrinking
-        for (int y = 0; y < ngrid; ++y) {
-            int yf = y - res_center + dim2_center;
-            for (int x = 0; x < ngrid; ++x) {
-                // Calculate the corresponding source index in ifft_out
-                int xf = x - res_center + dim2_center;
-                // Copy and normalize
-                r(y, x) = ifft_out[yf * dim2 + xf] / norm_factor;
+    // Centers with explicit floor for clarity
+    const int src_cx = src_w / 2;     // floor
+    const int src_cy = src_h / 2;
+    const int dst_cx = dst_w / 2;
+    const int dst_cy = dst_h / 2;
+
+    // Compute the overlap box in destination coordinates
+    // We want to place the src centered into dst.
+    for (int dy = 0; dy < dst_h; ++dy) {
+        int sy = dy - dst_cy + src_cy;
+        bool in_y = (0 <= sy && sy < src_h);
+        for (int dx = 0; dx < dst_w; ++dx) {
+            int sx = dx - dst_cx + src_cx;
+            bool in_x = (0 <= sx && sx < src_w);
+            if (in_x && in_y) {
+                r(dy, dx) = ifft_out[sy * src_w + sx] * inv_norm;
+            } else {
+                r(dy, dx) = 0.0;  // pad outside
             }
         }
     }
-    else {
-        // padding zeros (dim2 < dim_res)
-        std::fill(result.mutable_data(), result.mutable_data() + ngrid * ngrid, 0.0);
-        int start = res_center - dim2_center;
-        int end = res_center + dim2_center;
-        for (int y = start; y < end; ++y) {
-            int yf = y - res_center + dim2_center;
-            for (int x = start; x < end; ++x) {
-                // Calculate the corresponding source index in ifft_out
-                int xf = x - res_center + dim2_center;
-                // Copy and normalize
-                r(y, x) = ifft_out[yf * dim2 + xf] / norm_factor;
-            }
-        }
-
-    }
-
     // Cleanup fftw
     fftw_free(ifft_out);
     return result;
