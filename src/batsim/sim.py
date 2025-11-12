@@ -5,6 +5,28 @@ import multiprocessing as mp
 
 from . import _gsinterface
 from .stamp import Stamp
+import heapq
+
+
+def _round_up_multiple(n: int, m: int) -> int:
+    return n if n % m == 0 else n + (m - n % m)
+
+
+def next_235_heap(B: int):
+    if B < 1:
+        return 1  # smallest 5-smooth is 1
+    primes = (2, 3, 5)
+    seen = {1}
+    h = [1]
+    while h:
+        x = heapq.heappop(h)
+        if x >= B:
+            return x
+        for p in primes:
+            y = x * p
+            if y not in seen:
+                seen.add(y)
+                heapq.heappush(h, y)
 
 
 def simulate_galaxy(
@@ -47,72 +69,66 @@ def simulate_galaxy(
         delta_image_x * pix_scale,
         delta_image_y * pix_scale,
     )
-    # Initialize variables based on PSF presence
-    if psf_obj is None and draw_method == "no_pixel":
-        # In this case we just get the fluxes for the requested stamp size
-        scale = pix_scale
-        nn = int(ngrid)
-    else:
-        # Compute the effective scale for simulation
-        if psf_obj is None:
-            scale = pix_scale / 4.0
-            pad_arcsec = 0.0
-            downsample_ratio = 1
-        else:
-            scale = min(gobj.nyquist_scale, pix_scale / 4.0)
-            pad_arcsec = psf_obj.calculateMomentRadius(
-                size=32, scale=pix_scale / 2.0)
-            downsample_ratio = min(int(2 ** np.ceil(np.log2(pix_scale / scale))), 128)
-
-        scale = pix_scale / downsample_ratio
-
-        # Calculate the number of grids considering padding and truncation
-        npad = int(pad_arcsec / scale + 0.5) * 4
-        nn = npad * 2 + min(
-            gobj.getGoodImageSize(scale)
-            * truncate_ratio, ngrid * downsample_ratio
-        )
-        nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
-
-    if force_ngrid and nn < ngrid:
-        nn = ngrid
-        scale = pix_scale
-    # Initialize and Distort Coordinates
-    stamp = Stamp(nn=nn, scale=scale)
-    if transform_obj is not None:
-        gal_coords = transform_obj.transform(stamp.coords)
-    else:
-        gal_coords = stamp.coords
-
-    # Sample the galaxy flux
-    gal_prof = _gsinterface.getFluxVec(
-        scale=scale,
-        gsobj=gobj._sbp,
-        xy_coords=gal_coords
-    )
-    # No convolution necessary in this case so just return the fluxes
-    if draw_method == "no_pixel":
-        if psf_obj is None:
-            return gal_prof
-        else:
-            pass
-    elif draw_method == "auto":
+    if draw_method == "auto":
         # Construct pixel response
         pixel_response = galsim.Pixel(scale=pix_scale)
         if psf_obj is None:
             psf_obj = pixel_response
         else:
             psf_obj = galsim.Convolve([psf_obj, pixel_response])
+
+    # Initialize variables based on PSF presence
+    if psf_obj is None:
+        # In this case we just get the fluxes for the requested stamp size
+        scale = pix_scale
+        nn = int(ngrid)
+        downsample_ratio = 1
     else:
-        raise ValueError("do not support draw_method=%s" %draw_method)
-    # Convolution in Fourier space
-    gal_prof = _gsinterface.convolvePsf(
+        scale = min(gobj.nyquist_scale, pix_scale / 4.0)
+        # downsample_ratio = min(
+        #     int(2 ** np.ceil(np.log2(pix_scale / scale))),
+        #     128,
+        # )
+        downsample_ratio = min(
+            next_235_heap(int(pix_scale / scale + 0.5)),
+            100,
+        )
+        scale = pix_scale / int(downsample_ratio)
+        npad = int(1.5 / scale + 0.5)  # pad 1.5 arcsec
+        nn = npad * 2 + min(
+            gobj.getGoodImageSize(scale) * truncate_ratio,
+            ngrid * int(downsample_ratio),
+        )
+        # nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
+        nn = min(nn, maximum_num_grids)
+        nn = int(_round_up_multiple(nn, downsample_ratio * 2))
+
+    if force_ngrid and nn < ngrid:
+        nn = ngrid
+        scale = pix_scale
+        downsample_ratio = 1
+
+    # Initialize and Distort Coordinates
+    stamp = Stamp(nn=nn, scale=scale)
+    if transform_obj is not None:
+        gal_coords = transform_obj.transform(stamp.coords)
+    else:
+        gal_coords = stamp.coords
+    # Sample the galaxy flux
+    gal_prof = _gsinterface.getFluxVec(
         scale=scale,
-        gsobj=psf_obj._sbp,
-        gal_prof=gal_prof,
-        downsample_ratio=downsample_ratio,
-        ngrid=ngrid
+        gsobj=gobj._sbp,
+        xy_coords=gal_coords
     )
+    if psf_obj is not None:
+        # Convolution in Fourier space
+        gal_prof = _gsinterface.convolvePsf(
+            scale=scale,
+            gsobj=psf_obj._sbp,
+            gal_prof=gal_prof,
+            downsample_ratio=downsample_ratio,
+            ngrid=ngrid
+        )
     return gal_prof
 
 
@@ -175,4 +191,3 @@ def simulate_galaxy_batch(
         os.environ['OMP_NUM_THREADS'] = original_omp_num_threads
 
     return outcome
-

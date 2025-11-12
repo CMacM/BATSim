@@ -1,7 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include "GalSim.h"
-#include <omp.h>
 #include <vector>
 #include <complex>
 #include <fftw3.h>
@@ -21,18 +20,27 @@ py::array_t<double> getFluxVec(
 
     auto xy = xy_coords.unchecked<2>();
     const int n_points = xy_coords.shape(1);
-    std::vector<double> fluxes(n_points);
-
-    double area = scale * scale;
-    #pragma omp parallel for
-    for(int i = 0; i < n_points; ++i) {
-        fluxes[i] = gsobj.xValue(
-            galsim::Position<double>(xy(0, i), xy(1, i))
-        ) * area;
+    const int dim = static_cast<int64_t>(
+        std::llround(std::sqrt(static_cast<float>(n_points)))
+    );
+    if (dim * dim != n_points) {
+        throw std::runtime_error(
+            "xy_coords second dimension must be a perfect square (N = dim*dim)."
+        );
     }
 
-    int dim = std::sqrt(n_points);
-    return py::array_t<double>({dim, dim}, fluxes.data());
+    const float area = scale * scale;
+    py::array_t<double> out({dim, dim});
+    auto out_u = out.mutable_unchecked<2>();     // fast write
+    for (int64_t k = 0; k < n_points; ++k) {
+        const int i = k / dim;               // row
+        const int j = k % dim;               // col
+        const double x = xy(0, k);
+        const double y = xy(1, k);
+        const double sb = gsobj.xValue(galsim::Position<double>(x, y));
+        out_u(i, j) = sb * area;                 // per-pixel flux
+    }
+    return out; // GIL is reacquired automatically
 }
 
 // Utility function to generate rfftfreq
@@ -98,19 +106,20 @@ py::array_t<double> convolvePsf(
     fftw_execute(p_forward);
 
     // Process FFT result using gsobj
-    #pragma omp parallel for
+    int half2 = dim2 / 2;
     for (int y2 = 0; y2 < dim2; ++y2) {
-        int y = (y2 >= dim2 / 2) ? (dim - dim2 + y2) : y2;
-        for (int x2 = 0; x2 < (dim2 / 2 + 1); ++x2) {
+        // signed ky index in range [-half_neg, ..., 0, ..., +half_pos]
+        // keep the center row positive for odd dim2
+        int ky = (y2 <= half2) ? y2 : y2 - dim2;
+        int y  = (ky >= 0) ? ky : (dim + ky);
+        for (int x2 = 0; x2 < (dim2/2 + 1); ++x2) {
             int x = x2;
-            int index = y * (dim / 2 + 1) + x;
-            int index2 = y2 * (dim2 / 2 + 1) + x2;
+            int index  = y  * (dim/2 + 1) + x;
+            int index2 = y2 * (dim2/2 + 1) + x2;
+
             std::complex<double> fft_val(out[index][0], out[index][1]);
             std::complex<double> result = fft_val * gsobj.kValue(
-                galsim::Position<double>(
-                    x_freqs2[x2],
-                    y_freqs2[y2]
-                )
+                galsim::Position<double>(x_freqs2[x2], y_freqs2[y2])
             );
             out2[index2][0] = result.real();
             out2[index2][1] = result.imag();
