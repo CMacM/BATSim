@@ -26,6 +26,10 @@ conda install --file requirements.txt -c conda-forge
 pip install . --user
 ```
 
+Potential installation pitfalls:
+- The above will install the python package of the dependence GalSim. However, you may need to install the C++ shared library of GalSim, not installed by default with the above installation. Find details on how to do this [here][https://galsim-developers.github.io/GalSim/_build/html/install_pip.html]. You may then need to update your LD\_LIBRARY\_PATH, LIBRARY\_PATH, and CPLUS\_INCLUDE\_PATH to point to build and include folders for the GalSim C++ shared library.
+
+
 ![BATSim Logo](./image/batsim_logo.png)
 
 (repo icon created using images by Frepik and brgfx on Freepik)
