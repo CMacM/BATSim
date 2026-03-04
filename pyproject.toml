@@ -1,15 +1,14 @@
 [build-system]
 requires = [
-    "setuptools>=38", # Used to build and package the Python project
-    "pybind11>=2.2", # Builds python - cpp interface for direct calls to galsim cpp layer
-    "wheel"
+  "setuptools>=61",
+  "wheel",
+  "pybind11>=2.2",
+  "numpy"
 ]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 addopts = "-vv -s"
 
 [tool.black]

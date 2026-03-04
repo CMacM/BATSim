@@ -1,0 +1,49 @@
+{% set name = "batsim" %}
+{% set version = "0.0.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation"
+  # skip: true  # [not linux]  # uncomment if you want linux-only builds
+
+requirements:
+  # Do not request conda-forge compiler toolchain packages on this cluster
+  # (they are unavailable, and the solve fails). Use system gcc/g++ instead.
+  build: []
+  host:
+    - python
+    - pip
+    - setuptools
+    - wheel
+    - numpy
+    - pybind11
+    - galsim
+    - eigen
+    - fitsio
+  run:
+    - python
+    - numpy
+    - pybind11
+    - galsim
+    - eigen
+    - fitsio
+    - matplotlib
+    - astropy
+
+test:
+  commands:
+    - test -d "$PREFIX/include/eigen3/Eigen"
+  imports:
+    - batsim
+    - batsim._gsinterface
+
+about:
+  license: MIT
+  summary: "BATSim package (links against GalSim C++ library)"
