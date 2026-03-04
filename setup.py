@@ -20,26 +20,45 @@ class CustomBuildExt(build_ext):
         super().run()
 
     def find_galsim_paths(self):
-        # Implement logic to locate GalSim's include and library directories
-        # This is a placeholder implementation; adjust based on your setup
-
-        # Example: Assuming GalSim is installed in a conda environment
-        conda_prefix = os.environ.get("CONDA_PREFIX")
         include_dirs = []
         lib_dirs = []
-        if conda_prefix:
-            include_dirs.append(os.path.join(conda_prefix, "include"))
-            include_dirs.append(os.path.join(conda_prefix, "include/galsim"))
-            include_dirs.append(os.path.join(conda_prefix, "include/eigen3/"))
-            lib_dirs.append(os.path.join(conda_prefix, "lib"))
-        else:
-            # Fallback or other logic to locate GalSim
-            include_dirs.append("/usr/local/include")
-            include_dirs.append("/usr/local/include/galsim")
-            include_dirs.append("/usr/local/include/eigen3")
-            lib_dirs.append("/usr/local/lib")
 
-        return include_dirs, lib_dirs
+        # Prefer GalSim's own include directory if import works
+        try:
+            import galsim
+            inc = galsim.include_dir              # .../site-packages/galsim/include
+            include_dirs.append(inc)
+            include_dirs.append(os.path.join(inc, "galsim"))   # <-- add this
+        except Exception:
+            print("Error: Could not import GalSim to find include directory.")
+
+        # Conda-build uses PREFIX for the host env (headers live here)
+        prefixes = [
+            os.environ.get("PREFIX"),        # conda-build host env
+            os.environ.get("CONDA_PREFIX"),  # active env fallback
+        ]
+
+        for p in prefixes:
+            if not p:
+                continue
+            include_dirs.append(os.path.join(p, "include"))
+            include_dirs.append(os.path.join(p, "include", "galsim"))
+            include_dirs.append(os.path.join(p, "include", "eigen3"))
+            lib_dirs.append(os.path.join(p, "lib"))
+
+        # 3) Last-resort system paths
+        include_dirs += ["/usr/local/include", "/usr/include", "/usr/include/eigen3"]
+        lib_dirs += ["/usr/local/lib", "/usr/lib"]
+
+        # De-duplicate preserving order
+        def uniq(xs):
+            out = []
+            for x in xs:
+                if x and x not in out:
+                    out.append(x)
+            return out
+
+        return uniq(include_dirs), uniq(lib_dirs)
 
 
 # Define your extension module
