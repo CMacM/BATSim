@@ -28,7 +28,8 @@ def simulate_galaxy(
     ngrid (int):        number of grids
     pix_scale (float):  pixel scale
     gal_obj (galsim):   Galsim galaxy object to sample on the grids
-    transform_obj :     Coordinate transform object
+    transform_obj :     Coordinate transform object or list of transform in order
+                        that they should be applied.
     psf_obj (galsim):   Galsim PSF object to smear the image
     truncate_ratio (float):
                         truncate at truncate_ratio times good_image_size
@@ -77,10 +78,21 @@ def simulate_galaxy(
     if force_ngrid and nn < ngrid:
         nn = ngrid
         scale = pix_scale
-    # Initialize and Distort Coordinates
+
+    # Initialize and Distort Coordinates in order
     stamp = Stamp(nn=nn, scale=scale)
-    if transform_obj is not None:
+
+    # Check if transform_obj is a list of transforms and apply them in order
+    if isinstance(transform_obj, list):
+        gal_coords = stamp.coords
+        for t in transform_obj:
+            gal_coords = t.transform(gal_coords)
+
+    # If transform_obj is a single transform, apply it directly
+    elif transform_obj is not None:
         gal_coords = transform_obj.transform(stamp.coords)
+
+    # If no transform is provided, use the original coordinates
     else:
         gal_coords = stamp.coords
 
