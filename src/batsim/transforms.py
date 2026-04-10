@@ -2,6 +2,7 @@ import warnings
 
 import galsim
 import numpy as np
+from time import perf_counter
 
 
 class FlexionTransform(object):
@@ -106,6 +107,8 @@ class IaTransform(object):
         # intialise important class variables
         self.A = A
         self.phi = phi
+        self.c2phi = np.cos(2 * self.phi)
+        self.s2phi = np.sin(2 * self.phi)
         self.beta = beta
         self.scale = scale
         self.hlr = hlr
@@ -162,29 +165,21 @@ class IaTransform(object):
 
         # compute alignment amplitude at radius
         A_rwf = self.A * rwf**self.beta
+        absesq = A_rwf * A_rwf
 
-        # get shear components for corresponding alignment amplitude
-        e1 = A_rwf * np.cos(2 * self.phi)
-        e2 = A_rwf * np.sin(2 * self.phi)
-
-        # convert to g in same way galsim does
-        absesq = e1**2 + e2**2
-
-        # test to make sure level of distortion is reasonable
-        if type(absesq) == np.float64 and absesq > 1:
+        if np.any(absesq > 1):
             raise ValueError(
                 "Requested distortion exceeds 1.", np.sqrt(absesq), 0.0, 1.0
-            )
-        elif type(absesq) == np.ndarray and any(absesq) > 1:
-            raise ValueError(
-                "Requested distortion exceeds 1.", np.sqrt(absesq), 0.0, 1.0
-            )
+                        )
 
-        # define g from e1 and e2
-        g = (e1 + 1j * e2) * self.e2g(absesq)
+        # factor to convert e1, e2 to g1, g2
+        fac = self.e2g(absesq)
+
+        g1 = A_rwf * self.c2phi * fac
+        g2 = A_rwf * self.s2phi * fac
 
         # return real (g1) and imaginary (g2) components
-        return g.real, g.imag
+        return g1, g2
 
     # conversion used in galsim source code
     # modified to use binary arrays to speed up condition checking

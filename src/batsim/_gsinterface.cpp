@@ -7,7 +7,6 @@
 #include <fftw3.h>
 #include <cmath>
 
-
 namespace py = pybind11;
 
 py::array_t<double> getFluxVec(
@@ -15,24 +14,26 @@ py::array_t<double> getFluxVec(
     const galsim::SBProfile& gsobj,
     const py::array_t<double>& xy_coords
 ){
-    if (xy_coords.ndim() != 2 || xy_coords.shape(0) != 2) {
-        throw std::runtime_error("xy_coords must be a 2D array with shape (2, n)");
-    }
-
     auto xy = xy_coords.unchecked<2>();
     const int n_points = xy_coords.shape(1);
-    std::vector<double> fluxes(n_points);
-
+    const int dim = std::sqrt(n_points);
+    const int n_used = dim * dim;
+    auto result = py::array_t<double>({dim, dim});
+    auto out = result.mutable_data();
     double area = scale * scale;
-    #pragma omp parallel for
-    for(int i = 0; i < n_points; ++i) {
-        fluxes[i] = gsobj.xValue(
+
+    // Pre-warm GalSim's internal cache with a single serial call
+    // before entering the parallel region
+    gsobj.xValue(galsim::Position<double>(xy(0, 0), xy(1, 0)));
+
+    #pragma omp parallel for schedule(static)
+    for(int i = 0; i < n_used; ++i) {
+        out[i] = gsobj.xValue(
             galsim::Position<double>(xy(0, i), xy(1, i))
         ) * area;
     }
 
-    int dim = std::sqrt(n_points);
-    return py::array_t<double>({dim, dim}, fluxes.data());
+    return result;
 }
 
 // Utility function to generate rfftfreq
@@ -85,8 +86,8 @@ py::array_t<double> convolvePsf(
     int dim2 = dim / downsample_ratio;
 
     // Frequency grids for the down sampled signal
-    const auto x_freqs2 = rfftfreq(dim2, scale2 / M_PI / 2.0);
-    const auto y_freqs2 = fftfreq(dim2, scale2 / M_PI / 2.0);
+    const auto x_freqs2 = rfftfreq(dim2, scale2);
+    const auto y_freqs2 = fftfreq(dim2, scale2);
 
     // Allocate FFTW arrays with pointers
     double* in = static_cast<double*>(info.ptr);
@@ -96,6 +97,10 @@ py::array_t<double> convolvePsf(
     // Plan and execute forward FFT
     fftw_plan p_forward = fftw_plan_dft_r2c_2d(dim, dim, in, out, FFTW_ESTIMATE);
     fftw_execute(p_forward);
+
+    // Pre-warm GalSim's internal cache with a single serial call
+    // before entering the parallel region
+    gsobj.kValue(galsim::Position<double>(x_freqs2[0], y_freqs2[0]));
 
     // Process FFT result using gsobj
     #pragma omp parallel for
@@ -108,8 +113,8 @@ py::array_t<double> convolvePsf(
             std::complex<double> fft_val(out[index][0], out[index][1]);
             std::complex<double> result = fft_val * gsobj.kValue(
                 galsim::Position<double>(
-                    x_freqs2[x2],
-                    y_freqs2[y2]
+                    2.0 * M_PI * x_freqs2[x2],
+                    2.0 * M_PI * y_freqs2[y2]
                 )
             );
             out2[index2][0] = result.real();
