@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Stamp(object):
     def __init__(self, nn: int = 32, scale: float = 0.2):
         """Initialize the 2D stamp object. This class enables distorting
@@ -16,11 +15,9 @@ class Stamp(object):
         return
 
     def set_coords(self, nn, scale):
-        indx = np.arange(-int(nn / 2), int((nn + 1) / 2), 1) * scale
-        indy = np.arange(-int(nn / 2), int((nn + 1) / 2), 1) * scale
-        inds = np.meshgrid(indy, indx, indexing="ij")
-        # coords in shape of (2, npoints), in order of [x, y]
-        self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
+        inds_1d = (np.arange(nn, dtype=float) - 0.5 * (nn - 1)) * scale
+        yy, xx = np.meshgrid(inds_1d, inds_1d, indexing="ij")
+        self.coords = np.stack([xx.ravel(), yy.ravel()], axis=0)
         self.scale = scale
         self.pixel_area = self.scale**2.0
         self.shape = (nn, nn)

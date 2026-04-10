@@ -1,7 +1,5 @@
 import galsim
 import numpy as np
-import os
-import multiprocessing as mp
 from functools import lru_cache
 
 from . import _gsinterface
@@ -11,29 +9,108 @@ from time import perf_counter
 
 _PSF_REGISTRY = {}
 
+
 def _register_psf(psf_obj):
-    # Keep memory bounded and invalidate stale cached entries.
     if len(_PSF_REGISTRY) >= 128:
         _PSF_REGISTRY.clear()
-        _cached_pad_arcsec.cache_clear()
-        _cached_effective_psf.cache_clear()
+        _cached_effective_kernel.cache_clear()
     key = id(psf_obj)
     _PSF_REGISTRY[key] = psf_obj
     return key
 
-@lru_cache(maxsize=128)
-def _cached_pad_arcsec(psf_key, pix_scale):
-    return _PSF_REGISTRY[psf_key].calculateMomentRadius(size=32, scale=pix_scale / 4.0)
 
 @lru_cache(maxsize=128)
-def _cached_effective_psf(psf_key):
-    psf_obj = _PSF_REGISTRY[psf_key]
-    return psf_obj
+def _cached_effective_kernel(kernel_key):
+    return _PSF_REGISTRY[kernel_key]
+
+
+def _round_up_multiple(n, m=16):
+    if n <= 0:
+        return m
+    return int(m * np.ceil(n / m))
+
+
+def _choose_fine_sampling_scale(gobj, pix_scale, draw_method, kernel_obj):
+    pix_scale = float(pix_scale)
+
+    candidates = [pix_scale, float(gobj.nyquist_scale)]
+    if kernel_obj is not None:
+        try:
+            candidates.append(float(kernel_obj.nyquist_scale))
+        except Exception:
+            pass
+
+    target = min(candidates)
+
+    if draw_method == "auto":
+        target = min(target, pix_scale / 8.0)
+        min_allowed = pix_scale / 16.0
+    elif kernel_obj is not None:
+        target = min(target, pix_scale / 4.0)
+        min_allowed = pix_scale / 8.0
+    else:
+        min_allowed = pix_scale
+
+    # temporarily force simulation at Pixel Nyquist scale for testing
+    return 0.01
+
+
+def _choose_downsample_ratio(pix_scale, fine_scale, max_ratio=24):
+    raw_ratio = float(pix_scale) / float(fine_scale)
+    ratio = int(2 ** np.ceil(np.log2(max(raw_ratio, 1.0))))
+    return max(1, min(ratio, max_ratio))
+
+
+def _choose_render_grid_size(
+    gobj,
+    fine_scale,
+    truncate_ratio,
+    maximum_num_grids,
+    ngrid,
+    force_ngrid,
+    downsample_ratio,
+):
+    base_nn = int(np.ceil(gobj.getGoodImageSize(fine_scale) * float(truncate_ratio)))
+    base_nn = max(base_nn, 1)
+
+    if force_ngrid and ngrid is not None:
+        base_nn = max(base_nn, int(ngrid) * int(downsample_ratio))
+
+    # Small physical-support margin only.
+    # This is NOT FFT padding.
+    support_margin = max(128, int(np.ceil(0.05 * base_nn)))
+    render_nn = base_nn + 2 * support_margin
+
+    render_nn = _round_up_multiple(render_nn, 16)
+    render_nn = min(render_nn, int(maximum_num_grids))
+
+    if render_nn < base_nn + 2 * support_margin:
+        raise ValueError(
+            "Required render size exceeds maximum_num_grids. "
+            f"Required at least {base_nn + 2 * support_margin}, "
+            f"got maximum_num_grids={maximum_num_grids}."
+        )
+
+    return int(render_nn)
+
+
+def _prepare_kernel(psf_obj, pix_scale, draw_method):
+    if draw_method == "auto":
+        pixel = galsim.Pixel(scale=pix_scale)
+        if psf_obj is None:
+            return pixel
+        return galsim.Convolve([psf_obj, pixel])
+
+    if draw_method == "no_pixel":
+        return psf_obj
+
+    raise ValueError(f"do not support draw_method={draw_method}")
+
 
 def simulate_galaxy(
     gal_obj,
     pix_scale,
-    ngrid = None,
+    ngrid=None,
     transform_obj=None,
     psf_obj=None,
     truncate_ratio=1.0,
@@ -43,212 +120,162 @@ def simulate_galaxy(
     delta_image_x=0.0,
     delta_image_y=0.0,
     profile=False,
+    fft_pad_pixels=16,
 ):
-    """The function samples the surface density field of a galaxy at the grids
-    This function only conduct sampling; PSF and pixel response are not
-    included.
+    """
+    Render a galaxy using a compact fine-grid sampling stage in Python and
+    internal FFT padding in C++.
 
-    Args:
-    ngrid (int):        number of grids
-    pix_scale (float):  pixel scale
-    gal_obj (galsim):   Galsim galaxy object to sample on the grids
-    transform_obj :     Coordinate transform object or list of transform in order
-                        that they should be applied.
-    psf_obj (galsim):   Galsim PSF object to smear the image
-    truncate_ratio (float):
-                        truncate at truncate_ratio times good_image_size
-    maximum_num_grids (int):
-                        maximum number of grids for simulation in real space
-    draw_method (str):  method to draw the galaxy image, "auto" will convolve
-                        with pixel response, "no_pixel" is as it implies
-    force_ngrid (bool): If True, force the number of grids to be ngrid even if
-                        a smaller number of grids is sufficient for the
-                        simulation
-    profile (bool):     If True, print per-galaxy timings and stats
-    Returns:
-    outcome (ndarray):  2D galaxy image on the grids
+    GalSim-like semantics:
+    - draw_method="auto"     -> include pixel response via galsim.Pixel(scale=pix_scale)
+    - draw_method="no_pixel" -> omit pixel response
+
+    The Python render grid is intentionally unpadded for convolution.
+    Any guard padding needed for FFT convolution is added only inside C++.
     """
     def _log(msg):
         if profile:
             print(f"[simulate_galaxy] {msg}")
 
+    if truncate_ratio <= 0:
+        raise ValueError("truncate_ratio must be > 0")
+    if maximum_num_grids <= 0:
+        raise ValueError("maximum_num_grids must be > 0")
+    if ngrid is not None and int(ngrid) <= 0:
+        raise ValueError("ngrid must be > 0 when provided")
+    if fft_pad_pixels < 0:
+        raise ValueError("fft_pad_pixels must be >= 0")
+
     t_total = perf_counter() if profile else None
+
+    # Apply requested image-plane shift in detector-pixel units.
+    t = perf_counter() if profile else None
     gobj = gal_obj.shift(
-        delta_image_x * pix_scale,
-        delta_image_y * pix_scale,
+        float(delta_image_x) * float(pix_scale),
+        float(delta_image_y) * float(pix_scale),
     )
-    psf_key = _register_psf(psf_obj) if psf_obj is not None else None
+    if profile:
+        _log(f"apply_shift={perf_counter() - t:.4e}s")
 
-    # Initialize variables based on PSF presence
-    downsample_ratio = 1
-    pad_arcsec = 0.0
-    if psf_obj is None and draw_method == "no_pixel":
-        # In this case we just get the fluxes for the requested stamp size
-        scale = pix_scale
-        nn = int(ngrid)
-    else:
-        t = perf_counter() if profile else None
-        # Compute the effective scale for simulation
-        if psf_obj is None:
-            scale = pix_scale / 4.0
-        else:
-            scale = min(gobj.nyquist_scale, pix_scale / 4.0)
-            pad_arcsec = _cached_pad_arcsec(psf_key, pix_scale)
-            downsample_ratio = min(int(2 ** np.ceil(np.log2(pix_scale / scale))), 128)
-        if profile:
-            _log(f"effective_scale_padding={perf_counter() - t:.4e}s")
-        scale = pix_scale / downsample_ratio
+    # Build GalSim-like effective kernel.
+    t = perf_counter() if profile else None
+    kernel_obj = _prepare_kernel(
+        psf_obj=psf_obj,
+        pix_scale=pix_scale,
+        draw_method=draw_method,
+    )
+    kernel_key = _register_psf(kernel_obj) if kernel_obj is not None else None
+    if profile:
+        _log(f"prepare_kernel={perf_counter() - t:.4e}s")
 
-        t = perf_counter() if profile else None
-        # Calculate the number of grids considering padding and truncation
-        npad = int(pad_arcsec / scale + 0.5) * 4
-        nn = npad * 2 + min(
-            gobj.getGoodImageSize(scale)
-            * truncate_ratio, ngrid * downsample_ratio
+    # Choose fine sampling scale.
+    t = perf_counter() if profile else None
+    fine_scale = _choose_fine_sampling_scale(
+        gobj=gobj,
+        pix_scale=pix_scale,
+        draw_method=draw_method,
+        kernel_obj=kernel_obj,
+    )
+    downsample_ratio = _choose_downsample_ratio(
+        pix_scale=pix_scale,
+        fine_scale=fine_scale,
+        max_ratio=4,
+    )
+    fine_scale = float(pix_scale) / float(downsample_ratio)
+    if profile:
+        _log(
+            f"choose_sampling={perf_counter() - t:.4e}s "
+            f"fine_scale={fine_scale:.4e} "
+            f"downsample_ratio={downsample_ratio}"
         )
-        nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
-        if profile:
-            _log(f"grid_sizing={perf_counter() - t:.4e}s")
 
-    if force_ngrid and nn < ngrid:
-        nn = ngrid
-        scale = pix_scale
+    # Choose compact unpadded render size.
+    t = perf_counter() if profile else None
+    render_nn = _choose_render_grid_size(
+        gobj=gobj,
+        fine_scale=fine_scale,
+        truncate_ratio=truncate_ratio,
+        maximum_num_grids=maximum_num_grids,
+        ngrid=ngrid,
+        force_ngrid=force_ngrid,
+        downsample_ratio=downsample_ratio,
+    )
+    if profile:
+        _log(f"choose_render_grid={perf_counter() - t:.4e}s render_nn={render_nn}")
 
-    # Initialize and Distort Coordinates in order
-    t_section = perf_counter() if profile else None
-    stamp = Stamp(nn=nn, scale=scale)
+    # Build only the physically relevant stamp in Python.
+    t = perf_counter() if profile else None
+    stamp = Stamp(nn=render_nn, scale=fine_scale)
 
-    # Check if transform_obj is a list of transforms and apply them in order
     if isinstance(transform_obj, list):
         gal_coords = stamp.coords
         for trf in transform_obj:
             gal_coords = trf.transform(gal_coords)
-
-    # If transform_obj is a single transform, apply it directly
     elif transform_obj is not None:
         gal_coords = transform_obj.transform(stamp.coords)
-
-    # If no transform is provided, use the original coordinates
     else:
         gal_coords = stamp.coords
 
     if profile:
-        _log(f"coords_transform={perf_counter() - t_section:.4e}s")
+        _log(f"coords_transform={perf_counter() - t:.4e}s")
 
-    # Sample the galaxy flux
+    # Sample the galaxy on the compact fine grid.
     t = perf_counter() if profile else None
     gal_prof = _gsinterface.getFluxVec(
-        scale=scale,
+        scale=fine_scale,
         gsobj=gobj._sbp,
-        xy_coords=gal_coords
+        xy_coords=gal_coords,
     )
     if profile:
         _log(f"sample_flux={perf_counter() - t:.4e}s")
 
-    # No convolution necessary in this case so just return the fluxes
-    if draw_method == "no_pixel":
-        if psf_obj is None:
-            if profile:
-                _log(
-                    f"stats nn={nn} downsample_ratio={downsample_ratio} scale={scale:.4e} "
-                    f"pad_arcsec={pad_arcsec:.4e} draw_method={draw_method}"
-                )
-                _log(f"total={perf_counter() - t_total:.4e}s")
-            return gal_prof
-        else:
-            pass
-    elif draw_method == "auto":
+    # Convolve in C++, which adds its own zero-padding right before the FFT.
+    if kernel_obj is not None:
         t = perf_counter() if profile else None
-        if psf_obj is None:
-            psf_obj = galsim.Pixel(scale=pix_scale)
-        else:
-            psf_obj = _cached_effective_psf(psf_key)
-            psf_obj = galsim.Convolve([psf_obj, galsim.Pixel(scale=pix_scale)])
+        eff_kernel = _cached_effective_kernel(kernel_key)
+        gal_prof = _gsinterface.convolvePsfFine(
+            scale=fine_scale,
+            psf=eff_kernel._sbp,
+            gal_prof=gal_prof,
+            pad_pixels=int(fft_pad_pixels),
+        )
         if profile:
-            _log(f"prepare_psf={perf_counter() - t:.4e}s")
-    else:
-        raise ValueError("do not support draw_method=%s" %draw_method)
-    
+            _log(f"fine_convolution={perf_counter() - t:.4e}s")
+
+    # Choose final output dimension.
     t = perf_counter() if profile else None
-    # Convolution in Fourier space
-    gal_prof = _gsinterface.convolvePsf(
-        scale=scale,
-        gsobj=psf_obj._sbp,
-        gal_prof=gal_prof,
-        downsample_ratio=downsample_ratio,
-        ngrid=ngrid
-    )
+    if ngrid is None:
+        out_dim = max(1, int(np.round(render_nn * fine_scale / pix_scale)))
+    else:
+        out_dim = int(ngrid)
     if profile:
-        _log(f"convolution_downsample={perf_counter() - t:.4e}s")
+        _log(f"choose_output_grid={perf_counter() - t:.4e}s out_dim={out_dim}")
+
+    # Only resample when scales differ. Otherwise crop/pad cheaply.
+    t = perf_counter() if profile else None
+    if np.isclose(fine_scale, pix_scale):
+        if gal_prof.shape[0] != out_dim:
+            gal_prof = _gsinterface.centerCropOrPad(gal_prof, out_dim)
+    else:
+        gal_prof = _gsinterface.resampleToGrid(
+            image=gal_prof,
+            in_scale=fine_scale,
+            out_scale=pix_scale,
+            out_dim=out_dim,
+        )
+    if profile:
+        _log(f"final_output_stage={perf_counter() - t:.4e}s")
+
+    if profile:
         _log(
-            f"stats nn={nn} downsample_ratio={downsample_ratio} scale={scale:.4e} "
-            f"pad_arcsec={pad_arcsec:.4e} draw_method={draw_method}"
+            "stats "
+            f"render_nn={render_nn} "
+            f"fine_scale={fine_scale:.4e} "
+            f"downsample_ratio={downsample_ratio} "
+            f"fft_pad_pixels={fft_pad_pixels} "
+            f"draw_method={draw_method} "
+            f"out_dim={out_dim}"
         )
         _log(f"total={perf_counter() - t_total:.4e}s")
+
     return gal_prof
-
-
-def simulate_galaxy_batch(
-        ngrid,
-        pix_scale,
-        gal_obj_list,
-        transform_obj=None,
-        psf_obj=None,
-        truncate_ratio=1.0,
-        maximum_num_grids=4096,
-        draw_method="auto",
-        nproc=4,
-        force_ngrid=False,
-        profile=False
-):
-
-    """
-    The function samples the surface density field of a galaxy at the grids
-
-    Args:
-
-    ngrid (int):        number of grids
-    pix_scale (float):  pixel scale
-    gal_obj_list (list):   List of Galsim galaxy objects to sample on the grids
-    transform_obj :     Coordinate transform object
-    psf_obj (galsim):   Galsim PSF object to smear the image
-    truncate_ratio (float):    truncate at truncate_ratio times good_image_size
-    maximum_num_grids (int):   maximum number of grids for simulation in real space
-    draw_method (str):  method to draw the galaxy image, "auto" will convolve with
-                        pixel response, "no_pixel" is as it implies
-    nproc (int):        Number of processors to use for multiprocessing. Default is 4
-    profile (bool):     If True, enable per-galaxy profiling logs in workers
-    """
-
-    original_omp_num_threads = os.environ.get('OMP_NUM_THREADS', None)
-    os.environ['OMP_NUM_THREADS'] = '1'
-
-    mp.set_start_method('spawn', force=True)
-
-    with mp.Pool(nproc) as p:
-
-        args_list = [
-                        (
-                        ngrid,
-                        pix_scale,
-                        gal_obj,
-                        transform_obj,
-                        psf_obj,
-                        truncate_ratio,
-                        maximum_num_grids,
-                        draw_method,
-                        force_ngrid,
-                        0.0,
-                        0.0,
-                        profile
-                        ) for gal_obj in gal_obj_list
-                    ]
-
-        outcome = p.starmap(simulate_galaxy, args_list)
-
-    if original_omp_num_threads is None:
-        del os.environ['OMP_NUM_THREADS']
-    else:
-        os.environ['OMP_NUM_THREADS'] = original_omp_num_threads
-
-    return outcome
