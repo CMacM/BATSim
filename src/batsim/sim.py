@@ -31,28 +31,37 @@ def _round_up_multiple(n, m=16):
 
 
 def _choose_fine_sampling_scale(gobj, pix_scale, draw_method, kernel_obj):
+    """
+    Choose the fine rendering scale.
+
+    draw_method="auto":
+        Needs enough oversampling for detector integration, even if psf_obj is None.
+
+    draw_method="no_pixel":
+        Only needs enough oversampling for PSF convolution if a PSF is present.
+    """
     pix_scale = float(pix_scale)
 
-    candidates = [pix_scale, float(gobj.nyquist_scale)]
-    if kernel_obj is not None:
-        try:
-            candidates.append(float(kernel_obj.nyquist_scale))
-        except Exception:
-            pass
-
-    target = min(candidates)
-
     if draw_method == "auto":
-        target = min(target, pix_scale / 8.0)
-        min_allowed = pix_scale / 16.0
-    elif kernel_obj is not None:
-        target = min(target, pix_scale / 4.0)
-        min_allowed = pix_scale / 8.0
-    else:
-        min_allowed = pix_scale
+        # 4x oversampling as a practical default for pixel integration.
+        # You can tighten this later if needed.
+        target = pix_scale / 4.0
+        if kernel_obj is not None:
+            try:
+                target = min(target, float(gobj.nyquist_scale), float(kernel_obj.nyquist_scale))
+            except Exception:
+                target = min(target, float(gobj.nyquist_scale))
+        else:
+            target = min(target, float(gobj.nyquist_scale))
+        return max(target, pix_scale / 8.0)
 
-    # temporarily force simulation at Pixel Nyquist scale for testing
-    return 0.01
+    # draw_method == "no_pixel"
+    if kernel_obj is None:
+        return pix_scale
+
+    target = min(float(gobj.nyquist_scale), float(kernel_obj.nyquist_scale))
+    target = max(target, pix_scale / 4.0)
+    return min(target, pix_scale)
 
 
 def _choose_downsample_ratio(pix_scale, fine_scale, max_ratio=24):
@@ -94,17 +103,23 @@ def _choose_render_grid_size(
     return int(render_nn)
 
 
-def _prepare_kernel(psf_obj, pix_scale, draw_method):
-    if draw_method == "auto":
-        pixel = galsim.Pixel(scale=pix_scale)
-        if psf_obj is None:
-            return pixel
-        return galsim.Convolve([psf_obj, pixel])
+def _prepare_kernel(psf_obj, draw_method):
+    """
+    Prepare only the Fourier-space convolution kernel.
 
-    if draw_method == "no_pixel":
-        return psf_obj
+    draw_method="auto":
+        Fourier-space kernel is PSF only.
+        Pixel response is applied later by detector integration.
 
-    raise ValueError(f"do not support draw_method={draw_method}")
+    draw_method="no_pixel":
+        Fourier-space kernel is also PSF only.
+
+    In both modes, if psf_obj is None, no Fourier convolution is done.
+    """
+    if draw_method not in ("auto", "no_pixel"):
+        raise ValueError(f"do not support draw_method={draw_method}")
+
+    return psf_obj
 
 
 def simulate_galaxy(
@@ -123,15 +138,15 @@ def simulate_galaxy(
     fft_pad_pixels=16,
 ):
     """
-    Render a galaxy using a compact fine-grid sampling stage in Python and
-    internal FFT padding in C++.
+    Render a galaxy using:
+    - real-space sampling on a fine grid
+    - PSF-only Fourier convolution
+    - optional detector-pixel integration for draw_method="auto"
 
-    GalSim-like semantics:
-    - draw_method="auto"     -> include pixel response via galsim.Pixel(scale=pix_scale)
-    - draw_method="no_pixel" -> omit pixel response
-
-    The Python render grid is intentionally unpadded for convolution.
-    Any guard padding needed for FFT convolution is added only inside C++.
+    Semantics:
+    - draw_method="no_pixel": no pixel response included
+    - draw_method="auto": include pixel response by integrating the fine image
+      onto detector pixels at the final detector scale
     """
     def _log(msg):
         if profile:
@@ -145,10 +160,12 @@ def simulate_galaxy(
         raise ValueError("ngrid must be > 0 when provided")
     if fft_pad_pixels < 0:
         raise ValueError("fft_pad_pixels must be >= 0")
+    if draw_method not in ("auto", "no_pixel"):
+        raise ValueError(f"do not support draw_method={draw_method}")
 
     t_total = perf_counter() if profile else None
 
-    # Apply requested image-plane shift in detector-pixel units.
+    # Shift galaxy in physical detector-pixel units.
     t = perf_counter() if profile else None
     gobj = gal_obj.shift(
         float(delta_image_x) * float(pix_scale),
@@ -157,18 +174,20 @@ def simulate_galaxy(
     if profile:
         _log(f"apply_shift={perf_counter() - t:.4e}s")
 
-    # Build GalSim-like effective kernel.
+    # Fourier-space kernel is now PSF only.
     t = perf_counter() if profile else None
     kernel_obj = _prepare_kernel(
         psf_obj=psf_obj,
-        pix_scale=pix_scale,
         draw_method=draw_method,
     )
     kernel_key = _register_psf(kernel_obj) if kernel_obj is not None else None
     if profile:
         _log(f"prepare_kernel={perf_counter() - t:.4e}s")
 
-    # Choose fine sampling scale.
+    # Fine sampling scale:
+    # - no kernel + no_pixel can be native scale
+    # - auto should usually oversample enough to permit detector integration
+    # - no_pixel with PSF can also oversample, but can be slightly cheaper
     t = perf_counter() if profile else None
     fine_scale = _choose_fine_sampling_scale(
         gobj=gobj,
@@ -179,7 +198,7 @@ def simulate_galaxy(
     downsample_ratio = _choose_downsample_ratio(
         pix_scale=pix_scale,
         fine_scale=fine_scale,
-        max_ratio=4,
+        max_ratio=8 if draw_method == "auto" else 4,
     )
     fine_scale = float(pix_scale) / float(downsample_ratio)
     if profile:
@@ -189,7 +208,7 @@ def simulate_galaxy(
             f"downsample_ratio={downsample_ratio}"
         )
 
-    # Choose compact unpadded render size.
+    # Choose unpadded physical render size.
     t = perf_counter() if profile else None
     render_nn = _choose_render_grid_size(
         gobj=gobj,
@@ -200,10 +219,22 @@ def simulate_galaxy(
         force_ngrid=force_ngrid,
         downsample_ratio=downsample_ratio,
     )
+
+    # For auto mode, detector integration requires exact divisibility.
+    if draw_method == "auto" and (render_nn % downsample_ratio != 0):
+        render_nn = int(
+            downsample_ratio * np.ceil(render_nn / downsample_ratio)
+        )
+        if render_nn > maximum_num_grids:
+            raise ValueError(
+                "Required render size after enforcing detector divisibility "
+                f"exceeds maximum_num_grids={maximum_num_grids}."
+            )
+
     if profile:
         _log(f"choose_render_grid={perf_counter() - t:.4e}s render_nn={render_nn}")
 
-    # Build only the physically relevant stamp in Python.
+    # Build fine-grid coordinates and apply transforms.
     t = perf_counter() if profile else None
     stamp = Stamp(nn=render_nn, scale=fine_scale)
 
@@ -219,7 +250,7 @@ def simulate_galaxy(
     if profile:
         _log(f"coords_transform={perf_counter() - t:.4e}s")
 
-    # Sample the galaxy on the compact fine grid.
+    # Sample galaxy on fine grid.
     t = perf_counter() if profile else None
     gal_prof = _gsinterface.getFluxVec(
         scale=fine_scale,
@@ -229,7 +260,7 @@ def simulate_galaxy(
     if profile:
         _log(f"sample_flux={perf_counter() - t:.4e}s")
 
-    # Convolve in C++, which adds its own zero-padding right before the FFT.
+    # PSF-only Fourier convolution.
     if kernel_obj is not None:
         t = perf_counter() if profile else None
         eff_kernel = _cached_effective_kernel(kernel_key)
@@ -242,39 +273,53 @@ def simulate_galaxy(
         if profile:
             _log(f"fine_convolution={perf_counter() - t:.4e}s")
 
-    # Choose final output dimension.
+    # Final output stage depends on draw_method.
     t = perf_counter() if profile else None
-    if ngrid is None:
-        out_dim = max(1, int(np.round(render_nn * fine_scale / pix_scale)))
-    else:
-        out_dim = int(ngrid)
-    if profile:
-        _log(f"choose_output_grid={perf_counter() - t:.4e}s out_dim={out_dim}")
 
-    # Only resample when scales differ. Otherwise crop/pad cheaply.
-    t = perf_counter() if profile else None
-    if np.isclose(fine_scale, pix_scale):
+    if draw_method == "auto":
+        # Apply pixel response by detector integration.
+        if downsample_ratio > 1:
+            gal_prof = _gsinterface.integrateToDetector(
+                gal_prof,
+                int(downsample_ratio),
+            )
+
+        # Now the image is on the detector grid with scale = pix_scale.
+        if ngrid is None:
+            out_dim = gal_prof.shape[0]
+        else:
+            out_dim = int(ngrid)
+
         if gal_prof.shape[0] != out_dim:
             gal_prof = _gsinterface.centerCropOrPad(gal_prof, out_dim)
+
     else:
-        gal_prof = _gsinterface.resampleToGrid(
-            image=gal_prof,
-            in_scale=fine_scale,
-            out_scale=pix_scale,
-            out_dim=out_dim,
-        )
-    if profile:
-        _log(f"final_output_stage={perf_counter() - t:.4e}s")
+        # draw_method == "no_pixel"
+        if ngrid is None:
+            out_dim = max(1, int(np.round(render_nn * fine_scale / pix_scale)))
+        else:
+            out_dim = int(ngrid)
+
+        if np.isclose(fine_scale, pix_scale):
+            if gal_prof.shape[0] != out_dim:
+                gal_prof = _gsinterface.centerCropOrPad(gal_prof, out_dim)
+        else:
+            gal_prof = _gsinterface.resampleToGrid(
+                image=gal_prof,
+                in_scale=fine_scale,
+                out_scale=pix_scale,
+                out_dim=out_dim,
+            )
 
     if profile:
+        _log(f"final_output_stage={perf_counter() - t:.4e}s")
         _log(
             "stats "
             f"render_nn={render_nn} "
             f"fine_scale={fine_scale:.4e} "
             f"downsample_ratio={downsample_ratio} "
             f"fft_pad_pixels={fft_pad_pixels} "
-            f"draw_method={draw_method} "
-            f"out_dim={out_dim}"
+            f"draw_method={draw_method}"
         )
         _log(f"total={perf_counter() - t_total:.4e}s")
 
