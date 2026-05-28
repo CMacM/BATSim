@@ -1,75 +1,117 @@
 import os
+import sys
+import sysconfig
+
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
-import pybind11
 
 
-class CustomBuildExt(build_ext):
-    def run(self):
-        # Dynamically set include_dirs and library_dirs before building
-        # extensions
-        include_dirs, lib_dirs = self.find_galsim_paths()
+class BuildExt(build_ext):
+    def build_extensions(self):
+        pybind11_include_dirs = self._find_pybind11_paths()
+        include_dirs, library_dirs = self._find_galsim_paths()
+
+        if not self._has_library(library_dirs, "galsim"):
+            search_paths = ", ".join(library_dirs) or "<none>"
+            raise RuntimeError(
+                "Could not find GalSim's C++ shared library libgalsim. "
+                "Install GalSim from conda-forge, or build GalSim's shared C++ "
+                "library from the GalSim source tree with "
+                "`python setup.py build_shared_clib` and set GALSIM_LIB_DIR "
+                "and GALSIM_INCLUDE_DIR before installing BATSim. "
+                f"Searched library paths: {search_paths}"
+            )
 
         for ext in self.extensions:
-            for _ in include_dirs:
-                ext.include_dirs.append(_)
-            for _ in lib_dirs:
-                ext.library_dirs.append(_)
-                ext.runtime_library_dirs.append(_)  # For Linux
+            ext.include_dirs.extend(
+                [
+                    *pybind11_include_dirs,
+                    *include_dirs,
+                ]
+            )
+            ext.library_dirs.extend(library_dirs)
+            ext.runtime_library_dirs.extend(library_dirs)
+            ext.libraries.append("galsim")
 
-        super().run()
+        super().build_extensions()
 
-    def find_galsim_paths(self):
+    def _find_pybind11_paths(self):
+        prefix_include = os.path.join(sys.prefix, "include")
+        if os.path.exists(os.path.join(prefix_include, "pybind11", "pybind11.h")):
+            return [prefix_include]
+
+        import pybind11
+
+        return [pybind11.get_include()]
+
+    def _find_galsim_paths(self):
         include_dirs = []
-        lib_dirs = []
+        library_dirs = []
 
-        # Prefer GalSim's own include directory if import works
-        try:
-            import galsim
-            inc = galsim.include_dir              # .../site-packages/galsim/include
-            include_dirs.append(inc)
-            include_dirs.append(os.path.join(inc, "galsim"))   # <-- add this
-        except Exception:
-            print("Error: Could not import GalSim to find include directory.")
+        include_override = os.environ.get("GALSIM_INCLUDE_DIR")
+        if include_override:
+            include_dirs.extend([include_override, os.path.join(include_override, "galsim")])
 
-        # Conda-build uses PREFIX for the host env (headers live here)
+        lib_override = os.environ.get("GALSIM_LIB_DIR")
+        if lib_override:
+            library_dirs.append(lib_override)
+
         prefixes = [
-            os.environ.get("PREFIX"),        # conda-build host env
-            os.environ.get("CONDA_PREFIX"),  # active env fallback
+            sys.prefix,
+            os.environ.get("CONDA_PREFIX"),
+            os.environ.get("PREFIX"),
+            sysconfig.get_config_var("prefix"),
         ]
 
-        for p in prefixes:
-            if not p:
+        for prefix in prefixes:
+            if not prefix:
                 continue
-            include_dirs.append(os.path.join(p, "include"))
-            include_dirs.append(os.path.join(p, "include", "galsim"))
-            include_dirs.append(os.path.join(p, "include", "eigen3"))
-            lib_dirs.append(os.path.join(p, "lib"))
+            include_dirs.extend(
+                [
+                    os.path.join(prefix, "include"),
+                    os.path.join(prefix, "include", "galsim"),
+                    os.path.join(prefix, "include", "eigen3"),
+                ]
+            )
+            lib_dir = os.path.join(prefix, "lib")
+            if os.path.isdir(lib_dir):
+                library_dirs.append(lib_dir)
 
-        # 3) Last-resort system paths
-        include_dirs += ["/usr/local/include", "/usr/include", "/usr/include/eigen3"]
-        lib_dirs += ["/usr/local/lib", "/usr/lib"]
+        if not self._has_header(include_dirs, "GalSim.h"):
+            try:
+                import galsim
 
-        # De-duplicate preserving order
-        def uniq(xs):
-            out = []
-            for x in xs:
-                if x and x not in out:
-                    out.append(x)
-            return out
+                galsim_include = getattr(galsim, "include_dir", None)
+                if galsim_include:
+                    include_dirs.extend([galsim_include, os.path.join(galsim_include, "galsim")])
+            except ImportError:
+                pass
 
-        return uniq(include_dirs), uniq(lib_dirs)
+        return self._dedupe(include_dirs), self._dedupe(library_dirs)
+
+    def _has_header(self, include_dirs, name):
+        return any(os.path.exists(os.path.join(directory, name)) for directory in include_dirs)
+
+    def _has_library(self, library_dirs, name):
+        patterns = [f"lib{name}.so", f"lib{name}.dylib", f"{name}.lib"]
+        return any(os.path.exists(os.path.join(directory, pattern)) for directory in library_dirs for pattern in patterns)
+
+    def _dedupe(self, values):
+        out = []
+        for value in values:
+            if value and value not in out:
+                out.append(value)
+        return out
 
 
-# Define your extension module
 gsinterface = Extension(
     "batsim._gsinterface",
     sources=["src/batsim/_gsinterface.cpp"],
-    include_dirs=[pybind11.get_include()],
-    libraries=["galsim"],
+    include_dirs=[],
+    libraries=[],
     language="c++",
     extra_compile_args=["-std=c++17", "-fopenmp", "-O3"],
-    extra_link_args=["-flto", "-fopenmp"],
+    extra_link_args=["-fopenmp"],
 )
 
 setup(
@@ -77,6 +119,7 @@ setup(
     author="Charlie MacMahon, Andy Park",
     author_email="c.macmahon@ncl.ac.uk, chanhyup@andrew.cmu.edu",
     license="MIT",
+    python_requires=">=3.10,<3.13",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[
@@ -88,10 +131,24 @@ setup(
         "Programming Language :: Python",
     ],
     packages=find_packages(where="src"),
+    py_modules=["batsim_install_gpu"],
     package_dir={"": "src"},
-    install_requires=[
-        "numpy", "pybind11>=2.2", "fitsio", "matplotlib", "astropy",
-    ],
     ext_modules=[gsinterface],
-    cmdclass={"build_ext": CustomBuildExt},
+    cmdclass={"build_ext": BuildExt},
+    install_requires=[
+        "numpy>=1.26,<2.0",
+        "galsim",
+        "fitsio",
+        "matplotlib>=3.8,<3.9",
+        "astropy>=6.0,<6.1",
+    ],
+    extras_require={
+        "cuda12": ["cupy-cuda12x>=13.6,<14"],
+        "cuda13": ["cupy-cuda13x>=13.6,<14"],
+    },
+    entry_points={
+        "console_scripts": [
+            "batsim-install-gpu=batsim_install_gpu:main",
+        ],
+    },
 )

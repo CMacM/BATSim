@@ -145,3 +145,6 @@ tmp/
 _results/
 _html/
 .hypothesis
+
+# Dev files
+*.fits

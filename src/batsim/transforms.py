@@ -1,8 +1,57 @@
 import warnings
 
-import galsim
 import numpy as np
-from time import perf_counter
+
+
+_ARRAY_BACKEND = None
+_CPU_FALLBACK_WARNED = False
+
+
+def _coords_backend(coords):
+    """Return the array backend for a coordinate array."""
+    module = type(coords).__module__.split(".", 1)[0]
+    if module == "cupy":
+        import cupy as cp
+
+        return cp
+
+    return np
+
+
+def _coords_dtype(coords):
+    """Return a floating dtype matching coords."""
+    return getattr(coords, "dtype", None)
+
+
+def _get_array_backend():
+    """
+    Return CuPy if available, otherwise NumPy.
+
+    This mirrors the backend-selection behaviour used in the simulation code.
+    """
+    global _ARRAY_BACKEND
+    global _CPU_FALLBACK_WARNED
+
+    if _ARRAY_BACKEND is not None:
+        return _ARRAY_BACKEND
+
+    try:
+        import cupy as cp
+
+        cp.cuda.runtime.getDeviceCount()
+        _ARRAY_BACKEND = cp
+    except Exception:
+        if not _CPU_FALLBACK_WARNED:
+            warnings.warn(
+                "CuPy unavailable; falling back to NumPy stamp coordinates.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            _CPU_FALLBACK_WARNED = True
+        _ARRAY_BACKEND = np
+
+    return _ARRAY_BACKEND
+
 
 
 class FlexionTransform(object):
@@ -38,8 +87,14 @@ class FlexionTransform(object):
         Args:
         coords: coordinates (x, y) of the pixel centers [arcsec]
         """
-        return self.s2l_mat @ coords + np.einsum(
-            "ijk,jl,kl->il", self.D, coords, coords
+        xp = _coords_backend(coords)
+        dtype = _coords_dtype(coords)
+        coords = xp.asarray(coords)
+        s2l_mat = xp.asarray(self.s2l_mat, dtype=dtype)
+        d_tensor = xp.asarray(self.D, dtype=dtype)
+
+        return s2l_mat @ coords + xp.einsum(
+            "ijk,jl,kl->il", d_tensor, coords, coords
         )
 
     def inverse_transform(self, coords):
@@ -48,17 +103,23 @@ class FlexionTransform(object):
         here:
         https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf
         """
-        theta_0 = np.einsum("ij,jk", self.s2l_mat_inv, coords)
+        xp = _coords_backend(coords)
+        dtype = _coords_dtype(coords)
+        coords = xp.asarray(coords)
+        s2l_mat_inv = xp.asarray(self.s2l_mat_inv, dtype=dtype)
+        d_tensor = xp.asarray(self.D, dtype=dtype)
+
+        theta_0 = xp.einsum("ij,jk", s2l_mat_inv, coords)
         theta_1 = (
             -1
             / 2
-            * np.einsum(
+            * xp.einsum(
                 "in,ijk,jl,lo,km,mo->no",
-                self.s2l_mat_inv,
-                self.D,
-                self.s2l_mat_inv,
+                s2l_mat_inv,
+                d_tensor,
+                s2l_mat_inv,
                 coords,
-                self.s2l_mat_inv,
+                s2l_mat_inv,
                 coords,
             )
         )
@@ -124,7 +185,12 @@ class IaTransform(object):
         value depending on its distance from the center
         of the image.
         """
-        npix = np.sqrt(len(coords[0]))
+        xp = _coords_backend(coords)
+        dtype = _coords_dtype(coords)
+        coords = xp.asarray(coords)
+        ref_vec = xp.asarray(self.ref_vec, dtype=dtype)
+
+        npix = xp.sqrt(len(coords[0]))
 
         # if size_ratio < 2.5:
         #     warnings.simplefilter("always")
@@ -135,7 +201,7 @@ class IaTransform(object):
         #     warnings.warn(warning_message)
 
         # unpack x and y coordinates
-        coords_relative = coords - self.ref_vec
+        coords_relative = coords - ref_vec
 
         x, y = coords_relative
 
@@ -145,9 +211,9 @@ class IaTransform(object):
         x_prime = (1 - g1) * x - g2 * y
         y_prime = (1 + g1) * y - g2 * x
 
-        coords_realtive_transformed = np.array([x_prime, y_prime])
+        coords_realtive_transformed = xp.stack([x_prime, y_prime], axis=0)
 
-        return coords_realtive_transformed + self.ref_vec
+        return coords_realtive_transformed + ref_vec
 
     def get_g1g2(self, x, y):
         """
@@ -155,28 +221,34 @@ class IaTransform(object):
         gets the g1 and g2 components to construct the shear
         matrix.
         """
+        xp = _coords_backend(x)
+        dtype = _coords_dtype(x)
+        hlr = xp.asarray(self.hlr, dtype=dtype)
+        amp = xp.asarray(self.A, dtype=dtype)
+        c2phi = xp.asarray(self.c2phi, dtype=dtype)
+        s2phi = xp.asarray(self.s2phi, dtype=dtype)
 
         # find distance from image center as ratio to hlr
-        radial_dist = np.sqrt(abs(x) ** 2 + abs(y) ** 2)
-        rwf = (radial_dist) / self.hlr
+        radial_dist = xp.sqrt(abs(x) ** 2 + abs(y) ** 2)
+        rwf = radial_dist / hlr
 
         # fix shear beyond rfw >= clip_radius
-        rwf = np.clip(rwf, 0, self.clip_radius)
+        rwf = xp.clip(rwf, 0, self.clip_radius)
 
         # compute alignment amplitude at radius
-        A_rwf = self.A * rwf**self.beta
+        A_rwf = amp * rwf**self.beta
         absesq = A_rwf * A_rwf
 
-        if np.any(absesq > 1):
+        if bool(xp.any(absesq > 1)):
             raise ValueError(
-                "Requested distortion exceeds 1.", np.sqrt(absesq), 0.0, 1.0
+                "Requested distortion exceeds 1.", xp.sqrt(absesq), 0.0, 1.0
                         )
 
         # factor to convert e1, e2 to g1, g2
         fac = self.e2g(absesq)
 
-        g1 = A_rwf * self.c2phi * fac
-        g2 = A_rwf * self.s2phi * fac
+        g1 = A_rwf * c2phi * fac
+        g2 = A_rwf * s2phi * fac
 
         # return real (g1) and imaginary (g2) components
         return g1, g2
@@ -184,13 +256,15 @@ class IaTransform(object):
     # conversion used in galsim source code
     # modified to use binary arrays to speed up condition checking
     def e2g(self, absesq):
-        if type(absesq) == np.ndarray:
+        xp = _coords_backend(absesq)
+
+        if hasattr(absesq, "shape"):
             # if absesq is big enough to use the simple calculation, and a
             # 0 if the Taylor expansion is needed for stability.
             # if there are values greater than 1, continue with a deeper drill
             stable = absesq > 1e-4
             # unstable values set to False, stable values included
-            e2g = stable * (1.0 / (1.0 + np.sqrt(1.0 - absesq)))
+            e2g = stable * (1.0 / (1.0 + xp.sqrt(1.0 - absesq)))
             # now we invert to have unstable values as True
             unstable = absesq <= 1e-4
             # we add the unstable values to the array now, with the stable set to zero
@@ -209,33 +283,107 @@ class IaTransform(object):
                 return 0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625))
 
 
-class LensTransform(object):
-    def __init__(self, gamma1, gamma2, kappa, center=None):
-        """
-        Initialize the transform object of 2D grids.
-        Args:
-        gamma1 (float):   the first component of lensing shear field
-        gamma2 (float):   the second component of lensing shear field
-        kappa (float):    the lensing convergence field
-        xref (float):     reference coordinate x [in units of pixels]
-        xref (float):     reference coordinate y [in units of pixels]
-        """
+class LensTransform:
+    """
+    Affine lensing transform supporting either NumPy or CuPy arrays.
 
-        if center == None:
-            center = [0, 0]
+    If CuPy is available and the input coordinates are CuPy arrays, the
+    transform runs natively on GPU.
+    """
 
-        self.ref_vec = np.array([[center[0]], [center[1]]])
-        self.s2l_mat = np.array(
-            [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
+    def __init__(
+        self,
+        gamma1,
+        gamma2,
+        kappa,
+        center=None,
+        backend=None,
+        dtype=None,
+    ):
+        """
+        Parameters
+        ----------
+        gamma1, gamma2 : float
+            Components of lensing shear.
+        kappa : float
+            Lensing convergence.
+        center : sequence of float, optional
+            Reference coordinate [x, y].
+        backend : module, optional
+            NumPy or CuPy. If None, auto-detect.
+        dtype : dtype, optional
+            Floating dtype for transform arrays.
+        """
+        self.xp = _get_array_backend() if backend is None else backend
+
+        if dtype is None:
+            dtype = self.xp.float64
+
+        if center is None:
+            center = [0.0, 0.0]
+
+        self.dtype = dtype
+
+        self.ref_vec = self.xp.asarray(
+            [[center[0]], [center[1]]],
+            dtype=self.dtype,
         )
-        return
+
+        self.s2l_mat = self.xp.asarray(
+            [
+                [1.0 - kappa - gamma1, -gamma2],
+                [-gamma2, 1.0 - kappa + gamma1],
+            ],
+            dtype=self.dtype,
+        )
 
     def transform(self, coords):
         """
-        Transform the center of pixels from lensed plane to
-        pre-lensed plane.
-        Args:
-        coords:   coordinates (x, y) of the pixel centers [arcsec]
+        Transform pixel-centre coordinates from lensed plane to pre-lensed plane.
+
+        Parameters
+        ----------
+        coords : array-like
+            Coordinate array with shape (2, npoints). Can be NumPy or CuPy.
+
+        Returns
+        -------
+        array-like
+            Transformed coordinates using the configured backend.
         """
-        coords_relative = coords - self.ref_vec
-        return self.s2l_mat @ coords_relative + self.ref_vec
+        coords = self.xp.asarray(coords)
+        dtype = _coords_dtype(coords)
+
+        ref_vec = self.xp.asarray(self.ref_vec, dtype=dtype)
+        s2l_mat = self.xp.asarray(self.s2l_mat, dtype=dtype)
+
+        coords_relative = coords - ref_vec
+        return s2l_mat @ coords_relative + ref_vec
+
+    def to_backend(self, backend=None, dtype=None):
+        """
+        Return a copy of this transform on another backend/dtype.
+        """
+        xp = _get_array_backend() if backend is None else backend
+
+        if dtype is None:
+            dtype = self.dtype
+
+        ref_vec = self._to_numpy(self.ref_vec)
+        s2l_mat = self._to_numpy(self.s2l_mat)
+
+        new = object.__new__(LensTransform)
+        new.xp = xp
+        new.dtype = dtype
+        new.ref_vec = xp.asarray(ref_vec, dtype=dtype)
+        new.s2l_mat = xp.asarray(s2l_mat, dtype=dtype)
+
+        return new
+
+    @staticmethod
+    def _to_numpy(array):
+        """Convert NumPy/CuPy array to NumPy."""
+        if isinstance(array, np.ndarray):
+            return array
+
+        return array.get()

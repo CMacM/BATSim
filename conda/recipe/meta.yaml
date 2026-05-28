@@ -14,36 +14,30 @@ build:
   # skip: true  # [not linux]  # uncomment if you want linux-only builds
 
 requirements:
-  # Do not request conda-forge compiler toolchain packages on this cluster
-  # (they are unavailable, and the solve fails). Use system gcc/g++ instead.
   build: []
   host:
-    - python
+    - python >=3.10,<3.13
     - pip
     - setuptools
     - wheel
-    - numpy
-    - pybind11
-    - galsim
+    - pybind11 >=3,<4
     - eigen
+    - numpy >=1.26,<2.0
+    - galsim
     - fitsio
   run:
-    - python
-    - numpy
-    - pybind11
+    - python >=3.10,<3.13
+    - numpy >=1.26,<2.0
     - galsim
-    - eigen
     - fitsio
-    - matplotlib
-    - astropy
+    - matplotlib >=3.8,<3.9
+    - astropy >=6.0,<6.1
 
 test:
-  commands:
-    - test -d "$PREFIX/include/eigen3/Eigen"
   imports:
     - batsim
     - batsim._gsinterface
 
 about:
   license: MIT
-  summary: "BATSim package (links against GalSim C++ library)"
+  summary: "BATSim package with GalSim C++ sampling and optional CuPy GPU support"
