@@ -148,3 +148,7 @@ _html/
 
 # Large files
 *.fits
+
+# Test save files
+/notebooks/validation/COSMOS_lensed/
+/notebooks/validation/*.png 
