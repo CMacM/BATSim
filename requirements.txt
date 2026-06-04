@@ -1,5 +1,14 @@
 stackvana
+numpy>=1.26,<2.0
 galsim
-matplotlib
+fitsio
+matplotlib>=3.8,<3.9
+astropy>=6.0,<6.1
 pip
+pybind11>=3,<4
 
+# Optional GPU support:
+#   pip install .[cuda12]
+#   pip install .[cuda13]
+# or install BATSim first and run:
+#   batsim-install-gpu

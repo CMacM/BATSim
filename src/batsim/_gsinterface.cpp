@@ -1,119 +1,95 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/conduit/pybind11_conduit_v1.h>
 #include "GalSim.h"
 #include <omp.h>
-#include <vector>
-#include <complex>
-#include <fftw3.h>
 #include <cmath>
-#include <algorithm>
+#include <complex>
 #include <stdexcept>
 
 namespace py = pybind11;
 
-// ---------- Utility helpers ----------
+template <typename CoordT, typename FluxT>
+py::array_t<FluxT> getFluxVecTyped(
+    const double scale,
+    const galsim::SBProfile& gsobj,
+    const py::array_t<CoordT, py::array::c_style | py::array::forcecast>& xy_coords
+) {
+    auto xy = xy_coords.template unchecked<2>();
 
-std::vector<double> rfftfreq(int n, double scale) {
-    std::vector<double> result(n / 2 + 1);
-    for (int i = 0; i <= n / 2; ++i) {
-        result[i] = static_cast<double>(i) / (scale * n);
+    if (xy_coords.ndim() != 2 || xy_coords.shape(0) != 2) {
+        throw std::runtime_error("xy_coords must have shape (2, n_points)");
     }
+
+    const py::ssize_t n_points = xy_coords.shape(1);
+    const int dim = static_cast<int>(std::sqrt(static_cast<double>(n_points)));
+    const int n_used = dim * dim;
+
+    if (n_used != n_points) {
+        throw std::runtime_error("xy_coords.shape[1] must be a perfect square");
+    }
+
+    auto result = py::array_t<FluxT, py::array::c_style>({dim, dim});
+    auto out = result.mutable_data();
+
+    const double area = scale * scale;
+
+    // Pre-warm GalSim's internal cache with a single serial call.
+    gsobj.xValue(
+        galsim::Position<double>(
+            static_cast<double>(xy(0, 0)),
+            static_cast<double>(xy(1, 0))
+        )
+    );
+
+    #pragma omp parallel for schedule(static)
+    for (int i = 0; i < n_used; ++i) {
+        const double x = static_cast<double>(xy(0, i));
+        const double y = static_cast<double>(xy(1, i));
+
+        const double flux = gsobj.xValue(
+            galsim::Position<double>(x, y)
+        ) * area;
+        out[i] = static_cast<FluxT>(flux);
+    }
+
     return result;
 }
 
-std::vector<double> fftfreq(int n, double scale) {
-    std::vector<double> result(n);
-    const double val = 1.0 / (n * scale);
-    for (int i = 0; i < n; ++i) {
-        result[i] = (i < (n + 1) / 2) ? i * val : (i - n) * val;
-    }
-    return result;
-}
-
-bool is_c_contiguous(const py::array& arr) {
-    return (arr.flags() & py::array::c_style) != 0;
-}
-
-int round_up_multiple(int n, int m = 16) {
-    if (m <= 0) throw std::runtime_error("round_up_multiple requires m > 0");
-    return ((n + m - 1) / m) * m;
-}
-
-void copy_centered_into(
-    const double* src,
-    int src_dim,
-    double* dst,
-    int dst_dim
+template <typename ComplexT>
+py::array_t<ComplexT> getPsfKValueTyped(
+    const double scale,
+    const galsim::SBProfile& gsobj,
+    const int n
 ) {
-    std::fill(dst, dst + dst_dim * dst_dim, 0.0);
-
-    const int src_c = src_dim / 2;
-    const int dst_c = dst_dim / 2;
-
-    for (int y = 0; y < src_dim; ++y) {
-        const int yy = y - src_c + dst_c;
-        if (yy < 0 || yy >= dst_dim) continue;
-
-        for (int x = 0; x < src_dim; ++x) {
-            const int xx = x - src_c + dst_c;
-            if (xx < 0 || xx >= dst_dim) continue;
-
-            dst[yy * dst_dim + xx] = src[y * src_dim + x];
-        }
+    if (n <= 0) {
+        throw std::runtime_error("n must be positive");
     }
-}
 
-void ifftshift2d_inplace(double* arr, int dim) {
-    std::vector<double> tmp(dim * dim);
-    const int shift = dim / 2;  // matches your Stamp convention
+    const int nkx = n / 2 + 1;
+    auto result = py::array_t<ComplexT>({n, nkx});
+    auto out = result.mutable_data();
 
-    for (int y = 0; y < dim; ++y) {
-        const int yy = (y + shift) % dim;
-        for (int x = 0; x < dim; ++x) {
-            const int xx = (x + shift) % dim;
-            tmp[yy * dim + xx] = arr[y * dim + x];
-        }
-    }
-    std::copy(tmp.begin(), tmp.end(), arr);
-}
+    const double dk = 2.0 * M_PI / (static_cast<double>(n) * scale);
 
-void fftshift2d_inplace(double* arr, int dim) {
-    // For even dim this is identical to ifftshift.
-    // For odd dim your Stamp convention still wants shift = dim/2.
-    std::vector<double> tmp(dim * dim);
-    const int shift = dim / 2;
+    // Pre-warm GalSim's internal cache with a single serial call.
+    gsobj.kValue(galsim::Position<double>(0.0, 0.0));
 
-    for (int y = 0; y < dim; ++y) {
-        const int yy = (y + dim - shift) % dim;
-        for (int x = 0; x < dim; ++x) {
-            const int xx = (x + dim - shift) % dim;
-            tmp[yy * dim + xx] = arr[y * dim + x];
-        }
-    }
-    std::copy(tmp.begin(), tmp.end(), arr);
-}
+    #pragma omp parallel for schedule(static)
+    for (int y = 0; y < n; ++y) {
+        const int ky_index = (y < (n + 1) / 2) ? y : y - n;
+        const double ky = dk * static_cast<double>(ky_index);
 
-py::array_t<double> crop_centered_raw(
-    const double* src,
-    int src_dim,
-    int out_dim,
-    double norm = 1.0
-) {
-    auto result = py::array_t<double>({out_dim, out_dim});
-    auto out = result.mutable_unchecked<2>();
+        for (int x = 0; x < nkx; ++x) {
+            const double kx = dk * static_cast<double>(x);
+            const std::complex<double> value = gsobj.kValue(
+                galsim::Position<double>(kx, ky)
+            );
 
-    const int src_c = src_dim / 2;
-    const int out_c = out_dim / 2;
-
-    for (int y = 0; y < out_dim; ++y) {
-        const int sy = y - out_c + src_c;
-        for (int x = 0; x < out_dim; ++x) {
-            const int sx = x - out_c + src_c;
-            if (sx >= 0 && sx < src_dim && sy >= 0 && sy < src_dim) {
-                out(y, x) = src[sy * src_dim + sx] * norm;
-            } else {
-                out(y, x) = 0.0;
-            }
+            out[y * nkx + x] = ComplexT(
+                static_cast<typename ComplexT::value_type>(value.real()),
+                static_cast<typename ComplexT::value_type>(value.imag())
+            );
         }
     }
 
@@ -418,25 +394,47 @@ py::array_t<double> centerCropOrPad(
 }
 
 PYBIND11_MODULE(_gsinterface, m) {
-    m.doc() = "Pybind11 interface for GalSim fine-grid sampling, convolution, and resampling";
-
+    m.doc() = "Pybind11 interface for GalSim flux sampling";
     m.def(
         "getFluxVec",
-        &getFluxVec,
-        "Sample flux values on a provided coordinate grid",
+        &getFluxVecTyped<double, double>,
         py::arg("scale"),
         py::arg("gsobj"),
-        py::arg("xy_coords")
+        py::arg("xy_coords"),
+        "Sample galaxy flux using float64 coordinates and output."
     );
 
     m.def(
-        "convolvePsfFine",
-        &convolvePsfFine,
-        "Convolve a fine-grid image with a GalSim profile on the same fine grid",
+        "getFluxVec64",
+        &getFluxVecTyped<double, double>,
         py::arg("scale"),
-        py::arg("psf"),
-        py::arg("gal_prof"),
-        py::arg("pad_pixels") = 16
+        py::arg("gsobj"),
+        py::arg("xy_coords"),
+        "Sample galaxy flux using float64 coordinates and output."
+    );
+    m.def(
+        "getFluxVec32",
+        &getFluxVecTyped<float, float>,
+        py::arg("scale"),
+        py::arg("gsobj"),
+        py::arg("xy_coords"),
+        "Sample galaxy flux using float32 coordinates and output."
+    );
+    m.def(
+        "getPsfKValue64",
+        &getPsfKValueTyped<std::complex<double>>,
+        py::arg("scale"),
+        py::arg("gsobj"),
+        py::arg("n"),
+        "Sample PSF kValue on a float64/complex128 rFFT frequency grid."
+    );
+    m.def(
+        "getPsfKValue32",
+        &getPsfKValueTyped<std::complex<float>>,
+        py::arg("scale"),
+        py::arg("gsobj"),
+        py::arg("n"),
+        "Sample PSF kValue on a float32/complex64 rFFT frequency grid."
     );
 
     m.def(
