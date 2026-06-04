@@ -310,11 +310,12 @@ class LensTransform:
         center : sequence of float, optional
             Reference coordinate [x, y].
         backend : module, optional
-            NumPy or CuPy. If None, auto-detect.
+            NumPy or CuPy. If None, NumPy is used. Simulation code moves
+            transforms to the requested backend before applying them.
         dtype : dtype, optional
             Floating dtype for transform arrays.
         """
-        self.xp = _get_array_backend() if backend is None else backend
+        self.xp = np if backend is None else backend
 
         if dtype is None:
             dtype = self.xp.float64
@@ -364,7 +365,7 @@ class LensTransform:
         """
         Return a copy of this transform on another backend/dtype.
         """
-        xp = _get_array_backend() if backend is None else backend
+        xp = np if backend is None else backend
 
         if dtype is None:
             dtype = self.dtype

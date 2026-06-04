@@ -51,6 +51,8 @@ class Stamp:
         scale: float = 0.2,
         backend=None,
         dtype=None,
+        use_true_center=True,
+        downsample_ratio=1,
     ):
         """
         Parameters
@@ -63,6 +65,12 @@ class Stamp:
             Array backend, e.g. numpy or cupy. If None, auto-detect.
         dtype : dtype, optional
             Coordinate dtype. Defaults to float32 for CuPy, float64 for NumPy.
+        use_true_center : bool, optional
+            If True, use GalSim's default true-image-center convention.  If the
+            stamp will later be downsampled, this aligns the fine grid to the
+            true center of the eventual coarse grid.
+        downsample_ratio : int, optional
+            Coarse-to-fine pixel ratio used for true-center alignment.
         """
         self.xp = _get_array_backend() if backend is None else backend
 
@@ -70,22 +78,32 @@ class Stamp:
             dtype = self.xp.float32 if self.xp is not np else np.float64
 
         self.dtype = dtype
-        self.set_coords(nn, scale)
+        self.set_coords(
+            nn,
+            scale,
+            use_true_center=use_true_center,
+            downsample_ratio=downsample_ratio,
+        )
 
-    def set_coords(self, nn, scale):
+    def set_coords(self, nn, scale, use_true_center=True, downsample_ratio=1):
         """
         Construct coordinates with shape (2, nn*nn), ordered as [x, y].
         """
         nn = int(nn)
         scale = float(scale)
+        downsample_ratio = int(downsample_ratio)
 
         xp = self.xp
 
-        ind = xp.arange(
-            -(nn // 2),
-            (nn + 1) // 2,
-            dtype=self.dtype,
-        ) * scale
+        if downsample_ratio < 1:
+            raise ValueError("downsample_ratio must be >= 1.")
+
+        if use_true_center:
+            center_index = 0.5 * (nn - downsample_ratio)
+        else:
+            center_index = nn // 2
+
+        ind = (xp.arange(nn, dtype=self.dtype) - center_index) * scale
 
         yy, xx = xp.meshgrid(ind, ind, indexing="ij")
 
@@ -101,6 +119,9 @@ class Stamp:
         self.pixel_area = scale**2
         self.shape = (nn, nn)
         self.nn = nn
+        self.use_true_center = bool(use_true_center)
+        self.downsample_ratio = downsample_ratio
+        self.center_index = center_index
 
     def to_numpy(self):
         """

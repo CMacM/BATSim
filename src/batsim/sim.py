@@ -312,24 +312,27 @@ def _resolve_integration_sampling(supersample, integration_order):
 
 def _integration_offsets(xp, fine_scale, integration_order, dtype):
     """
-    Return sub-pixel offsets for midpoint block integration.
+    Return sub-pixel offsets and weights for Gauss-Legendre block integration.
     """
     if integration_order <= 1:
-        return None
+        return None, None
 
-    offsets_1d = (
-        (xp.arange(integration_order, dtype=dtype) + 0.5) / integration_order
-        - 0.5
-    ) * fine_scale
+    nodes, weights = np.polynomial.legendre.leggauss(integration_order)
+    offsets_1d = xp.asarray(0.5 * nodes * fine_scale, dtype=dtype)
+    weights_1d = xp.asarray(0.5 * weights, dtype=dtype)
+
     yy, xx = xp.meshgrid(offsets_1d, offsets_1d, indexing="ij")
+    wy, wx = xp.meshgrid(weights_1d, weights_1d, indexing="ij")
 
-    return xp.stack(
+    offsets = xp.stack(
         [
             xx.ravel(),
             yy.ravel(),
         ],
         axis=1,
     )
+
+    return offsets, (wx * wy).ravel()
 
 
 def _prepare_transforms(transform_obj, xp, dtype=None):
@@ -408,7 +411,7 @@ def _sample_galaxy_profile_on_stamp(
         sync_if_gpu(xp)
     start = time.time()
 
-    offsets = _integration_offsets(
+    offsets, weights = _integration_offsets(
         xp=xp,
         fine_scale=fine_scale,
         integration_order=integration_order,
@@ -460,7 +463,13 @@ def _sample_galaxy_profile_on_stamp(
             integration_order * integration_order,
             stamp.nn,
             stamp.nn,
-        ).mean(axis=0, dtype=np.dtype(real_dtype))
+        )
+        weights = _to_numpy(xp, weights).astype(np.dtype(real_dtype), copy=False)
+        gal_prof = np.tensordot(
+            weights,
+            gal_prof,
+            axes=(0, 0),
+        ).astype(np.dtype(real_dtype), copy=False)
 
     end = time.time()
     if profile:
@@ -500,7 +509,7 @@ def _sample_psf_spectrum(psf_obj, n, fine_scale, complex_dtype):
     )
 
 
-def _rfft_centered_image(xp, image, real_dtype, complex_dtype):
+def _rfft_centered_image(xp, image, real_dtype, complex_dtype, center_index=None):
     """
     Compute rfft2(ifftshift(image)) without explicitly shifting the image.
 
@@ -516,19 +525,22 @@ def _rfft_centered_image(xp, image, real_dtype, complex_dtype):
 
     del image
 
-    _apply_centering_phase(xp, spectrum, n)
+    _apply_centering_phase(xp, spectrum, n, center_index=center_index)
 
     return spectrum
 
 
-def _apply_centering_phase(xp, spectrum, n):
+def _apply_centering_phase(xp, spectrum, n, center_index=None):
     """
     Apply the Fourier phase equivalent to np.fft.ifftshift before an FFT.
 
     This avoids materialising a shifted real-space image, which is expensive
     for very large supersampled stamps.
     """
-    shift = -(n // 2)
+    if center_index is None:
+        center_index = n // 2
+
+    shift = -float(center_index)
 
     ky = xp.fft.fftfreq(n) * n
     kx = xp.fft.rfftfreq(n) * n
@@ -563,7 +575,34 @@ def _apply_pixel_response(xp, spectrum, n, fine_scale, pix_scale):
     spectrum *= pix_x[None, :]
 
 
-def _extract_centered_coarse_image(xp, image, downsample_ratio):
+def _compensate_block_integration(xp, spectrum, n, fine_scale, min_response=1.0e-3):
+    """
+    Remove the fine-pixel top-hat response introduced by block integration.
+
+    Block integration stores each fine-grid value as an approximation to the
+    local pixel integral. Before PSF convolution, compensate the corresponding
+    separable sinc response so the integration acts mainly as an anti-aliasing
+    quadrature device rather than as an extra pre-PSF smoothing kernel.
+    """
+    ky = 2.0 * xp.pi * xp.fft.fftfreq(n, d=fine_scale)
+    kx = 2.0 * xp.pi * xp.fft.rfftfreq(n, d=fine_scale)
+
+    response_y = xp.sinc(ky * fine_scale / (2.0 * xp.pi))
+    response_x = xp.sinc(kx * fine_scale / (2.0 * xp.pi))
+
+    real_dtype = spectrum.real.dtype
+    min_response = xp.asarray(min_response, dtype=real_dtype)
+    response_y = response_y.astype(real_dtype, copy=False)
+    response_x = response_x.astype(real_dtype, copy=False)
+
+    response_y = xp.maximum(response_y, min_response)
+    response_x = xp.maximum(response_x, min_response)
+
+    spectrum /= response_y[:, None]
+    spectrum /= response_x[None, :]
+
+
+def _extract_centered_coarse_image(xp, image, downsample_ratio, center_index=None):
     """
     Return fftshift(image)[::downsample_ratio, ::downsample_ratio] without
     explicitly materialising fftshift(image).
@@ -578,9 +617,20 @@ def _extract_centered_coarse_image(xp, image, downsample_ratio):
         raise ValueError("downsample_ratio must be >= 1")
 
     coarse_n = n // s
+    if center_index is None:
+        center_index = n // 2
 
-    rows = (xp.arange(coarse_n) * s - n // 2) % n
-    cols = (xp.arange(coarse_n) * s - n // 2) % n
+    wrapped_center = -float(center_index)
+    if not np.isclose(wrapped_center, round(wrapped_center)):
+        raise ValueError(
+            "The fine-grid center is not aligned with integer FFT output pixels. "
+            "Use an even downsample_ratio, or use_true_center=False."
+        )
+
+    wrapped_center = int(round(wrapped_center))
+
+    rows = (xp.arange(coarse_n) * s + wrapped_center) % n
+    cols = (xp.arange(coarse_n) * s + wrapped_center) % n
 
     coarse = image[rows[:, None], cols[None, :]]
     del image, rows, cols
@@ -601,6 +651,9 @@ def _convolve_psf_fft(
     draw_method,
     dtypes,
     psf_mode,
+    integration_order=1,
+    compensate_integration=True,
+    center_index=None,
     target_flux=None,
     profile=False
 ):
@@ -620,7 +673,21 @@ def _convolve_psf_fft(
         image=gal_prof,
         real_dtype=real_dtype,
         complex_dtype=complex_dtype,
+        center_index=center_index,
     )
+
+    if compensate_integration and integration_order > 1:
+        start = time.time() if profile else None
+        _compensate_block_integration(
+            xp=xp,
+            spectrum=spectrum,
+            n=n,
+            fine_scale=scale,
+        )
+        if profile:
+            sync_if_gpu(xp)
+            end = time.time()
+            print(f"Block integration compensation took {end - start:.3f} seconds")
 
     if psf_obj is not None and psf_mode == "real":
         start = time.time() if profile else None
@@ -641,6 +708,7 @@ def _convolve_psf_fft(
             image=psf_image,
             real_dtype=real_dtype,
             complex_dtype=complex_dtype,
+            center_index=center_index,
         )
 
         spectrum *= psf_spectrum
@@ -695,6 +763,7 @@ def _convolve_psf_fft(
         xp=xp,
         image=image,
         downsample_ratio=downsample_ratio,
+        center_index=center_index,
     )
     del image
 
@@ -715,11 +784,13 @@ def simulate_galaxy(
     max_fine_grid=4096,
     pad=16,
     precision="single",
-    backend=None,
+    backend="np",
     profile=False,
     pix_scale=None,
     psf_mode="kvalue",
-    force_input_flux=True
+    force_input_flux=True,
+    compensate_integration=True,
+    use_true_center=True,
 ):
     """
     Simulate a galaxy image on a pixel grid.
@@ -750,7 +821,9 @@ def simulate_galaxy(
             profile=profile,
             pix_scale=pix_scale,
             psf_mode=psf_mode,
-            force_input_flux=force_input_flux
+            force_input_flux=force_input_flux,
+            compensate_integration=compensate_integration,
+            use_true_center=use_true_center,
         )
     except Exception as exc:
         err_type = type(exc).__name__
@@ -765,11 +838,6 @@ def simulate_galaxy(
             f"simulate_galaxy failed cleanly after releasing backend memory "
             f"({err_type}: {err_msg})"
         )
-
-    try:
-        cleanup_backend = _resolve_array_backend(backend)
-    except Exception:
-        cleanup_backend = None
 
     if cleanup_backend is not None:
         _release_backend_memory(cleanup_backend)
@@ -794,11 +862,13 @@ def _simulate_galaxy_impl(
     max_fine_grid=4096,
     pad=16,
     precision="single",
-    backend=None,
+    backend="np",
     profile=False,
     pix_scale=None,
     psf_mode="kvalue",
-    force_input_flux=False
+    force_input_flux=False,
+    compensate_integration=True,
+    use_true_center=True,
 ):
     """
     Simulate a galaxy image on a pixel grid.
@@ -829,6 +899,16 @@ def _simulate_galaxy_impl(
     dtypes = _precision_dtypes(xp, precision)
     real_dtype, _ = dtypes
 
+    min_supersample = int(min_supersample)
+    max_supersample = int(max_supersample)
+
+    if min_supersample < 1:
+        raise ValueError("min_supersample must be >= 1.")
+    if max_supersample < 1:
+        raise ValueError("max_supersample must be >= 1.")
+    if max_supersample < min_supersample:
+        max_supersample = min_supersample
+
     sim_ngrid = _resolve_simulation_ngrid(gal_obj, psf_obj, scale)
     output_ngrid = sim_ngrid if ngrid is None else int(ngrid)
 
@@ -849,6 +929,8 @@ def _simulate_galaxy_impl(
         integration_order=integration_order,
     )
 
+    fft_supersample = max(fft_supersample, min_supersample)
+
     grid = _make_fine_grid(
         gal_obj=gal_obj,
         scale=scale,
@@ -858,9 +940,18 @@ def _simulate_galaxy_impl(
         max_fine_grid=max_fine_grid,
     )
 
-    # Check if supersampling is too aggresive
-    while grid.fine_compact / max_fine_grid > 4:
-        fft_supersample = fft_supersample // 2
+    # Check if supersampling is too aggressive while preserving the requested
+    # lower bound on the FFT supersampling factor.
+    while (
+        max_fine_grid is not None
+        and grid.fine_compact / max_fine_grid > 4
+        and fft_supersample > min_supersample
+    ):
+        next_fft_supersample = max(min_supersample, fft_supersample // 2)
+        if next_fft_supersample == fft_supersample:
+            break
+
+        fft_supersample = next_fft_supersample
         grid = _make_fine_grid(
             gal_obj=gal_obj,
             scale=scale,
@@ -888,8 +979,11 @@ def _simulate_galaxy_impl(
         nn=grid.fine_ngrid,
         scale=grid.fine_scale,
         backend=xp,
-        dtype=real_dtype
+        dtype=real_dtype,
+        use_true_center=use_true_center,
+        downsample_ratio=fft_supersample,
     )
+    center_index = stamp.center_index
 
     if profile:
         sync_if_gpu(xp)
@@ -912,7 +1006,13 @@ def _simulate_galaxy_impl(
         sync_if_gpu(xp)
     start = time.time()
 
-    if psf_obj is not None or draw_method == "auto":
+    needs_fft = (
+        psf_obj is not None
+        or draw_method == "auto"
+        or (compensate_integration and integration_order > 1)
+    )
+
+    if needs_fft:
         sim_image = _convolve_psf_fft(
             xp=xp,
             gal_prof=gal_prof,
@@ -924,6 +1024,9 @@ def _simulate_galaxy_impl(
             draw_method=draw_method,
             dtypes=dtypes,
             psf_mode=psf_mode,
+            integration_order=integration_order,
+            compensate_integration=compensate_integration,
+            center_index=center_index,
             profile=profile,
         )
         del gal_prof
@@ -934,6 +1037,7 @@ def _simulate_galaxy_impl(
             xp=xp,
             image=gal_prof,
             downsample_ratio=fft_supersample,
+            center_index=center_index,
         )
         del gal_prof
 
