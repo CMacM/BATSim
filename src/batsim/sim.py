@@ -209,13 +209,16 @@ def _determine_supersampling(
     obj,
     scale,
     integration_order,
+    sim_ngrid,
+    pad,
     safety=2.0,
     max_supersample=16,
     min_supersample=4,
-    attenuation_target=0.5
+    attenuation_target=0.5,
+    max_fine_grid=None,
 ):
     """
-    Estimate supersampling factor from the object's Fourier bandwidth.
+    Estimate supersampling factor from Fourier bandwidth and compact extent.
     """
     maxk = obj.maxk
     nyquist = np.pi / scale
@@ -238,9 +241,34 @@ def _determine_supersampling(
         # Do not allow the requested effective supersampling to fall below q,
         # otherwise fft_supersample may collapse too aggressively.
         effective = max(effective, q)
-        
-    supersample = 2 ** int(np.ceil(np.log2(max(min_supersample, effective))))
 
+    bandwidth_supersample = 2 ** int(
+        np.ceil(np.log2(max(min_supersample, effective)))
+    )
+    bandwidth_supersample = int(
+        np.clip(bandwidth_supersample, min_supersample, max_supersample)
+    )
+
+    if max_fine_grid is None:
+        return bandwidth_supersample
+
+    max_fine_grid = int(max_fine_grid)
+    trial = bandwidth_supersample
+    extent_supersample = min_supersample
+    compact_limit = 3.0 * max_fine_grid
+
+    while trial >= min_supersample:
+        trial_integration_order = min(q, trial)
+        trial_fft_supersample = int(np.ceil(trial / trial_integration_order))
+        trial_fft_supersample = max(trial_fft_supersample, min_supersample)
+        fine_scale = scale / trial_fft_supersample
+        fine_compact = int(obj.getGoodImageSize(fine_scale))
+        if fine_compact < compact_limit:
+            extent_supersample = trial
+            break
+        trial //= 2
+
+    supersample = min(bandwidth_supersample, extent_supersample)
     return int(np.clip(supersample, min_supersample, max_supersample))
 
 
@@ -778,7 +806,7 @@ def simulate_galaxy(
     psf_obj=None,
     draw_method="auto",
     safety=2.0,
-    max_supersample=32,
+    max_supersample=64,
     min_supersample=4,
     integration_order=2,
     max_fine_grid=4096,
@@ -856,7 +884,7 @@ def _simulate_galaxy_impl(
     psf_obj=None,
     draw_method="auto",
     safety=2.0,
-    max_supersample=32,
+    max_supersample=64,
     min_supersample=4,
     integration_order=2,
     max_fine_grid=4096,
@@ -918,9 +946,12 @@ def _simulate_galaxy_impl(
         gal_obj,
         scale,
         integration_order,
+        sim_ngrid=sim_ngrid,
+        pad=pad,
         safety=safety,
         max_supersample=max_supersample,
-        min_supersample=min_supersample
+        min_supersample=min_supersample,
+        max_fine_grid=max_fine_grid,
     )
 
     requested_supersample = supersample
@@ -944,7 +975,7 @@ def _simulate_galaxy_impl(
     # lower bound on the FFT supersampling factor.
     while (
         max_fine_grid is not None
-        and grid.fine_compact / max_fine_grid > 4
+        and grid.fine_compact / max_fine_grid >= 3
         and fft_supersample > min_supersample
     ):
         next_fft_supersample = max(min_supersample, fft_supersample // 2)
