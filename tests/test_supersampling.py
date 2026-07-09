@@ -2,7 +2,6 @@ import importlib
 
 import galsim
 
-
 sim = importlib.import_module("batsim.sim")
 
 
@@ -111,12 +110,8 @@ def test_elliptical_galaxy_reduces_until_inside_compact_limit():
     assert extent_supersample == 8
     assert extent_supersample < bandwidth_supersample
 
-    accepted_fine_compact = int(
-        gal.getGoodImageSize(scale / extent_supersample)
-    )
-    rejected_fine_compact = int(
-        gal.getGoodImageSize(scale / (extent_supersample * 2))
-    )
+    accepted_fine_compact = int(gal.getGoodImageSize(scale / extent_supersample))
+    rejected_fine_compact = int(gal.getGoodImageSize(scale / (extent_supersample * 2)))
 
     assert accepted_fine_compact < 3 * max_fine_grid
     assert rejected_fine_compact >= 3 * max_fine_grid
@@ -147,10 +142,7 @@ def test_extent_limit_uses_fft_supersample_after_integration_split():
     assert supersample == 16
     assert fft_supersample == 8
     assert obj.getGoodImageSize(scale / fft_supersample) < 3 * max_fine_grid
-    assert (
-        obj.getGoodImageSize(scale / rejected_fft_supersample)
-        >= 3 * max_fine_grid
-    )
+    assert obj.getGoodImageSize(scale / rejected_fft_supersample) >= 3 * max_fine_grid
 
 
 def test_extent_fallback_returns_min_supersample_and_leaves_safety_clip():

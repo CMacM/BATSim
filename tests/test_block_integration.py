@@ -6,7 +6,6 @@ import numpy as np
 import batsim
 from batsim.stamp import Stamp
 
-
 sim = importlib.import_module("batsim.sim")
 
 

@@ -96,6 +96,19 @@ def determine_cuts(data):
 
 
 def make_plot_image(data):
+    """
+    Display image data with BATSim's default asinh plotting normalisation.
+
+    Parameters
+    ----------
+    data : ndarray
+        Two-dimensional image array to display.
+
+    Returns
+    -------
+    matplotlib.image.AxesImage
+        Image artist returned by ``matplotlib.pyplot.imshow``.
+    """
     min_cut, max_cut = determine_cuts(data)
     sn = simple_norm(data, "asinh", asinh_a=0.1, min_cut=min_cut, max_cut=max_cut)
     fig = plt.imshow(data, aspect="equal", cmap="RdYlBu_r", origin="lower", norm=sn)
@@ -137,9 +150,7 @@ def stitch_images(images, direction="horizontal", spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(
-                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
-                )
+                bounds = galsim.BoundsI(xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny)
 
                 super_image.setSubImage(bounds, image)
 
@@ -157,9 +168,7 @@ def stitch_images(images, direction="horizontal", spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(
-                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
-                )
+                bounds = galsim.BoundsI(xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny))
 
                 super_image.setSubImage(bounds, image)
 
@@ -190,9 +199,7 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(
-                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
-                )
+                bounds = galsim.BoundsI(xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny)
 
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)
@@ -214,9 +221,7 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(
-                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
-                )
+                bounds = galsim.BoundsI(xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny))
 
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)

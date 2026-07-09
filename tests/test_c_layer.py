@@ -2,6 +2,7 @@ import batsim
 import galsim
 import numpy as np
 
+
 def test_get_flux_vec():
     sb_obj = galsim.Sersic(n=4, half_light_radius=0.5)
     trans_obj = sb_obj.shear(g1=0.1, g2=0.2).shift(0.5, 0.5)
@@ -20,6 +21,6 @@ def test_get_flux_vec():
     except Exception as e:
         print("Error in getFluxVec for Transform profile:", e)
 
+
 if __name__ == "__main__":
     test_get_flux_vec()
-

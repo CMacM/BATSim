@@ -1,10 +1,4 @@
-import warnings
-
 import numpy as np
-
-
-_ARRAY_BACKEND = None
-_CPU_FALLBACK_WARNED = False
 
 
 def _coords_backend(coords):
@@ -23,37 +17,6 @@ def _coords_dtype(coords):
     return getattr(coords, "dtype", None)
 
 
-def _get_array_backend():
-    """
-    Return CuPy if available, otherwise NumPy.
-
-    This mirrors the backend-selection behaviour used in the simulation code.
-    """
-    global _ARRAY_BACKEND
-    global _CPU_FALLBACK_WARNED
-
-    if _ARRAY_BACKEND is not None:
-        return _ARRAY_BACKEND
-
-    try:
-        import cupy as cp
-
-        cp.cuda.runtime.getDeviceCount()
-        _ARRAY_BACKEND = cp
-    except Exception:
-        if not _CPU_FALLBACK_WARNED:
-            warnings.warn(
-                "CuPy unavailable; falling back to NumPy stamp coordinates.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
-            _CPU_FALLBACK_WARNED = True
-        _ARRAY_BACKEND = np
-
-    return _ARRAY_BACKEND
-
-
-
 class FlexionTransform(object):
     """
     Feel Free to merge this method with the next one. I wanted
@@ -70,9 +33,7 @@ class FlexionTransform(object):
         kappa (float):      the lensing convergence field
         F1,F2,G1,G2 (float):  Flexion components
         """
-        self.s2l_mat = np.array(
-            [[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]]
-        )
+        self.s2l_mat = np.array([[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]])
         self.s2l_mat_inv = np.linalg.inv(self.s2l_mat)
         D1 = -1 / 2 * np.array([[3 * F1 + G1, F2 + G2], [F2 + G2, F1 - G1]])
         D2 = -1 / 2 * np.array([[F2 + G2, F1 - G1], [F1 - G1, 3 * F2 - G2]])
@@ -93,9 +54,7 @@ class FlexionTransform(object):
         s2l_mat = xp.asarray(self.s2l_mat, dtype=dtype)
         d_tensor = xp.asarray(self.D, dtype=dtype)
 
-        return s2l_mat @ coords + xp.einsum(
-            "ijk,jl,kl->il", d_tensor, coords, coords
-        )
+        return s2l_mat @ coords + xp.einsum("ijk,jl,kl->il", d_tensor, coords, coords)
 
     def inverse_transform(self, coords):
         """
@@ -222,7 +181,12 @@ class IaTransform(object):
         matrix.
         """
         xp = _coords_backend(x)
-        dtype = _coords_dtype(x)
+        dtype = np.result_type(_coords_dtype(x), _coords_dtype(y))
+        if not np.issubdtype(dtype, np.floating):
+            dtype = np.float64
+
+        x = xp.asarray(x, dtype=dtype)
+        y = xp.asarray(y, dtype=dtype)
         hlr = xp.asarray(self.hlr, dtype=dtype)
         amp = xp.asarray(self.A, dtype=dtype)
         c2phi = xp.asarray(self.c2phi, dtype=dtype)
@@ -240,9 +204,7 @@ class IaTransform(object):
         absesq = A_rwf * A_rwf
 
         if bool(xp.any(absesq > 1)):
-            raise ValueError(
-                "Requested distortion exceeds 1.", xp.sqrt(absesq), 0.0, 1.0
-                        )
+            raise ValueError("Requested distortion exceeds 1.", xp.sqrt(absesq), 0.0, 1.0)
 
         # factor to convert e1, e2 to g1, g2
         fac = self.e2g(absesq)
@@ -256,6 +218,21 @@ class IaTransform(object):
     # conversion used in galsim source code
     # modified to use binary arrays to speed up condition checking
     def e2g(self, absesq):
+        """
+        Convert distortion amplitude squared to reduced shear scale factor.
+
+        Parameters
+        ----------
+        absesq : float or array-like
+            Squared distortion amplitude. Values near zero use a Taylor
+            expansion for numerical stability.
+
+        Returns
+        -------
+        float or array-like
+            Multiplicative factor that maps distortion components to reduced
+            shear components.
+        """
         xp = _coords_backend(absesq)
 
         if hasattr(absesq, "shape"):
@@ -268,9 +245,7 @@ class IaTransform(object):
             # now we invert to have unstable values as True
             unstable = absesq <= 1e-4
             # we add the unstable values to the array now, with the stable set to zero
-            e2g += unstable * (
-                0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625))
-            )
+            e2g += unstable * (0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625)))
             # finally, return the array of conversion values
             return e2g
         # for if we just want a single shear value
@@ -281,6 +256,9 @@ class IaTransform(object):
             else:
                 # Avoid numerical issues near e=0 using Taylor expansion
                 return 0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625))
+
+
+IATransform = IaTransform
 
 
 class LensTransform:
@@ -388,3 +366,6 @@ class LensTransform:
             return array
 
         return array.get()
+
+
+AffineLensingTransform = LensTransform

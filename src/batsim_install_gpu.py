@@ -7,7 +7,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 CUPY_SPECS = {
     12: "cupy-cuda12x>=13.6,<14",
     13: "cupy-cuda13x>=13.6,<14",

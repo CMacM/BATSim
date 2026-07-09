@@ -1,40 +1,6 @@
-import warnings
-
 import numpy as np
 
-
-_ARRAY_BACKEND = None
-_CPU_FALLBACK_WARNED = False
-
-
-def _get_array_backend():
-    """
-    Return CuPy if available, otherwise NumPy.
-
-    This mirrors the backend-selection behaviour used in the simulation code.
-    """
-    global _ARRAY_BACKEND
-    global _CPU_FALLBACK_WARNED
-
-    if _ARRAY_BACKEND is not None:
-        return _ARRAY_BACKEND
-
-    try:
-        import cupy as cp
-
-        cp.cuda.runtime.getDeviceCount()
-        _ARRAY_BACKEND = cp
-    except Exception:
-        if not _CPU_FALLBACK_WARNED:
-            warnings.warn(
-                "CuPy unavailable; falling back to NumPy stamp coordinates.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
-            _CPU_FALLBACK_WARNED = True
-        _ARRAY_BACKEND = np
-
-    return _ARRAY_BACKEND
+from .backend import _get_array_backend
 
 
 class Stamp:
@@ -72,7 +38,11 @@ class Stamp:
         downsample_ratio : int, optional
             Coarse-to-fine pixel ratio used for true-center alignment.
         """
-        self.xp = _get_array_backend() if backend is None else backend
+        self.xp = (
+            _get_array_backend("CuPy unavailable; falling back to NumPy stamp coordinates.")
+            if backend is None
+            else backend
+        )
 
         if dtype is None:
             dtype = self.xp.float32 if self.xp is not np else np.float64
