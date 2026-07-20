@@ -13,25 +13,43 @@ def _coords_backend(coords):
 
 
 def _coords_dtype(coords):
-    """Return a floating dtype matching coords."""
+    """Return the dtype attached to a coordinate array, if present."""
     return getattr(coords, "dtype", None)
 
 
 class FlexionTransform(object):
     """
-    Feel Free to merge this method with the next one. I wanted
-    to be a little more careful because I don't know how to manuever
-    with centers.
+    Coordinate transform for affine lensing with first-order flexion terms.
+
+    The transform maps lensed-plane pixel-centre coordinates into the
+    corresponding pre-lensed/source-plane coordinates. Inputs may be NumPy or
+    CuPy arrays; the backend is inferred from the coordinate array passed to
+    ``transform`` or ``inverse_transform``.
+
+    Parameters
+    ----------
+    gamma1, gamma2 : float
+        Components of the reduced shear field.
+    kappa : float
+        Lensing convergence.
+    F1, F2 : float, optional
+        Components of first flexion. Defaults to zero.
+    G1, G2 : float, optional
+        Components of third flexion. Defaults to zero.
     """
 
     def __init__(self, gamma1, gamma2, kappa, F1=0, F2=0, G1=0, G2=0):
-        """Initialize the transform object of 2D grids.
+        """
+        Initialize the affine and flexion tensors.
 
-        Args:
-        gamma1 (float):     the first component of lensing shear field
-        gamma2 (float):     the second component of lensing shear field
-        kappa (float):      the lensing convergence field
-        F1,F2,G1,G2 (float):  Flexion components
+        Parameters
+        ----------
+        gamma1, gamma2 : float
+            Components of the shear field.
+        kappa : float
+            Lensing convergence.
+        F1, F2, G1, G2 : float, optional
+            Flexion components. Defaults to zero.
         """
         self.s2l_mat = np.array([[1 - kappa - gamma1, -gamma2], [-gamma2, 1 - kappa + gamma1]])
         self.s2l_mat_inv = np.linalg.inv(self.s2l_mat)
@@ -42,11 +60,19 @@ class FlexionTransform(object):
 
     def transform(self, coords):
         """
-        Transform the center of pixels from lensed plane to
-        pre-lensed plane.
+        Transform pixel-centre coordinates from lensed to pre-lensed plane.
 
-        Args:
-        coords: coordinates (x, y) of the pixel centers [arcsec]
+        Parameters
+        ----------
+        coords : array-like
+            Coordinate array with shape ``(2, npoints)``. The first row holds
+            x coordinates and the second row holds y coordinates, in a
+            consistent angular unit such as arcseconds.
+
+        Returns
+        -------
+        array-like
+            Transformed coordinate array using the same backend as ``coords``.
         """
         xp = _coords_backend(coords)
         dtype = _coords_dtype(coords)
@@ -54,13 +80,28 @@ class FlexionTransform(object):
         s2l_mat = xp.asarray(self.s2l_mat, dtype=dtype)
         d_tensor = xp.asarray(self.D, dtype=dtype)
 
-        return s2l_mat @ coords + xp.einsum("ijk,jl,kl->il", d_tensor, coords, coords)
+        return s2l_mat @ coords + 0.5 * xp.einsum("ijk,jl,kl->il", d_tensor, coords, coords)
 
     def inverse_transform(self, coords):
         """
-        Details about this inverse transformation can be found
-        here:
-        https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf
+        Approximate the inverse flexion transform for coordinate arrays.
+
+        Parameters
+        ----------
+        coords : array-like
+            Coordinate array with shape ``(2, npoints)`` in the transformed
+            plane.
+
+        Returns
+        -------
+        array-like
+            Approximate inverse-transformed coordinates using the same backend
+            as ``coords``.
+
+        Notes
+        -----
+        The approximation follows the derivation in
+        https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf.
         """
         xp = _coords_backend(coords)
         dtype = _coords_dtype(coords)
@@ -87,8 +128,34 @@ class FlexionTransform(object):
 
 class IaTransform(object):
     """
-    Class to apply IA shear transform to a galsim image
-    as a function of distance from the center of a galaxy.
+    Radius-dependent intrinsic-alignment shear transform.
+
+    The transform applies a reduced-shear coordinate mapping whose amplitude is
+    set by a power law in radius from ``center``. The radial coordinate is
+    measured in units of ``hlr`` and clipped at ``clip_radius`` before the
+    amplitude law is evaluated.
+
+    Parameters
+    ----------
+    scale : float
+        Pixel scale in arcseconds. Stored for compatibility with existing
+        callers.
+    hlr : float
+        Half-light radius used to normalize the radial profile.
+    A : float, optional
+        Distortion amplitude at one half-light radius. Defaults to the
+        Georgiou+19 best-fit value used by the existing pipeline.
+    phi : float, optional
+        Alignment angle in radians. A value of zero aligns the distortion with
+        the horizontal axis.
+    beta : float, optional
+        Power-law index for the radial amplitude profile.
+    center : sequence of float, optional
+        Coordinate origin ``[x, y]`` for the radial profile. Defaults to
+        ``[0, 0]``.
+    clip_radius : float, optional
+        Maximum radius, in units of ``hlr``, used when evaluating the amplitude
+        profile.
     """
 
     def __init__(
@@ -102,21 +169,25 @@ class IaTransform(object):
         clip_radius=5,
     ):
         """
-        Args:
-        scale : The scale of the pixels in arcsec (float)
-        hlr : The half light radius of the galaxy to transform
-        A : Intrinsic alignment amplitude, this is the shear
-            applied at the half light radius in the distortion
-            definition of shear. Defaults to best fit of Georgiou+19
-            (float)
-        beta : Index of the power law used to scale the alignment
-               strength with radius. Defaults to best fit of
-               Georgiou+19 (float)
-        phi : Angle in rads at which alignment should occur. Defaults to
-              zero, which is equivalent to alignment along the horizontal
-              axis. (float)
-        center : Coordinates which define the image center from which
-                 radius is calculated. (Lists | Tuple | Array)
+        Initialize the radial IA transform parameters.
+
+        Parameters
+        ----------
+        scale : float
+            Pixel scale in arcseconds. Retained as transform metadata.
+        hlr : float
+            Half-light radius used to normalize radial distances.
+        A : float, optional
+            Distortion amplitude at ``r = hlr``.
+        phi : float, optional
+            Alignment angle in radians.
+        beta : float, optional
+            Power-law index controlling the radial amplitude profile.
+        center : sequence of float, optional
+            Coordinate origin ``[x, y]`` for the radial profile. Defaults to
+            ``[0, 0]``.
+        clip_radius : float, optional
+            Maximum normalized radius used in the amplitude law.
         """
         # If a center has not been provided, default to [0,0]
         if center == None:
@@ -140,9 +211,18 @@ class IaTransform(object):
 
     def transform(self, coords):
         """
-        Transforms each coordinate with a different shear
-        value depending on its distance from the center
-        of the image.
+        Transform coordinates using the local IA shear at each radius.
+
+        Parameters
+        ----------
+        coords : array-like
+            Coordinate array with shape ``(2, npoints)``. NumPy and CuPy inputs
+            are both supported.
+
+        Returns
+        -------
+        array-like
+            Coordinate array transformed by the radius-dependent reduced shear.
         """
         xp = _coords_backend(coords)
         dtype = _coords_dtype(coords)
@@ -176,9 +256,25 @@ class IaTransform(object):
 
     def get_g1g2(self, x, y):
         """
-        Scales the amplitude according to power law, then
-        gets the g1 and g2 components to construct the shear
-        matrix.
+        Compute reduced-shear components for coordinates relative to center.
+
+        Parameters
+        ----------
+        x, y : array-like
+            Coordinates relative to the transform center. Integer arrays are
+            promoted to floating point before the radial amplitude law is
+            evaluated.
+
+        Returns
+        -------
+        tuple of array-like
+            ``(g1, g2)`` reduced-shear components using the same backend as the
+            input arrays.
+
+        Raises
+        ------
+        ValueError
+            Raised if the requested distortion amplitude exceeds one.
         """
         xp = _coords_backend(x)
         dtype = np.result_type(_coords_dtype(x), _coords_dtype(y))
@@ -192,27 +288,31 @@ class IaTransform(object):
         c2phi = xp.asarray(self.c2phi, dtype=dtype)
         s2phi = xp.asarray(self.s2phi, dtype=dtype)
 
-        # find distance from image center as ratio to hlr
-        radial_dist = xp.sqrt(abs(x) ** 2 + abs(y) ** 2)
-        rwf = radial_dist / hlr
+        # Galactocentric radius in units of the half-light radius.
+        radial_dist = xp.sqrt(x * x + y * y)
+        radial_ratio = radial_dist / hlr
 
-        # fix shear beyond rfw >= clip_radius
-        rwf = xp.clip(rwf, 0, self.clip_radius)
+        # Prevent extrapolation beyond the adopted radial range.
+        radial_ratio = xp.clip(
+            radial_ratio,
+            0.0,
+            self.clip_radius,
+        )
 
-        # compute alignment amplitude at radius
-        A_rwf = amp * rwf**self.beta
-        absesq = A_rwf * A_rwf
+        # HLR-normalised reduced-shear amplitude.
+        g_abs = amp * radial_ratio**self.beta
 
-        if bool(xp.any(absesq > 1)):
-            raise ValueError("Requested distortion exceeds 1.", xp.sqrt(absesq), 0.0, 1.0)
+        if bool(xp.any(xp.abs(g_abs) >= 1.0)):
+            raise ValueError(
+                "Requested reduced-shear amplitude must satisfy |g| < 1.",
+                xp.abs(g_abs),
+                0.0,
+                1.0,
+            )
 
-        # factor to convert e1, e2 to g1, g2
-        fac = self.e2g(absesq)
+        g1 = g_abs * c2phi
+        g2 = g_abs * s2phi
 
-        g1 = A_rwf * c2phi * fac
-        g2 = A_rwf * s2phi * fac
-
-        # return real (g1) and imaginary (g2) components
         return g1, g2
 
     # conversion used in galsim source code
@@ -342,6 +442,21 @@ class LensTransform:
     def to_backend(self, backend=None, dtype=None):
         """
         Return a copy of this transform on another backend/dtype.
+
+        Parameters
+        ----------
+        backend : module, optional
+            Array backend to use for the copied transform. Use NumPy by default
+            or pass CuPy for GPU-backed arrays.
+        dtype : dtype, optional
+            Floating dtype for the copied transform arrays. Defaults to this
+            transform's current dtype.
+
+        Returns
+        -------
+        LensTransform
+            New transform with equivalent parameters stored on the requested
+            backend and dtype.
         """
         xp = np if backend is None else backend
 

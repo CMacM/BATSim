@@ -11,6 +11,9 @@ from .sampling import _sample_psf_spectrum
 def _center_crop_or_pad(array, target_shape):
     """
     Centrally crop or zero-pad an array to the requested shape.
+
+    This is used after the internal simulation grid has been rendered so the
+    caller's requested output size is a centered view of the same simulation.
     """
     out = np.zeros(target_shape, dtype=array.dtype)
 
@@ -84,6 +87,8 @@ def _apply_centering_phase(xp, spectrum, n, center_index=None):
 
     shift = -float(center_index)
 
+    # Applying the separable phase is equivalent to ifftshift before rfft2,
+    # without moving the large real-space array in memory.
     ky = xp.fft.fftfreq(n) * n
     kx = xp.fft.rfftfreq(n) * n
 
@@ -162,6 +167,8 @@ def _extract_centered_coarse_image(xp, image, downsample_ratio, center_index=Non
     if center_index is None:
         center_index = n // 2
 
+    # The wrapped center must fall on an integer pixel in FFT output order so
+    # strided extraction matches fftshift(image)[::s, ::s].
     wrapped_center = -float(center_index)
     if not np.isclose(wrapped_center, round(wrapped_center)):
         raise ValueError(
@@ -206,6 +213,9 @@ def _convolve_psf_fft(
     - centred real-space images are converted by Fourier phase correction;
     - the pixel response is applied separably in-place;
     - the full fine-grid image is inverse FFT'd, then downsampled in real space.
+
+    ``psf_mode="kvalue"`` samples GalSim's analytic Fourier PSF through the C++
+    backend, avoiding a real-space PSF draw and an extra FFT.
     """
     n = gal_prof.shape[0]
     real_dtype, complex_dtype = dtypes
@@ -258,6 +268,8 @@ def _convolve_psf_fft(
 
     elif psf_obj is not None and psf_mode == "kvalue":
         start = time.time() if profile else None
+        # The compiled backend returns the analytic PSF on BATSim's rFFT grid,
+        # matching the spectrum convention used for the sampled galaxy.
         psf_spectrum = _sample_psf_spectrum(
             psf_obj=psf_obj,
             n=n,
@@ -295,7 +307,8 @@ def _convolve_psf_fft(
     image = xp.fft.irfft2(spectrum, s=(n, n))
     del spectrum
 
-    # Normalise flux based on target input flux
+    # Preserve the requested input flux after PSF/pixel convolution and any
+    # integration compensation.
     if target_flux is not None:
         image *= target_flux / image.sum()
 

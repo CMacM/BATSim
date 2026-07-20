@@ -16,7 +16,8 @@ def _get_array_backend(
     """
     Return CuPy if available, otherwise NumPy.
 
-    The selected module is cached after the first call.
+    The selected module is cached after the first call so repeated render calls
+    do not keep probing the CUDA runtime.
     """
     global _ARRAY_BACKEND
     global _CPU_FALLBACK_WARNED
@@ -45,6 +46,10 @@ def _get_array_backend(
 def _resolve_array_backend(backend):
     """
     Resolve a user-supplied backend selector to an array module.
+
+    ``None`` means auto-detect, string aliases request a specific backend, and
+    module objects allow tests or callers to pass an already-imported array
+    module.
     """
     if backend is None:
         return _get_array_backend()
@@ -88,6 +93,9 @@ def _precision_dtypes(xp, precision):
 def _release_backend_memory(xp):
     """
     Release cached CuPy allocations after a simulation.
+
+    NumPy has no comparable memory pools, so this is intentionally a no-op for
+    CPU-backed renders.
     """
     if xp is np:
         return
@@ -121,7 +129,21 @@ def _release_backend_memory(xp):
 
 def clear_backend_memory(backend=None):
     """
-    Clear cached backend allocations, primarily useful after CuPy OOMs.
+    Clear cached memory held by the selected array backend.
+
+    This is primarily useful after CuPy out-of-memory errors in notebooks or
+    long-running sessions.  Calling it for the NumPy backend is a no-op.
+
+    Parameters
+    ----------
+    backend : {"np", "numpy", "cp", "cupy"} or module or None, optional
+        Backend to clear.  ``None`` uses BATSim's backend auto-detection,
+        strings select NumPy or CuPy explicitly, and module objects are used
+        directly.
+
+    Returns
+    -------
+    None
     """
     xp = _resolve_array_backend(backend)
     _release_backend_memory(xp)

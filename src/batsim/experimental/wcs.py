@@ -1,3 +1,5 @@
+"""Experimental WCS helpers."""
+
 import fitsio
 import numpy as np
 
@@ -7,7 +9,7 @@ class WCS(object):
     Read SIP distortion coefficients from a FITS image header.
 
     The parsed coefficients are stored in ``ab`` with shape
-    ``(2, order + 1, order + 1)``.  The first plane contains the A polynomial
+    ``(2, order + 1, order + 1)``. The first plane contains the A polynomial
     coefficients and the second plane contains the B polynomial coefficients.
     """
 

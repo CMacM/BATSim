@@ -101,10 +101,81 @@ def simulate_galaxy(
     use_true_center=True,
 ):
     """
-    Simulate a galaxy image on a pixel grid.
+    Render a GalSim object through BATSim's non-affine sampling pipeline.
 
-    On failure, CuPy memory pools are cleared and a short exception is raised
-    without retaining the large simulation frame in notebook tracebacks.
+    The galaxy profile is sampled on a supersampled coordinate grid, optional
+    coordinate transforms are applied before profile evaluation, and optional
+    PSF/pixel convolution is performed in Fourier space. The returned image is
+    a NumPy array regardless of the backend used internally.
+
+    Parameters
+    ----------
+    gal_obj : galsim.GSObject
+        Galaxy surface-brightness profile to sample.
+    scale : float, optional
+        Output pixel scale in arcsec.  Either ``scale`` or ``pix_scale`` must
+        be supplied.  If both are supplied, they must agree.
+    ngrid : int, optional
+        Final square output size in pixels.  If omitted, BATSim chooses the
+        output size from the GalSim object support at ``scale``.
+    transform_obj : object or sequence of objects, optional
+        Coordinate transform(s) applied before sampling the galaxy profile.
+        Each transform must provide ``transform(coords)`` where ``coords`` has
+        shape ``(2, npoints)``.  Transforms with ``to_backend`` are moved to the
+        selected array backend before use.
+    psf_obj : galsim.GSObject, optional
+        PSF profile to convolve with the sampled galaxy.
+    draw_method : {"auto", "no_pixel"}, optional
+        Pixel-response mode.  ``"auto"`` applies the square-pixel response;
+        ``"no_pixel"`` omits it.
+    safety : float, optional
+        Multiplicative safety factor used when estimating the required
+        supersampling from the galaxy Fourier bandwidth.
+    max_supersample : int, optional
+        Maximum total supersampling factor considered by the automatic grid
+        selection.
+    min_supersample : int, optional
+        Minimum FFT supersampling factor used by the renderer.
+    integration_order : int, optional
+        Gauss-Legendre quadrature order for sub-pixel block integration.
+    max_fine_grid : int or None, optional
+        Maximum fine-grid side length.  Use ``None`` to disable the cap.
+    pad : int, optional
+        Padding, in coarse pixels, added around the internal simulation grid
+        before supersampling.
+    precision : {"single", "double"}, optional
+        Floating-point precision for FFT-side arrays.
+    backend : {"np", "numpy", "cp", "cupy"} or module or None, optional
+        Array backend used for coordinate construction and FFT operations.
+        ``None`` auto-detects CuPy and falls back to NumPy.
+    profile : bool, optional
+        If True, print timing diagnostics for the major rendering stages.
+    pix_scale : float, optional
+        Deprecated spelling for ``scale`` retained for compatibility.
+    psf_mode : {"kvalue", "real"}, optional
+        PSF Fourier sampling mode.  ``"kvalue"`` evaluates the analytic PSF
+        Fourier profile through the compiled backend; ``"real"`` draws the PSF
+        in real space and FFTs it.
+    force_input_flux : bool, optional
+        If True, normalise the final convolved image to ``gal_obj.flux``.
+    compensate_integration : bool, optional
+        If True, remove the fine-pixel top-hat response introduced by block
+        integration before PSF/pixel convolution.
+    use_true_center : bool, optional
+        If True, align the fine grid to GalSim's true-image-center convention
+        for the eventual coarse output grid.
+
+    Returns
+    -------
+    ndarray
+        Rendered square image with shape ``(ngrid, ngrid)`` when ``ngrid`` is
+        provided, otherwise the automatically selected output shape.
+
+    Raises
+    ------
+    RuntimeError
+        Raised with a compact message if rendering fails after clearing cached
+        backend memory.
     """
     clean_error = None
     cleanup_backend = None
@@ -178,7 +249,7 @@ def _simulate_galaxy_impl(
     use_true_center=True,
 ):
     """
-    Simulate a galaxy image on a pixel grid.
+    Implement the render pipeline after public error handling is stripped away.
 
     The requested output ngrid controls only the final crop. The internal
     simulation grid is chosen from the galaxy/PSF support so that changing

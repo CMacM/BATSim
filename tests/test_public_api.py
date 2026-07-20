@@ -11,4 +11,6 @@ def test_top_level_public_api_exports():
     assert batsim.IaTransform is batsim.IATransform
     assert batsim.FlexionTransform.__name__ == "FlexionTransform"
 
+    assert not hasattr(batsim, "WCS")
+    assert batsim.experimental.WCS.__name__ == "WCS"
     assert hasattr(batsim, "_gsinterface")

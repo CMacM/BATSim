@@ -9,8 +9,12 @@ import numpy as np
 @dataclass(frozen=True)
 class FineGrid:
     """
-    Description of the high-resolution grid used for real-space sampling
-    and Fourier-space convolution.
+    Description of the high-resolution grid used by the renderer.
+
+    The fine grid is where BATSim samples the GalSim profile before any
+    Fourier-space PSF or pixel convolution. ``fine_compact`` records the
+    GalSim-recommended compact support at ``fine_scale`` so callers can inspect
+    whether a memory cap forced the simulation grid smaller than that support.
     """
 
     fine_scale: float
@@ -31,7 +35,10 @@ def _determine_supersampling(
     max_fine_grid=None,
 ):
     """
-    Estimate supersampling factor from Fourier bandwidth and compact extent.
+    Estimate supersampling from Fourier bandwidth and compact image extent.
+
+    The returned factor is the requested total anti-aliasing budget before it
+    is split between sub-pixel integration and FFT supersampling.
     """
     maxk = obj.maxk
     nyquist = np.pi / scale
@@ -43,6 +50,9 @@ def _determine_supersampling(
     if q <= 1:
         effective = raw
     else:
+        # Block integration suppresses high-frequency leakage before the FFT,
+        # so a higher quadrature order can safely reduce the FFT-side
+        # supersampling budget.
         # attenuation_target lets you tune how much high-k leakage you tolerate.
         integration_reduction = q**2 / attenuation_target**0.5
 
@@ -72,6 +82,8 @@ def _determine_supersampling(
         trial_fft_supersample = max(trial_fft_supersample, min_supersample)
         fine_scale = scale / trial_fft_supersample
         fine_compact = int(obj.getGoodImageSize(fine_scale))
+        # GalSim's compact size is allowed to exceed the final grid, but not by
+        # so much that a compact source silently creates a very large FFT.
         if fine_compact < compact_limit:
             extent_supersample = trial
             break
@@ -97,6 +109,10 @@ def _resolve_simulation_ngrid(gal_obj, psf_obj, scale):
 def _make_fine_grid(gal_obj, scale, sim_ngrid, supersample, pad, max_fine_grid=None):
     """
     Construct the fine grid used for sampling and convolution.
+
+    The grid is at least large enough for the padded coarse simulation region
+    and is rounded up to a whole number of supersampling blocks so later
+    downsampling is exact.
     """
     fine_scale = scale / supersample
 
@@ -129,7 +145,11 @@ def _make_fine_grid(gal_obj, scale, sim_ngrid, supersample, pad, max_fine_grid=N
 
 def _resolve_integration_sampling(supersample, integration_order):
     """
-    Split the requested anti-aliasing factor between integration and FFT size.
+    Split the anti-aliasing budget between integration and FFT supersampling.
+
+    The product of the returned FFT supersampling and integration order covers
+    the requested total supersampling, with the integration order capped so it
+    never exceeds that total budget.
     """
     supersample = int(supersample)
     integration_order = int(integration_order)
@@ -148,6 +168,9 @@ def _resolve_integration_sampling(supersample, integration_order):
 def _integration_offsets(xp, fine_scale, integration_order, dtype):
     """
     Return sub-pixel offsets and weights for Gauss-Legendre block integration.
+
+    The weights integrate over one fine pixel in normalized coordinates and
+    therefore sum to one.
     """
     if integration_order <= 1:
         return None, None

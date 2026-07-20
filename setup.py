@@ -5,6 +5,10 @@ import sysconfig
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+version_ns = {}
+with open(os.path.join("src", "batsim", "_version.py")) as version_file:
+    exec(version_file.read(), version_ns)
+
 
 class BuildExt(build_ext):
     def build_extensions(self):
@@ -94,7 +98,11 @@ class BuildExt(build_ext):
 
     def _has_library(self, library_dirs, name):
         patterns = [f"lib{name}.so", f"lib{name}.dylib", f"{name}.lib"]
-        return any(os.path.exists(os.path.join(directory, pattern)) for directory in library_dirs for pattern in patterns)
+        return any(
+            os.path.exists(os.path.join(directory, pattern))
+            for directory in library_dirs
+            for pattern in patterns
+        )
 
     def _dedupe(self, values):
         out = []
@@ -116,6 +124,7 @@ gsinterface = Extension(
 
 setup(
     name="batsim",
+    version=version_ns["__version__"],
     author="Charlie MacMahon, Andy Park",
     author_email="c.macmahon@ncl.ac.uk, chanhyup@andrew.cmu.edu",
     license="MIT",

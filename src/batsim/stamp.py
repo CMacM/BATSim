@@ -5,10 +5,40 @@ from .backend import _get_array_backend
 
 class Stamp:
     """
-    2D coordinate stamp for sampling galaxy profiles.
+    Coordinate grid used for sampling GalSim profiles.
 
-    If CuPy is available, coordinates are created directly on the GPU.
-    Otherwise, NumPy is used.
+    A ``Stamp`` stores flattened ``x``/``y`` coordinates with shape
+    ``(2, nn * nn)``.  Coordinates are built on the requested array backend so
+    transform operations can run on either NumPy or CuPy arrays.
+
+    Parameters
+    ----------
+    nn : int, optional
+        Number of pixels along each side of the square coordinate grid.
+    scale : float, optional
+        Pixel scale in arcsec.
+    backend : module, optional
+        Array backend, usually ``numpy`` or ``cupy``.  If omitted, BATSim
+        auto-detects CuPy and falls back to NumPy.
+    dtype : dtype, optional
+        Coordinate dtype.  Defaults to ``float32`` for CuPy and ``float64`` for
+        NumPy.
+    use_true_center : bool, optional
+        If True, use GalSim's true-image-center convention.  When the fine grid
+        will later be downsampled, this aligns it to the true center of the
+        coarse output grid.
+    downsample_ratio : int, optional
+        Ratio between the fine grid and the eventual coarse output grid.
+
+    Attributes
+    ----------
+    coords : array-like
+        Flattened coordinate array ordered as ``[x, y]`` with shape
+        ``(2, nn * nn)``.
+    pixel_area : float
+        Fine-grid pixel area in square arcsec.
+    center_index : float
+        Pixel index used as the coordinate origin.
     """
 
     def __init__(
@@ -58,6 +88,17 @@ class Stamp:
     def set_coords(self, nn, scale, use_true_center=True, downsample_ratio=1):
         """
         Construct coordinates with shape (2, nn*nn), ordered as [x, y].
+
+        Parameters
+        ----------
+        nn : int
+            Number of grid points along each side.
+        scale : float
+            Pixel scale in arcsec.
+        use_true_center : bool, optional
+            Whether to use GalSim's true-image-center convention.
+        downsample_ratio : int, optional
+            Coarse-to-fine pixel ratio used for true-center alignment.
         """
         nn = int(nn)
         scale = float(scale)
@@ -99,6 +140,11 @@ class Stamp:
 
         Useful when passing coordinates to CPU-only code such as a C++/GalSim
         sampling backend.
+
+        Returns
+        -------
+        ndarray
+            Coordinate array with shape ``(2, nn * nn)``.
         """
         if self.xp is np:
             return self.coords

@@ -27,6 +27,9 @@ def _require_gsinterface():
 def _prepare_transforms(transform_obj, xp, dtype=None):
     """
     Move transform objects to the selected backend once per sampling call.
+
+    Transforms that do not provide ``to_backend`` are left untouched, which
+    preserves support for simple user-defined transform objects.
     """
     if transform_obj is None:
         return None
@@ -49,6 +52,8 @@ def _prepare_transforms(transform_obj, xp, dtype=None):
 def _apply_prepared_transforms(coords, transform_obj, xp):
     """
     Apply backend-prepared transforms to a coordinate array.
+
+    Transforms are applied in the order supplied by the caller.
     """
     coords = xp.asarray(coords)
 
@@ -64,6 +69,10 @@ def _apply_prepared_transforms(coords, transform_obj, xp):
 def _sample_galaxy_profile(gal_obj, coords, fine_scale, real_dtype):
     """
     Sample the galaxy surface brightness using the compiled C++ backend.
+
+    The Python renderer keeps coordinates on the selected array backend until
+    this boundary, then passes NumPy coordinates to GalSim's C++ surface
+    brightness evaluator.
     """
     gsinterface = _require_gsinterface()
     use_single = np.dtype(real_dtype) == np.dtype(np.float32)
@@ -89,6 +98,10 @@ def _sample_galaxy_profile_on_stamp(
 ):
     """
     Sample the locally integrated galaxy profile on the fine simulation grid.
+
+    For ``integration_order > 1``, each fine pixel is evaluated at
+    Gauss-Legendre sub-pixel offsets and reduced to one integrated fine-grid
+    value before returning to the FFT pipeline.
     """
     transform_obj = _prepare_transforms(
         transform_obj,
@@ -111,6 +124,8 @@ def _sample_galaxy_profile_on_stamp(
         coords_backend = stamp.coords
     else:
         n_offsets = offsets.shape[0]
+        # Keep all offset coordinates in one large batch so the transform and
+        # C++ sampling calls remain vectorized.
         coords_backend = stamp.coords[None, :, :] + offsets[:, :, None]
         coords_backend = xp.transpose(coords_backend, (1, 0, 2))
         coords_backend = coords_backend.reshape(2, n_offsets * stamp.nn * stamp.nn)
@@ -183,6 +198,9 @@ def _sample_galaxy_profile_on_stamp(
 def _sample_psf_spectrum(psf_obj, n, fine_scale, complex_dtype):
     """
     Sample the analytic PSF Fourier transform on an rFFT frequency grid.
+
+    This backs ``psf_mode="kvalue"`` and returns a spectrum in the same layout
+    as ``numpy.fft.rfft2``/``cupy.fft.rfft2``.
     """
     gsinterface = _require_gsinterface()
     sampler = (

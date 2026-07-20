@@ -2,7 +2,7 @@ from ._version import __version__
 
 version = __version__
 
-from . import WCS, pltutil, stamp
+from . import experimental, pltutil, stamp
 
 try:
     from . import _gsinterface
@@ -30,7 +30,7 @@ __all__ = [
     "IaTransform",
     "IATransform",
     "FlexionTransform",
-    "WCS",
+    "experimental",
     "pltutil",
     "stamp",
 ]
