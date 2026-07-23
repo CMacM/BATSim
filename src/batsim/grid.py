@@ -12,9 +12,10 @@ class FineGrid:
     Description of the high-resolution grid used by the renderer.
 
     The fine grid is where BATSim samples the GalSim profile before any
-    Fourier-space PSF or pixel convolution. ``fine_compact`` records the
+    Fourier-space PSF or pixel convolution to ensure any fine-structure and non-affine 
+    shear is adequately sampled. ``fine_compact`` records the
     GalSim-recommended compact support at ``fine_scale`` so callers can inspect
-    whether a memory cap forced the simulation grid smaller than that support.
+    whether a size cap forced the simulation grid smaller than that support.
     """
 
     fine_scale: float
@@ -95,9 +96,10 @@ def _determine_supersampling(
 
 def _resolve_simulation_ngrid(gal_obj, psf_obj, scale):
     """
-    Choose the internal coarse-grid simulation size.
+    Choose the coarse-grid simulation size.
 
-    This is deliberately independent of the requested final output ngrid.
+    This is deliberately independent of the requested final output ngrid
+    and is only run when no user specified grid size is provided.
     """
     if psf_obj is None:
         return int(gal_obj.getGoodImageSize(scale))

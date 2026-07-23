@@ -13,6 +13,9 @@ space. The default render path uses:
 - `force_input_flux=True` to preserve the input galaxy flux after convolution
 - `use_true_center=True` to match GalSim's true-image-center convention
 - `integration_order=2` for Gauss-Legendre block integration
+- `compensate_integration="quadrature"` to remove the matching Gauss-Legendre
+  transfer function; pass `"exact_sinc"` for ideal top-hat compensation or
+  `None` to disable compensation
 - `backend="np"` by default, with optional CuPy support for FFT-heavy steps
 
 ## Quickstart
@@ -34,8 +37,8 @@ image = batsim.simulate_galaxy(
 )
 ```
 
-`simulate_galaxy` returns a NumPy array. If CuPy is available, pass
-`backend=None` to auto-detect it or `backend="cp"` to require it.
+`simulate_galaxy` returns a NumPy array. NumPy is used by default; pass
+`backend="cp"` to request CuPy for FFT-heavy steps.
 
 ## Public API
 
@@ -124,6 +127,27 @@ Verify the installation:
 ```bash
 python -c "import batsim; import batsim._gsinterface; print('BATSim installed successfully')"
 ```
+
+## Running Benchmarks
+
+BATSim uses ASV for performance benchmarks. Install the optional benchmark extra
+into a working BATSim development environment:
+
+```bash
+pip install -e ".[benchmark]"
+```
+
+Then run discovery and a quick smoke benchmark:
+
+```bash
+cd benchmarks
+asv check
+asv run --quick --show-stderr
+```
+
+The default benchmark suite uses deterministic analytic GalSim profiles and
+CPU-backed NumPy renders. Optional CuPy benchmarks skip automatically when a
+working CUDA runtime is not available.
 
 ## Pip-Only Installation
 

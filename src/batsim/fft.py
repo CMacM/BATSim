@@ -122,20 +122,66 @@ def _apply_pixel_response(xp, spectrum, n, fine_scale, pix_scale):
     spectrum *= pix_x[None, :]
 
 
-def _compensate_block_integration(xp, spectrum, n, fine_scale, min_response=1.0e-3):
-    """
-    Remove the fine-pixel top-hat response introduced by block integration.
+def _block_integration_response(xp, k, fine_scale, mode="quadrature", integration_order=None):
+    """Return the 1D Fourier response introduced by block integration."""
+    if mode == "exact_sinc":
+        return xp.sinc(k * fine_scale / (2.0 * xp.pi))
 
-    Block integration stores each fine-grid value as an approximation to the
-    local pixel integral. Before PSF convolution, compensate the corresponding
-    separable sinc response so the integration acts mainly as an anti-aliasing
-    quadrature device rather than as an extra pre-PSF smoothing kernel.
+    if mode == "quadrature":
+        if integration_order is None or integration_order <= 1:
+            raise ValueError("integration_order > 1 is required for quadrature compensation.")
+
+        nodes, weights = np.polynomial.legendre.leggauss(int(integration_order))
+        offsets = xp.asarray(0.5 * nodes * fine_scale, dtype=k.dtype)
+        weights = xp.asarray(0.5 * weights, dtype=k.dtype)
+
+        phase = k[:, None] * offsets[None, :]
+        response = xp.sum(weights[None, :] * xp.cos(phase), axis=1)
+        return response
+
+    raise ValueError(
+        "Invalid block integration compensation mode " f"'{mode}'; must be 'quadrature' or 'exact_sinc'."
+    )
+
+
+def _compensate_block_integration(
+    xp,
+    spectrum,
+    n,
+    fine_scale,
+    min_response=1.0e-3,
+    mode="quadrature",
+    integration_order=None,
+):
+    """
+    Remove the fine-pixel averaging response introduced by block integration.
+
+    Gauss-Legendre block integration approximates the mean surface brightness
+    over each fine-grid pixel, introducing a separable pre-smoothing response.
+    Divide out this response within the represented Fourier band before
+    applying the physical PSF convolution.
+
+    ``mode="quadrature"`` removes the discrete Gauss-Legendre transfer
+    function for the configured nodes and weights. ``mode="exact_sinc"`` keeps
+    the ideal top-hat response compensation available as an explicit option.
     """
     ky = 2.0 * xp.pi * xp.fft.fftfreq(n, d=fine_scale)
     kx = 2.0 * xp.pi * xp.fft.rfftfreq(n, d=fine_scale)
 
-    response_y = xp.sinc(ky * fine_scale / (2.0 * xp.pi))
-    response_x = xp.sinc(kx * fine_scale / (2.0 * xp.pi))
+    response_y = _block_integration_response(
+        xp=xp,
+        k=ky,
+        fine_scale=fine_scale,
+        mode=mode,
+        integration_order=integration_order,
+    )
+    response_x = _block_integration_response(
+        xp=xp,
+        k=kx,
+        fine_scale=fine_scale,
+        mode=mode,
+        integration_order=integration_order,
+    )
 
     real_dtype = spectrum.real.dtype
     min_response = xp.asarray(min_response, dtype=real_dtype)
@@ -190,6 +236,29 @@ def _extract_centered_coarse_image(xp, image, downsample_ratio, center_index=Non
     return _to_numpy(xp, coarse)
 
 
+def _extract_centered_real_space_coarse_image(xp, image, downsample_ratio):
+    """
+    Extract the aligned coarse grid from a centred real-space fine image.
+
+    Unlike ``_extract_centered_coarse_image``, this is for images that have not
+    passed through an inverse FFT and therefore are already in spatial order.
+    """
+    n = image.shape[0]
+    s = int(downsample_ratio)
+
+    if s < 1:
+        raise ValueError("downsample_ratio must be >= 1")
+    if n % s != 0:
+        raise ValueError("fine image size must be divisible by downsample_ratio")
+
+    coarse = image[::s, ::s]
+
+    if s > 1:
+        coarse = (s**2) * coarse
+
+    return _to_numpy(xp, coarse)
+
+
 def _convolve_psf_fft(
     xp,
     gal_prof,
@@ -201,7 +270,7 @@ def _convolve_psf_fft(
     dtypes,
     psf_mode,
     integration_order=1,
-    compensate_integration=True,
+    integration_compensation_mode="quadrature",
     center_index=None,
     target_flux=None,
     profile=False,
@@ -228,13 +297,15 @@ def _convolve_psf_fft(
         center_index=center_index,
     )
 
-    if compensate_integration and integration_order > 1:
+    if integration_compensation_mode is not None and integration_order > 1:
         start = time.time() if profile else None
         _compensate_block_integration(
             xp=xp,
             spectrum=spectrum,
             n=n,
             fine_scale=scale,
+            mode=integration_compensation_mode,
+            integration_order=integration_order,
         )
         if profile:
             sync_if_gpu(xp)

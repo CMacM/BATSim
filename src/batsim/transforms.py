@@ -162,9 +162,9 @@ class IaTransform(object):
         self,
         scale,
         hlr,
-        A=0.00136207,
+        A=3.54e-4,
         phi=0,
-        beta=0.82404653,
+        beta=1.11,
         center=None,
         clip_radius=5,
     ):
@@ -315,48 +315,6 @@ class IaTransform(object):
 
         return g1, g2
 
-    # conversion used in galsim source code
-    # modified to use binary arrays to speed up condition checking
-    def e2g(self, absesq):
-        """
-        Convert distortion amplitude squared to reduced shear scale factor.
-
-        Parameters
-        ----------
-        absesq : float or array-like
-            Squared distortion amplitude. Values near zero use a Taylor
-            expansion for numerical stability.
-
-        Returns
-        -------
-        float or array-like
-            Multiplicative factor that maps distortion components to reduced
-            shear components.
-        """
-        xp = _coords_backend(absesq)
-
-        if hasattr(absesq, "shape"):
-            # if absesq is big enough to use the simple calculation, and a
-            # 0 if the Taylor expansion is needed for stability.
-            # if there are values greater than 1, continue with a deeper drill
-            stable = absesq > 1e-4
-            # unstable values set to False, stable values included
-            e2g = stable * (1.0 / (1.0 + xp.sqrt(1.0 - absesq)))
-            # now we invert to have unstable values as True
-            unstable = absesq <= 1e-4
-            # we add the unstable values to the array now, with the stable set to zero
-            e2g += unstable * (0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625)))
-            # finally, return the array of conversion values
-            return e2g
-        # for if we just want a single shear value
-        elif type(absesq) == np.float64:
-            if absesq > 1.0e-4:
-                # return (1. - np.sqrt(1.-absesq)) / absesq
-                return 1.0 / (1.0 + np.sqrt(1.0 - absesq))
-            else:
-                # Avoid numerical issues near e=0 using Taylor expansion
-                return 0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625))
-
 
 IATransform = IaTransform
 
@@ -484,3 +442,46 @@ class LensTransform:
 
 
 AffineLensingTransform = LensTransform
+
+
+def e_to_g(absesq):
+    """
+    Convert distortion amplitude squared to reduced shear scale factor.
+
+    This is a helper function not currently used in the transforms provided.
+
+    Parameters
+    ----------
+    absesq : float or array-like
+        Squared distortion amplitude. Values near zero use a Taylor
+        expansion for numerical stability.
+
+    Returns
+    -------
+    float or array-like
+        Multiplicative factor that maps distortion components to reduced
+        shear components.
+    """
+    xp = _coords_backend(absesq)
+
+    if hasattr(absesq, "shape"):
+        # if absesq is big enough to use the simple calculation, and a
+        # 0 if the Taylor expansion is needed for stability.
+        # if there are values greater than 1, continue with a deeper drill
+        stable = absesq > 1e-4
+        # unstable values set to False, stable values included
+        e2g = stable * (1.0 / (1.0 + xp.sqrt(1.0 - absesq)))
+        # now we invert to have unstable values as True
+        unstable = absesq <= 1e-4
+        # we add the unstable values to the array now, with the stable set to zero
+        e2g += unstable * (0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625)))
+        # finally, return the array of conversion values
+        return e2g
+    # for if we just want a single shear value
+    elif type(absesq) == np.float64:
+        if absesq > 1.0e-4:
+            # return (1. - np.sqrt(1.-absesq)) / absesq
+            return 1.0 / (1.0 + np.sqrt(1.0 - absesq))
+        else:
+            # Avoid numerical issues near e=0 using Taylor expansion
+            return 0.5 + absesq * (0.125 + absesq * (0.0625 + absesq * 0.0390625))

@@ -71,8 +71,8 @@ def _sample_galaxy_profile(gal_obj, coords, fine_scale, real_dtype):
     Sample the galaxy surface brightness using the compiled C++ backend.
 
     The Python renderer keeps coordinates on the selected array backend until
-    this boundary, then passes NumPy coordinates to GalSim's C++ surface
-    brightness evaluator.
+    this boundary, then passes NumPy coordinates to GalSim's C++ API to sample 
+    flux at each coordinate.
     """
     gsinterface = _require_gsinterface()
     use_single = np.dtype(real_dtype) == np.dtype(np.float32)

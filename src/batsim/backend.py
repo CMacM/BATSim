@@ -2,57 +2,29 @@
 
 import gc
 import types
-import warnings
-
 import numpy as np
 
-_ARRAY_BACKEND = None
-_CPU_FALLBACK_WARNED = False
 
-
-def _get_array_backend(
-    warning_message="CuPy unavailable; falling back to NumPy FFTs on CPU.",
-):
+def _get_array_backend():
     """
-    Return CuPy if available, otherwise NumPy.
+    Return BATSim's default array backend.
 
-    The selected module is cached after the first call so repeated render calls
-    do not keep probing the CUDA runtime.
+    NumPy is the default backend. CuPy is used only when explicitly requested
+    through ``_resolve_array_backend("cp")`` or supplied as a module object.
     """
-    global _ARRAY_BACKEND
-    global _CPU_FALLBACK_WARNED
-
-    if _ARRAY_BACKEND is not None:
-        return _ARRAY_BACKEND
-
-    try:
-        import cupy as cp
-
-        cp.cuda.runtime.getDeviceCount()
-        _ARRAY_BACKEND = cp
-    except Exception:
-        if not _CPU_FALLBACK_WARNED:
-            warnings.warn(
-                warning_message,
-                RuntimeWarning,
-                stacklevel=2,
-            )
-            _CPU_FALLBACK_WARNED = True
-        _ARRAY_BACKEND = np
-
-    return _ARRAY_BACKEND
+    return np
 
 
 def _resolve_array_backend(backend):
     """
     Resolve a user-supplied backend selector to an array module.
 
-    ``None`` means auto-detect, string aliases request a specific backend, and
+    ``None`` means NumPy, string aliases request a specific backend, and
     module objects allow tests or callers to pass an already-imported array
     module.
     """
     if backend is None:
-        return _get_array_backend()
+        return np
 
     if backend is np or backend in ("np", "numpy"):
         return np
@@ -137,9 +109,8 @@ def clear_backend_memory(backend=None):
     Parameters
     ----------
     backend : {"np", "numpy", "cp", "cupy"} or module or None, optional
-        Backend to clear.  ``None`` uses BATSim's backend auto-detection,
-        strings select NumPy or CuPy explicitly, and module objects are used
-        directly.
+        Backend to clear.  ``None`` selects NumPy, strings select NumPy or
+        CuPy explicitly, and module objects are used directly.
 
     Returns
     -------
@@ -150,6 +121,10 @@ def clear_backend_memory(backend=None):
 
 
 def sync_if_gpu(xp):
-    """Synchronise the default CuPy stream when using a GPU backend."""
+    """
+    Synchronise the default CuPy stream when using a GPU backend.
+
+    This is only used for timing and profiling and is a no-op for the NumPy backend.
+    """
     if xp is not np:
         xp.cuda.Stream.null.synchronize()

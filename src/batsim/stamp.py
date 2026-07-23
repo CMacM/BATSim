@@ -1,11 +1,11 @@
 import numpy as np
 
-from .backend import _get_array_backend
-
 
 class Stamp:
     """
-    Coordinate grid used for sampling GalSim profiles.
+    Coordinate grid used for sampling GalSim profiles. Currently, BATSim only
+    supports square grids for transforms and rendering, but it is planned to
+    support rectangular grids in the future.
 
     A ``Stamp`` stores flattened ``x``/``y`` coordinates with shape
     ``(2, nn * nn)``.  Coordinates are built on the requested array backend so
@@ -18,8 +18,8 @@ class Stamp:
     scale : float, optional
         Pixel scale in arcsec.
     backend : module, optional
-        Array backend, usually ``numpy`` or ``cupy``.  If omitted, BATSim
-        auto-detects CuPy and falls back to NumPy.
+        Array backend, usually ``numpy`` or ``cupy``.  If omitted, NumPy is
+        used.
     dtype : dtype, optional
         Coordinate dtype.  Defaults to ``float32`` for CuPy and ``float64`` for
         NumPy.
@@ -58,7 +58,7 @@ class Stamp:
         scale : float
             Pixel scale in arcsec.
         backend : module, optional
-            Array backend, e.g. numpy or cupy. If None, auto-detect.
+            Array backend, e.g. numpy or cupy. If None, NumPy is used.
         dtype : dtype, optional
             Coordinate dtype. Defaults to float32 for CuPy, float64 for NumPy.
         use_true_center : bool, optional
@@ -68,11 +68,7 @@ class Stamp:
         downsample_ratio : int, optional
             Coarse-to-fine pixel ratio used for true-center alignment.
         """
-        self.xp = (
-            _get_array_backend("CuPy unavailable; falling back to NumPy stamp coordinates.")
-            if backend is None
-            else backend
-        )
+        self.xp = np if backend is None else backend
 
         if dtype is None:
             dtype = self.xp.float32 if self.xp is not np else np.float64

@@ -141,7 +141,7 @@ def make_plot_image(data):
 
 def stitch_images(images, direction="horizontal", spacing=None):
     """
-    Stitch equal-sized GalSim images into a single composite image.
+    Stitch equal-sized Galsim image objects into a single composite image.
 
     Parameters
     ----------
@@ -203,7 +203,6 @@ def stitch_images(images, direction="horizontal", spacing=None):
 
                 i = i + 1  # update for next iteration
             return super_image
-    # TODO: Allow for empty space to be inserted between images
 
 
 def split_image(image, nsplit, direction="horizontal", spacing=None):
@@ -278,4 +277,3 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
 
                 i = i + 1  # update for next iteration
             return split_images
-    # TODO: Allow for empty space to be inserted between images

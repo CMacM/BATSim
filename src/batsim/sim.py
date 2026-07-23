@@ -2,7 +2,6 @@ import numpy as np
 import time
 
 from .backend import (
-    _get_array_backend,
     _precision_dtypes,
     _release_backend_memory,
     _resolve_array_backend,
@@ -19,6 +18,7 @@ from .fft import (
     _convolve_psf_fft,
     _draw_centered_psf,
     _extract_centered_coarse_image,
+    _extract_centered_real_space_coarse_image,
     _rfft_centered_image,
 )
 from .grid import (
@@ -38,6 +38,25 @@ from .sampling import (
 from .stamp import Stamp
 
 _sample_galaxy_profile_impl = _sampling._sample_galaxy_profile
+
+
+def _resolve_integration_compensation(compensate_integration):
+    """Return the requested block-integration compensation mode."""
+    if compensate_integration is None:
+        return None
+
+    if compensate_integration in ("quadrature", "exact_sinc"):
+        return compensate_integration
+
+    raise ValueError(
+        "Invalid compensate_integration value "
+        f"'{compensate_integration}'; use 'quadrature', 'exact_sinc', or None."
+    )
+
+
+def _needs_fourier_render(psf_obj, draw_method):
+    """Return True when PSF or pixel convolution requires the FFT path."""
+    return psf_obj is not None or draw_method == "auto"
 
 
 def _sample_galaxy_profile(gal_obj, coords, fine_scale, real_dtype):
@@ -97,7 +116,7 @@ def simulate_galaxy(
     pix_scale=None,
     psf_mode="kvalue",
     force_input_flux=True,
-    compensate_integration=True,
+    compensate_integration="quadrature",
     use_true_center=True,
 ):
     """
@@ -121,8 +140,8 @@ def simulate_galaxy(
     transform_obj : object or sequence of objects, optional
         Coordinate transform(s) applied before sampling the galaxy profile.
         Each transform must provide ``transform(coords)`` where ``coords`` has
-        shape ``(2, npoints)``.  Transforms with ``to_backend`` are moved to the
-        selected array backend before use.
+        shape ``(2, npoints)``.  Transforms with a ``to_backend`` method
+        are moved to the selected array backend before use.
     psf_obj : galsim.GSObject, optional
         PSF profile to convolve with the sampled galaxy.
     draw_method : {"auto", "no_pixel"}, optional
@@ -130,24 +149,29 @@ def simulate_galaxy(
         ``"no_pixel"`` omits it.
     safety : float, optional
         Multiplicative safety factor used when estimating the required
-        supersampling from the galaxy Fourier bandwidth.
+        supersampling from the galaxy Fourier bandwidth and Nyquist frequency.
     max_supersample : int, optional
         Maximum total supersampling factor considered by the automatic grid
         selection.
     min_supersample : int, optional
-        Minimum FFT supersampling factor used by the renderer.
+        Minimum FFT supersampling factor used by the renderer. Reducing this
+        below 4 is not recommended, as it can result in very corase representations
+        of non-affine shear gradients and aliasing.
     integration_order : int, optional
-        Gauss-Legendre quadrature order for sub-pixel block integration.
+        Gauss-Legendre quadrature order for sub-pixel block integration. 1 is
+        equivalent to no sub-pixel integration.  Higher orders reduce
+        high-frequency leakage at the cost of more backend evaluations.
     max_fine_grid : int or None, optional
         Maximum fine-grid side length.  Use ``None`` to disable the cap.
     pad : int, optional
         Padding, in coarse pixels, added around the internal simulation grid
         before supersampling.
     precision : {"single", "double"}, optional
-        Floating-point precision for FFT-side arrays.
+        Floating-point precision for FFT-side arrays. Generally ``"single"`` is
+        sufficient for most applications.
     backend : {"np", "numpy", "cp", "cupy"} or module or None, optional
         Array backend used for coordinate construction and FFT operations.
-        ``None`` auto-detects CuPy and falls back to NumPy.
+        ``None`` selects NumPy. Use ``"cp"`` or ``"cupy"`` to request CuPy.
     profile : bool, optional
         If True, print timing diagnostics for the major rendering stages.
     pix_scale : float, optional
@@ -158,12 +182,16 @@ def simulate_galaxy(
         in real space and FFTs it.
     force_input_flux : bool, optional
         If True, normalise the final convolved image to ``gal_obj.flux``.
-    compensate_integration : bool, optional
-        If True, remove the fine-pixel top-hat response introduced by block
-        integration before PSF/pixel convolution.
+    compensate_integration : {"quadrature", "exact_sinc"} or None, optional
+        Fourier-space compensation applied when ``integration_order > 1``.
+        ``"quadrature"`` removes the discrete Gauss-Legendre transfer function
+        introduced by block integration. ``"exact_sinc"`` removes the ideal
+        top-hat response instead. Using None leaves the block-integration
+        smoothing in the rendered image and is not recommended for regular usage.
     use_true_center : bool, optional
         If True, align the fine grid to GalSim's true-image-center convention
-        for the eventual coarse output grid.
+        for the eventual coarse output grid. This is a functional mirror of the same
+        argument in ``galsim.drawImage``.
 
     Returns
     -------
@@ -245,7 +273,7 @@ def _simulate_galaxy_impl(
     pix_scale=None,
     psf_mode="kvalue",
     force_input_flux=False,
-    compensate_integration=True,
+    compensate_integration="quadrature",
     use_true_center=True,
 ):
     """
@@ -268,6 +296,8 @@ def _simulate_galaxy_impl(
     if draw_method not in ("auto", "no_pixel"):
         raise ValueError(f"Invalid draw_method '{draw_method}'; must be 'auto' or 'no_pixel'.")
 
+    integration_compensation_mode = _resolve_integration_compensation(compensate_integration)
+
     xp = _resolve_array_backend(backend)
 
     dtypes = _precision_dtypes(xp, precision)
@@ -288,10 +318,18 @@ def _simulate_galaxy_impl(
 
     target_flux = gal_obj.flux if force_input_flux else None
 
+    requested_integration_order = int(integration_order)
+    if requested_integration_order < 1:
+        raise ValueError("integration_order must be >= 1.")
+
+    effective_integration_order = (
+        requested_integration_order if _needs_fourier_render(psf_obj, draw_method) else 1
+    )
+
     supersample = _determine_supersampling(
         gal_obj,
         scale,
-        integration_order,
+        effective_integration_order,
         sim_ngrid=sim_ngrid,
         pad=pad,
         safety=safety,
@@ -303,7 +341,7 @@ def _simulate_galaxy_impl(
     requested_supersample = supersample
     fft_supersample, integration_order = _resolve_integration_sampling(
         supersample=requested_supersample,
-        integration_order=integration_order,
+        integration_order=effective_integration_order,
     )
 
     fft_supersample = max(fft_supersample, min_supersample)
@@ -383,9 +421,7 @@ def _simulate_galaxy_impl(
         sync_if_gpu(xp)
     start = time.time()
 
-    needs_fft = (
-        psf_obj is not None or draw_method == "auto" or (compensate_integration and integration_order > 1)
-    )
+    needs_fft = _needs_fourier_render(psf_obj, draw_method)
 
     if needs_fft:
         sim_image = _convolve_psf_fft(
@@ -400,19 +436,18 @@ def _simulate_galaxy_impl(
             dtypes=dtypes,
             psf_mode=psf_mode,
             integration_order=integration_order,
-            compensate_integration=compensate_integration,
+            integration_compensation_mode=integration_compensation_mode,
             center_index=center_index,
             profile=profile,
         )
         del gal_prof
     else:
-        # Match the convention used by the convolution path:
-        # extract the centred coarse image from the fine sampled image.
-        sim_image = _extract_centered_coarse_image(
+        # The sampled image is still in centred real-space order because it has
+        # not passed through the FFT path.
+        sim_image = _extract_centered_real_space_coarse_image(
             xp=xp,
             image=gal_prof,
             downsample_ratio=fft_supersample,
-            center_index=center_index,
         )
         del gal_prof
 
@@ -422,5 +457,7 @@ def _simulate_galaxy_impl(
         print(f"FFT and convolution took {end - start:.3f} seconds")
 
     sim_image = _center_crop_or_pad(sim_image, (output_ngrid, output_ngrid))
+    if target_flux is not None and not needs_fft:
+        sim_image *= target_flux / sim_image.sum()
 
     return sim_image

@@ -152,6 +152,7 @@ setup(
         "astropy>=6.0,<6.1",
     ],
     extras_require={
+        "benchmark": ["asv>=0.6"],
         "cuda12": ["cupy-cuda12x>=13.6,<14"],
         "cuda13": ["cupy-cuda13x>=13.6,<14"],
     },

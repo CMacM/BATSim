@@ -19,8 +19,11 @@ default pipeline uses:
   center convention.
 * ``integration_order=2`` to use Gauss-Legendre block integration before the
   FFT convolution path.
-* ``backend="np"`` by default. Passing ``backend=None`` auto-detects CuPy, and
-  passing ``backend="cp"`` requires CuPy.
+* ``compensate_integration="quadrature"`` to remove the matching
+  Gauss-Legendre transfer function. Pass ``"exact_sinc"`` for ideal top-hat
+  compensation, or None to disable compensation.
+* ``backend="np"`` by default. Passing ``backend=None`` also selects NumPy;
+  pass ``backend="cp"`` to request CuPy.
 
 Quickstart
 ----------
