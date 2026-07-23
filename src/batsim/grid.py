@@ -12,7 +12,7 @@ class FineGrid:
     Description of the high-resolution grid used by the renderer.
 
     The fine grid is where BATSim samples the GalSim profile before any
-    Fourier-space PSF or pixel convolution to ensure any fine-structure and non-affine 
+    Fourier-space PSF or pixel convolution to ensure any fine-structure and non-affine
     shear is adequately sampled. ``fine_compact`` records the
     GalSim-recommended compact support at ``fine_scale`` so callers can inspect
     whether a size cap forced the simulation grid smaller than that support.

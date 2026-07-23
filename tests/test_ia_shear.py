@@ -32,7 +32,12 @@ def _moments(image, scale):
     )
 
 
-def test_beta_zero_ia_transform_matches_lens_transform_coordinates():
+def _reduced_shear_inverse_matrix(g1, g2):
+    inv_norm = 1.0 / np.sqrt(1.0 - g1 * g1 - g2 * g2)
+    return inv_norm * np.array([[1.0 - g1, -g2], [-g2, 1.0 + g1]])
+
+
+def test_beta_zero_ia_transform_uses_unit_determinant_reduced_shear_matrix():
     scale = 0.2
     hlr = 1.4
     amplitude = 0.2
@@ -42,51 +47,67 @@ def test_beta_zero_ia_transform_matches_lens_transform_coordinates():
     gamma2 = amplitude * np.sin(2.0 * phi)
 
     ia_transform = batsim.IaTransform(A=amplitude, beta=0.0, phi=phi, scale=scale, hlr=hlr)
-    lens_transform = batsim.LensTransform(gamma1=gamma1, gamma2=gamma2, kappa=0.0)
 
     x = np.linspace(-2.0 * hlr, 2.0 * hlr, 9)
     y = np.linspace(-1.5 * hlr, 1.5 * hlr, 7)
     yy, xx = np.meshgrid(y, x, indexing="ij")
     coords = np.stack([xx.ravel(), yy.ravel()], axis=0)
 
+    expected_matrix = _reduced_shear_inverse_matrix(gamma1, gamma2)
+
+    np.testing.assert_allclose(np.linalg.det(expected_matrix), 1.0, rtol=1.0e-14)
     np.testing.assert_allclose(
         ia_transform.transform(coords),
-        lens_transform.transform(coords),
+        expected_matrix @ coords,
         rtol=1.0e-14,
         atol=1.0e-14,
     )
 
 
-def test_beta_zero_ia_render_matches_lens_transform_moments():
+def test_beta_zero_ia_render_matches_galsim_reduced_shear_moments():
     flux = 40
-    scale = 0.2
-    nn = 64
-    hlr = 1.4
-    g1 = 0.2
+    scale = 0.15
+    nn = 96
+    hlr = 1.1
+    g1 = 0.18
+    g2 = 0.07
+    amplitude = np.hypot(g1, g2)
+    phi = 0.5 * np.arctan2(g2, g1)
 
-    sersic_gal = galsim.Sersic(n=1.0, half_light_radius=hlr, flux=flux, trunc=0)
-    lens_transform = batsim.LensTransform(gamma1=g1, gamma2=0.0, kappa=0.0)
-    ia_transform = batsim.IaTransform(A=g1, beta=0.0, phi=0.0, scale=scale, hlr=hlr)
+    gal = galsim.Gaussian(half_light_radius=hlr, flux=flux)
+    ia_transform = batsim.IaTransform(A=amplitude, beta=0.0, phi=phi, scale=scale, hlr=hlr)
 
-    lens_image = batsim.simulate_galaxy(
-        ngrid=nn,
-        pix_scale=scale,
-        gal_obj=sersic_gal,
-        transform_obj=lens_transform,
+    reference = (
+        gal.shear(g1=g1, g2=g2)
+        .drawImage(
+            nx=nn,
+            ny=nn,
+            scale=scale,
+            method="no_pixel",
+            use_true_center=False,
+        )
+        .array
     )
 
     ia_image = batsim.simulate_galaxy(
         ngrid=nn,
         pix_scale=scale,
-        gal_obj=sersic_gal,
+        gal_obj=gal,
         transform_obj=ia_transform,
+        draw_method="no_pixel",
+        force_input_flux=False,
+        use_true_center=False,
     )
 
-    np.testing.assert_allclose(ia_image.sum(), lens_image.sum(), rtol=1.0e-12)
+    reference_moments = _moments(reference, scale)
+    ia_moments = _moments(ia_image, scale)
+
+    np.testing.assert_allclose(ia_moments[0], reference_moments[0], rtol=5.0e-6)
     np.testing.assert_allclose(
-        _moments(ia_image, scale)[3:5],
-        _moments(lens_image, scale)[3:5],
-        atol=1.0e-12,
+        ia_moments[3:6],
+        reference_moments[3:6],
+        rtol=2.0e-3,
+        atol=2.0e-4,
     )
 
 
@@ -110,6 +131,6 @@ def test_ia_power_law_amplitude_is_hlr_normalized():
 
 
 if __name__ == "__main__":
-    test_beta_zero_ia_transform_matches_lens_transform_coordinates()
-    test_beta_zero_ia_render_matches_lens_transform_moments()
+    test_beta_zero_ia_transform_uses_unit_determinant_reduced_shear_matrix()
+    test_beta_zero_ia_render_matches_galsim_reduced_shear_moments()
     test_ia_power_law_amplitude_is_hlr_normalized()

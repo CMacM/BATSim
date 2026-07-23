@@ -1,5 +1,43 @@
-import numpy as np
+"""
+Coordinate transforms used during image rendering.
 
+Transform convention
+--------------------
+BATSim transforms implement backward coordinate mappings. Given coordinates
+``x`` on the regular output-image grid, ``transform(x)`` returns coordinates
+``u`` at which the source surface-brightness profile should be evaluated:
+
+    I_output(x) = I_source(u),    u = transform(x).
+
+For a locally affine transformation with forward geometric matrix ``M``, a source
+feature at ``u`` appears at
+
+    x = M @ u.
+
+The corresponding BATSim coordinate transform must therefore return
+
+    u = inv(M) @ x.
+
+Although the inverse matrix is used to sample the source profile, visible
+features undergo the forward transformation. For example, a source feature
+at ``u0`` appears where
+
+    inv(M) @ x = u0,
+
+which implies
+
+    x = M @ u0.
+
+This backward, or pull-based, convention evaluates the source profile once
+for every output location and avoids the gaps and overlaps that can occur
+when source samples are pushed forwards onto an output grid.
+
+All transform implementations in this module must follow this convention:
+their inputs are output-plane coordinates and their return values are
+source-plane sampling coordinates.
+"""
+
+import numpy as np
 
 def _coords_backend(coords):
     """Return the array backend for a coordinate array."""
@@ -195,7 +233,7 @@ class IaTransform(object):
 
         self.ref_vec = np.array([[center[0]], [center[1]]])
 
-        # intialise important class variables
+        # initialise important class variables
         self.A = A
         self.phi = phi
         self.c2phi = np.cos(2 * self.phi)
@@ -241,18 +279,20 @@ class IaTransform(object):
 
         # unpack x and y coordinates
         coords_relative = coords - ref_vec
-
         x, y = coords_relative
 
+        # Get g1 and g2 shear components as a function of image position
         g1, g2 = self.get_g1g2(x, y)
 
-        # transform coordinates with raidal dependence
-        x_prime = (1 - g1) * x - g2 * y
-        y_prime = (1 + g1) * y - g2 * x
+        # Normalisation ensures magnification is zero
+        inv_norm = 1.0 / np.sqrt(1.0 - g1 * g1 - g2 * g2)
 
-        coords_realtive_transformed = xp.stack([x_prime, y_prime], axis=0)
+        # Coordinate transform uses the INVERSE of the shear matrix
+        x_prime = inv_norm * ((1.0 - g1) * x - g2 * y)
+        y_prime = inv_norm * (-g2 * x + (1.0 + g1) * y)
+        coords_relative_transformed = np.stack([x_prime, y_prime], axis=0)
 
-        return coords_realtive_transformed + ref_vec
+        return coords_relative_transformed + ref_vec
 
     def get_g1g2(self, x, y):
         """
@@ -366,7 +406,7 @@ class LensTransform:
             dtype=self.dtype,
         )
 
-        self.s2l_mat = self.xp.asarray(
+        self.lens_mat = self.xp.asarray(
             [
                 [1.0 - kappa - gamma1, -gamma2],
                 [-gamma2, 1.0 - kappa + gamma1],
@@ -392,10 +432,10 @@ class LensTransform:
         dtype = _coords_dtype(coords)
 
         ref_vec = self.xp.asarray(self.ref_vec, dtype=dtype)
-        s2l_mat = self.xp.asarray(self.s2l_mat, dtype=dtype)
+        lens_mat = self.xp.asarray(self.lens_mat, dtype=dtype)
 
         coords_relative = coords - ref_vec
-        return s2l_mat @ coords_relative + ref_vec
+        return lens_mat @ coords_relative + ref_vec
 
     def to_backend(self, backend=None, dtype=None):
         """
@@ -422,13 +462,13 @@ class LensTransform:
             dtype = self.dtype
 
         ref_vec = self._to_numpy(self.ref_vec)
-        s2l_mat = self._to_numpy(self.s2l_mat)
+        lens_mat = self._to_numpy(self.lens_mat)
 
         new = object.__new__(LensTransform)
         new.xp = xp
         new.dtype = dtype
         new.ref_vec = xp.asarray(ref_vec, dtype=dtype)
-        new.s2l_mat = xp.asarray(s2l_mat, dtype=dtype)
+        new.lens_mat = xp.asarray(lens_mat, dtype=dtype)
 
         return new
 
