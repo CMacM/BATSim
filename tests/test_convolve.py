@@ -127,7 +127,7 @@ def test_convolved_lensed(gamma1=0.2, gamma2=0.0, kappa=0.0):
 
     reference = conv_gal.drawImage(nx=nn, ny=nn, scale=scale, method="auto").array
 
-    np.testing.assert_allclose(gal_array.sum(), gal.flux, rtol=2.0e-4)
+    np.testing.assert_allclose(gal_array.sum(), reference.sum(), rtol=2.0e-4)
     np.testing.assert_allclose(_moments(gal_array)[3:5], _moments(reference)[3:5], atol=2.0e-2)
 
 

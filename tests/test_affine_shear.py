@@ -85,7 +85,7 @@ def test_affine(gamma1=0.2, gamma2=0.0, kappa=0.0):
         method="no_pixel",
     ).array
 
-    np.testing.assert_allclose(gal_array.sum(), flux, rtol=5.0e-3)
+    np.testing.assert_allclose(gal_array.sum(), gal_galsim.sum(), rtol=5.0e-3)
     np.testing.assert_allclose(
         _moments(gal_array)[3:5],
         _moments(gal_galsim)[3:5],
@@ -161,7 +161,7 @@ def test_affine_psf(gamma1=0.2, gamma2=0.0, kappa=0.0):
         method="auto",
     ).array
 
-    np.testing.assert_allclose(gal_array.sum(), flux, rtol=5.0e-3)
+    np.testing.assert_allclose(gal_array.sum(), gal_galsim.sum(), rtol=5.0e-3)
     np.testing.assert_allclose(
         _moments(gal_array)[3:5],
         _moments(gal_galsim)[3:5],

@@ -148,8 +148,9 @@ def stitch_images(images, direction="horizontal", spacing=None):
     images : sequence of galsim.Image
         Images to stitch together. All images are expected to share the same
         dimensions and pixel scale.
-    direction : {"horizontal", "vertical"}, optional
-        Direction in which images are concatenated.
+    direction : {"horizontal", "vertical", "square"}, optional
+        Direction in which images are concatenated. ``"square"`` arranges the
+        images on a square grid, leaving any unused cells blank.
     spacing : None, optional
         Placeholder for future gap support. Only ``None`` is currently
         implemented.
@@ -202,6 +203,26 @@ def stitch_images(images, direction="horizontal", spacing=None):
                 super_image.setSubImage(bounds, image)
 
                 i = i + 1  # update for next iteration
+            return super_image
+
+        elif direction == "square":
+            nside = int(np.ceil(np.sqrt(len(images))))
+            Nx = nside * nx
+            Ny = nside * ny
+            super_image = galsim.ImageF(Nx, Ny, scale=scale)
+
+            for i, image in enumerate(images):
+                row = i // nside
+                col = i % nside
+                bounds = galsim.BoundsI(
+                    xmin=1 + (col * nx),
+                    xmax=nx + (col * nx),
+                    ymin=1 + (row * ny),
+                    ymax=ny + (row * ny),
+                )
+
+                super_image.setSubImage(bounds, image)
+
             return super_image
 
 
