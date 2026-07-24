@@ -166,4 +166,8 @@ def get_cupy():
 def cleanup_backend(backend="np"):
     """Release transient memory after benchmarks that allocate large arrays."""
     gc.collect()
-    batsim.clear_backend_memory(backend)
+    try:
+        batsim.clear_backend_memory(backend)
+    except RuntimeError:
+        if backend not in ("cp", "cupy"):
+            raise

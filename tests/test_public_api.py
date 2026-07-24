@@ -7,6 +7,7 @@ def test_top_level_public_api_exports():
     assert batsim.clear_backend_memory.__name__ == "clear_backend_memory"
     assert batsim.Stamp.__name__ == "Stamp"
 
+    assert batsim.Transform.__name__ == "Transform"
     assert batsim.LensTransform is batsim.AffineLensingTransform
     assert batsim.IaTransform is batsim.IATransform
     assert batsim.FlexionTransform.__name__ == "FlexionTransform"

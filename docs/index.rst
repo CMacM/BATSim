@@ -64,6 +64,7 @@ The stable top-level API includes:
 * :func:`batsim.simulate_galaxy`
 * :func:`batsim.clear_backend_memory`
 * :class:`batsim.Stamp`
+* :class:`batsim.Transform`, a base class for custom coordinate transforms
 * :class:`batsim.LensTransform` and :class:`batsim.AffineLensingTransform`
 * :class:`batsim.IaTransform` and :class:`batsim.IATransform`
 * :class:`batsim.FlexionTransform`

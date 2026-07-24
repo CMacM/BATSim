@@ -83,6 +83,28 @@ def test_output_ngrid_is_center_crop_of_default_render():
     np.testing.assert_allclose(cropped_image, _center_crop(full_image, nn // 4))
 
 
+def test_compact_exponential_auto_render_matches_galsim_peak_flux():
+    compact_gal = galsim.Sersic(n=1, half_light_radius=0.1, flux=1.0)
+    test_ngrid = 64
+
+    image = batsim.simulate_galaxy(
+        ngrid=test_ngrid,
+        pix_scale=scale,
+        gal_obj=compact_gal,
+        draw_method="auto",
+        force_input_flux=False,
+    )
+    reference = compact_gal.drawImage(
+        nx=test_ngrid,
+        ny=test_ngrid,
+        scale=scale,
+        method="auto",
+    ).array
+
+    peak_percent_residual = 100.0 * np.max(np.abs(image - reference)) / reference.max()
+    assert peak_percent_residual < 0.1
+
+
 def test_convolved_lensed(gamma1=0.2, gamma2=0.0, kappa=0.0):
     # reduced shear and lensing magnification
     g1 = gamma1 / (1 - kappa)

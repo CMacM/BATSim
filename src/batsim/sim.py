@@ -115,7 +115,7 @@ def simulate_galaxy(
     profile=False,
     pix_scale=None,
     psf_mode="kvalue",
-    force_input_flux=True,
+    force_input_flux=False,
     compensate_integration="quadrature",
     use_true_center=True,
 ):

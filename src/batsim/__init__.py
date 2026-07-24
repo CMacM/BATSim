@@ -17,6 +17,7 @@ from .transforms import (
     IATransform,
     IaTransform,
     LensTransform,
+    Transform,
 )
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "simulate_galaxy",
     "clear_backend_memory",
     "Stamp",
+    "Transform",
     "LensTransform",
     "AffineLensingTransform",
     "IaTransform",

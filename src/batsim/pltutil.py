@@ -134,7 +134,7 @@ def make_plot_image(data):
         Image artist returned by ``matplotlib.pyplot.imshow``.
     """
     min_cut, max_cut = determine_cuts(data)
-    sn = simple_norm(data, "asinh", asinh_a=0.1, min_cut=min_cut, max_cut=max_cut)
+    sn = simple_norm(data, "asinh", asinh_a=0.1, vmin=min_cut, vmax=max_cut)
     fig = plt.imshow(data, aspect="equal", cmap="RdYlBu_r", origin="lower", norm=sn)
     return fig
 

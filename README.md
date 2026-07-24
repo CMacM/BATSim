@@ -47,6 +47,7 @@ The stable top-level API is:
 - `batsim.simulate_galaxy`
 - `batsim.clear_backend_memory`
 - `batsim.Stamp`
+- `batsim.Transform` base class for custom coordinate transforms
 - `batsim.LensTransform` and `batsim.AffineLensingTransform`
 - `batsim.IaTransform` and `batsim.IATransform`
 - `batsim.FlexionTransform`

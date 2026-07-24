@@ -52,13 +52,15 @@ def _determine_supersampling(
         effective = raw
     else:
         # Block integration suppresses high-frequency leakage before the FFT,
-        # so a higher quadrature order can safely reduce the FFT-side
-        # supersampling budget.
+        # but it does not replace the need to sample compact profiles on a
+        # fine enough grid. Keep the reduction conservative so small Sersic
+        # profiles are not under-resolved before pixel convolution.
         # attenuation_target lets you tune how much high-k leakage you tolerate.
-        integration_reduction = q**2 / attenuation_target**0.5
+        integration_reduction = q * attenuation_target**0.5
 
-        # Avoid absurd reductions for high q.
-        integration_reduction = min(integration_reduction, 8.0 * q)
+        # Avoid degenerate settings that would increase the requested
+        # supersampling when using block integration.
+        integration_reduction = max(integration_reduction, 1.0)
 
         effective = raw / integration_reduction
 
