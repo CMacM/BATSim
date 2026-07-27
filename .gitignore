@@ -137,6 +137,7 @@ dask-worker-space/
 
 # tmp directory
 tmp/
+.nfs*
 
 # Mac OS
 .DS_Store
@@ -148,3 +149,6 @@ _html/
 
 # Dev files
 *.fits
+notebooks/dev/
+notebooks/ia-analysis/
+notebooks/validation/

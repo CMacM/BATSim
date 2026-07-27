@@ -3,6 +3,7 @@ sphinx-rtd-theme
 sphinx-autoapi
 nbsphinx
 ipython
+ipykernel
 jupytext
 jupyter
 matplotlib

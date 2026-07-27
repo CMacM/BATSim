@@ -78,5 +78,5 @@ API.
    :hidden:
 
    Home page <self>
-   API Reference <autoapi/index>
-   Notebooks <notebooks>
+   Examples <examples>
+   API Reference <api>
