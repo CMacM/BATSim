@@ -40,13 +40,28 @@ class BuildExt(build_ext):
         super().build_extensions()
 
     def _find_pybind11_paths(self):
-        prefix_include = os.path.join(sys.prefix, "include")
-        if os.path.exists(os.path.join(prefix_include, "pybind11", "pybind11.h")):
-            return [prefix_include]
-
         import pybind11
 
-        return [pybind11.get_include()]
+        candidates = [
+            pybind11.get_include(),
+            os.path.join(sys.prefix, "include"),
+        ]
+        include_dirs = []
+        for directory in self._dedupe(candidates):
+            if self._has_pybind11_conduit(directory):
+                include_dirs.append(directory)
+
+        if include_dirs:
+            return include_dirs
+
+        search_paths = ", ".join(self._dedupe(candidates)) or "<none>"
+        raise RuntimeError(
+            "BATSim requires pybind11 >= 3 with the conduit headers. "
+            f"Searched pybind11 include paths: {search_paths}"
+        )
+
+    def _has_pybind11_conduit(self, include_dir):
+        return os.path.exists(os.path.join(include_dir, "pybind11", "conduit", "pybind11_conduit_v1.h"))
 
     def _find_galsim_paths(self):
         include_dirs = []
