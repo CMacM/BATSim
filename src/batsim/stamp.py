@@ -1,28 +1,148 @@
 import numpy as np
 
 
-class Stamp(object):
-    def __init__(self, nn: int = 32, scale: float = 0.2):
-        """Initialize the 2D stamp object. This class enables distorting
-        an image by changing the samplinng position with non-affine
-        transformation
+class Stamp:
+    """
+    Coordinate grid used for sampling GalSim profiles. Currently, BATSim only
+    supports square grids for transforms and rendering, but it is planned to
+    support rectangular grids in the future.
 
-        Args:
-        nn (int):      number of grids on x and y direction
-        scale (float): pixel scale in units of arcsec
+    A ``Stamp`` stores flattened ``x``/``y`` coordinates with shape
+    ``(2, nn * nn)``.  Coordinates are built on the requested array backend so
+    transform operations can run on either NumPy or CuPy arrays.
+
+    Parameters
+    ----------
+    nn : int, optional
+        Number of pixels along each side of the square coordinate grid.
+    scale : float, optional
+        Pixel scale in arcsec.
+    backend : module, optional
+        Array backend, usually ``numpy`` or ``cupy``.  If omitted, NumPy is
+        used.
+    dtype : dtype, optional
+        Coordinate dtype.  Defaults to ``float32`` for CuPy and ``float64`` for
+        NumPy.
+    use_true_center : bool, optional
+        If True, use GalSim's true-image-center convention.  When the fine grid
+        will later be downsampled, this aligns it to the true center of the
+        coarse output grid.
+    downsample_ratio : int, optional
+        Ratio between the fine grid and the eventual coarse output grid.
+
+    Attributes
+    ----------
+    coords : array-like
+        Flattened coordinate array ordered as ``[x, y]`` with shape
+        ``(2, nn * nn)``.
+    pixel_area : float
+        Fine-grid pixel area in square arcsec.
+    center_index : float
+        Pixel index used as the coordinate origin.
+    """
+
+    def __init__(
+        self,
+        nn: int = 32,
+        scale: float = 0.2,
+        backend=None,
+        dtype=None,
+        use_true_center=True,
+        downsample_ratio=1,
+    ):
         """
-        # Set up the grids
-        self.set_coords(nn, scale)
-        return
+        Parameters
+        ----------
+        nn : int
+            Number of grid points in x and y.
+        scale : float
+            Pixel scale in arcsec.
+        backend : module, optional
+            Array backend, e.g. numpy or cupy. If None, NumPy is used.
+        dtype : dtype, optional
+            Coordinate dtype. Defaults to float32 for CuPy, float64 for NumPy.
+        use_true_center : bool, optional
+            If True, use GalSim's default true-image-center convention.  If the
+            stamp will later be downsampled, this aligns the fine grid to the
+            true center of the eventual coarse grid.
+        downsample_ratio : int, optional
+            Coarse-to-fine pixel ratio used for true-center alignment.
+        """
+        self.xp = np if backend is None else backend
 
-    def set_coords(self, nn, scale):
-        indx = np.arange(-int(nn / 2), int((nn + 1) / 2), 1) * scale
-        indy = np.arange(-int(nn / 2), int((nn + 1) / 2), 1) * scale
-        inds = np.meshgrid(indy, indx, indexing="ij")
-        # coords in shape of (2, npoints), in order of [x, y]
-        self.coords = np.vstack([np.ravel(_) for _ in inds[::-1]])
+        if dtype is None:
+            dtype = self.xp.float32 if self.xp is not np else np.float64
+
+        self.dtype = dtype
+        self.set_coords(
+            nn,
+            scale,
+            use_true_center=use_true_center,
+            downsample_ratio=downsample_ratio,
+        )
+
+    def set_coords(self, nn, scale, use_true_center=True, downsample_ratio=1):
+        """
+        Construct coordinates with shape (2, nn*nn), ordered as [x, y].
+
+        Parameters
+        ----------
+        nn : int
+            Number of grid points along each side.
+        scale : float
+            Pixel scale in arcsec.
+        use_true_center : bool, optional
+            Whether to use GalSim's true-image-center convention.
+        downsample_ratio : int, optional
+            Coarse-to-fine pixel ratio used for true-center alignment.
+        """
+        nn = int(nn)
+        scale = float(scale)
+        downsample_ratio = int(downsample_ratio)
+
+        xp = self.xp
+
+        if downsample_ratio < 1:
+            raise ValueError("downsample_ratio must be >= 1.")
+
+        if use_true_center:
+            center_index = 0.5 * (nn - downsample_ratio)
+        else:
+            center_index = nn // 2
+
+        ind = (xp.arange(nn, dtype=self.dtype) - center_index) * scale
+
+        yy, xx = xp.meshgrid(ind, ind, indexing="ij")
+
+        self.coords = xp.stack(
+            [
+                xx.ravel(),
+                yy.ravel(),
+            ],
+            axis=0,
+        )
+
         self.scale = scale
-        self.pixel_area = self.scale**2.0
+        self.pixel_area = scale**2
         self.shape = (nn, nn)
         self.nn = nn
-        return
+        self.use_true_center = bool(use_true_center)
+        self.downsample_ratio = downsample_ratio
+        self.center_index = center_index
+
+    def to_numpy(self):
+        """
+        Return coordinates as NumPy array.
+
+        Useful when passing coordinates to CPU-only code such as a C++/GalSim
+        sampling backend.
+
+        Returns
+        -------
+        ndarray
+            Coordinate array with shape ``(2, nn * nn)``.
+        """
+        if self.xp is np:
+            return self.coords
+
+        return self.xp.asnumpy(self.coords)

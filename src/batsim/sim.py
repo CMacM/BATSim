@@ -1,254 +1,463 @@
-import galsim
 import numpy as np
-import os
-import multiprocessing as mp
-from functools import lru_cache
+import time
 
-from . import _gsinterface
+from .backend import (
+    _precision_dtypes,
+    _release_backend_memory,
+    _resolve_array_backend,
+    _to_numpy,
+    clear_backend_memory,
+    sync_if_gpu,
+)
+from . import sampling as _sampling
+from .fft import (
+    _apply_centering_phase,
+    _apply_pixel_response,
+    _center_crop_or_pad,
+    _compensate_block_integration,
+    _convolve_psf_fft,
+    _draw_centered_psf,
+    _extract_centered_coarse_image,
+    _extract_centered_real_space_coarse_image,
+    _rfft_centered_image,
+)
+from .grid import (
+    FineGrid,
+    _determine_supersampling,
+    _integration_offsets,
+    _make_fine_grid,
+    _resolve_integration_sampling,
+    _resolve_simulation_ngrid,
+)
+from .sampling import (
+    _apply_prepared_transforms,
+    _prepare_transforms,
+    _require_gsinterface,
+    _sample_psf_spectrum,
+)
 from .stamp import Stamp
 
-from time import perf_counter
+_sample_galaxy_profile_impl = _sampling._sample_galaxy_profile
 
-_PSF_REGISTRY = {}
 
-def _register_psf(psf_obj):
-    # Keep memory bounded and invalidate stale cached entries.
-    if len(_PSF_REGISTRY) >= 128:
-        _PSF_REGISTRY.clear()
-        _cached_pad_arcsec.cache_clear()
-        _cached_effective_psf.cache_clear()
-    key = id(psf_obj)
-    _PSF_REGISTRY[key] = psf_obj
-    return key
+def _resolve_integration_compensation(compensate_integration):
+    """Return the requested block-integration compensation mode."""
+    if compensate_integration is None:
+        return None
 
-@lru_cache(maxsize=128)
-def _cached_pad_arcsec(psf_key, pix_scale):
-    return _PSF_REGISTRY[psf_key].calculateMomentRadius(size=32, scale=pix_scale / 4.0)
+    if compensate_integration in ("quadrature", "exact_sinc"):
+        return compensate_integration
 
-@lru_cache(maxsize=128)
-def _cached_effective_psf(psf_key):
-    psf_obj = _PSF_REGISTRY[psf_key]
-    return psf_obj
+    raise ValueError(
+        "Invalid compensate_integration value "
+        f"'{compensate_integration}'; use 'quadrature', 'exact_sinc', or None."
+    )
+
+
+def _needs_fourier_render(psf_obj, draw_method):
+    """Return True when PSF or pixel convolution requires the FFT path."""
+    return psf_obj is not None or draw_method == "auto"
+
+
+def _sample_galaxy_profile(gal_obj, coords, fine_scale, real_dtype):
+    """Compatibility wrapper for the sampling backend."""
+    return _sample_galaxy_profile_impl(gal_obj, coords, fine_scale, real_dtype)
+
+
+def _sample_galaxy_profile_on_stamp(
+    gal_obj,
+    stamp,
+    transform_obj,
+    fine_scale,
+    real_dtype,
+    xp,
+    integration_order=2,
+    profile=False,
+):
+    """
+    Sample the locally integrated galaxy profile on the fine simulation grid.
+
+    This wrapper preserves legacy monkeypatching of
+    ``batsim.sim._sample_galaxy_profile`` in internal tests and notebooks.
+    """
+    original_sampler = _sampling._sample_galaxy_profile
+    _sampling._sample_galaxy_profile = _sample_galaxy_profile
+    try:
+        return _sampling._sample_galaxy_profile_on_stamp(
+            gal_obj=gal_obj,
+            stamp=stamp,
+            transform_obj=transform_obj,
+            fine_scale=fine_scale,
+            real_dtype=real_dtype,
+            xp=xp,
+            integration_order=integration_order,
+            profile=profile,
+        )
+    finally:
+        _sampling._sample_galaxy_profile = original_sampler
+
 
 def simulate_galaxy(
     gal_obj,
-    pix_scale,
-    ngrid = None,
+    scale=None,
+    ngrid=None,
     transform_obj=None,
     psf_obj=None,
-    truncate_ratio=1.0,
-    maximum_num_grids=4096,
     draw_method="auto",
-    force_ngrid=False,
-    delta_image_x=0.0,
-    delta_image_y=0.0,
+    safety=2.0,
+    max_supersample=64,
+    min_supersample=4,
+    integration_order=2,
+    max_fine_grid=4096,
+    pad=16,
+    precision="single",
+    backend="np",
     profile=False,
+    pix_scale=None,
+    psf_mode="kvalue",
+    force_input_flux=False,
+    compensate_integration="quadrature",
+    use_true_center=True,
 ):
-    """The function samples the surface density field of a galaxy at the grids
-    This function only conduct sampling; PSF and pixel response are not
-    included.
-
-    Args:
-    ngrid (int):        number of grids
-    pix_scale (float):  pixel scale
-    gal_obj (galsim):   Galsim galaxy object to sample on the grids
-    transform_obj :     Coordinate transform object or list of transform in order
-                        that they should be applied.
-    psf_obj (galsim):   Galsim PSF object to smear the image
-    truncate_ratio (float):
-                        truncate at truncate_ratio times good_image_size
-    maximum_num_grids (int):
-                        maximum number of grids for simulation in real space
-    draw_method (str):  method to draw the galaxy image, "auto" will convolve
-                        with pixel response, "no_pixel" is as it implies
-    force_ngrid (bool): If True, force the number of grids to be ngrid even if
-                        a smaller number of grids is sufficient for the
-                        simulation
-    profile (bool):     If True, print per-galaxy timings and stats
-    Returns:
-    outcome (ndarray):  2D galaxy image on the grids
     """
-    def _log(msg):
-        if profile:
-            print(f"[simulate_galaxy] {msg}")
+    Render a GalSim object through BATSim's non-affine sampling pipeline.
 
-    t_total = perf_counter() if profile else None
-    gobj = gal_obj.shift(
-        delta_image_x * pix_scale,
-        delta_image_y * pix_scale,
-    )
-    psf_key = _register_psf(psf_obj) if psf_obj is not None else None
+    The galaxy profile is sampled on a supersampled coordinate grid, optional
+    coordinate transforms are applied before profile evaluation, and optional
+    PSF/pixel convolution is performed in Fourier space. The returned image is
+    a NumPy array regardless of the backend used internally.
 
-    # Initialize variables based on PSF presence
-    downsample_ratio = 1
-    pad_arcsec = 0.0
-    if psf_obj is None and draw_method == "no_pixel":
-        # In this case we just get the fluxes for the requested stamp size
-        scale = pix_scale
-        nn = int(ngrid)
-    else:
-        t = perf_counter() if profile else None
-        # Compute the effective scale for simulation
-        if psf_obj is None:
-            scale = pix_scale / 4.0
-        else:
-            scale = min(gobj.nyquist_scale, pix_scale / 4.0)
-            pad_arcsec = _cached_pad_arcsec(psf_key, pix_scale)
-            downsample_ratio = min(int(2 ** np.ceil(np.log2(pix_scale / scale))), 128)
-        if profile:
-            _log(f"effective_scale_padding={perf_counter() - t:.4e}s")
-        scale = pix_scale / downsample_ratio
+    Parameters
+    ----------
+    gal_obj : galsim.GSObject
+        Galaxy surface-brightness profile to sample.
+    scale : float, optional
+        Output pixel scale in arcsec.  Either ``scale`` or ``pix_scale`` must
+        be supplied.  If both are supplied, they must agree.
+    ngrid : int, optional
+        Final square output size in pixels.  If omitted, BATSim chooses the
+        output size from the GalSim object support at ``scale``.
+    transform_obj : object or sequence of objects, optional
+        Coordinate transform(s) applied before sampling the galaxy profile.
+        Each transform must provide ``transform(coords)`` where ``coords`` has
+        shape ``(2, npoints)``.  Transforms with a ``to_backend`` method
+        are moved to the selected array backend before use.
+    psf_obj : galsim.GSObject, optional
+        PSF profile to convolve with the sampled galaxy.
+    draw_method : {"auto", "no_pixel"}, optional
+        Pixel-response mode.  ``"auto"`` applies the square-pixel response;
+        ``"no_pixel"`` omits it.
+    safety : float, optional
+        Multiplicative safety factor used when estimating the required
+        supersampling from the galaxy Fourier bandwidth and Nyquist frequency.
+    max_supersample : int, optional
+        Maximum total supersampling factor considered by the automatic grid
+        selection.
+    min_supersample : int, optional
+        Minimum FFT supersampling factor used by the renderer. Reducing this
+        below 4 is not recommended, as it can result in very corase representations
+        of non-affine shear gradients and aliasing.
+    integration_order : int, optional
+        Gauss-Legendre quadrature order for sub-pixel block integration. 1 is
+        equivalent to no sub-pixel integration.  Higher orders reduce
+        high-frequency leakage at the cost of more backend evaluations.
+    max_fine_grid : int or None, optional
+        Maximum fine-grid side length.  Use ``None`` to disable the cap.
+    pad : int, optional
+        Padding, in coarse pixels, added around the internal simulation grid
+        before supersampling.
+    precision : {"single", "double"}, optional
+        Floating-point precision for FFT-side arrays. Generally ``"single"`` is
+        sufficient for most applications.
+    backend : {"np", "numpy", "cp", "cupy"} or module or None, optional
+        Array backend used for coordinate construction and FFT operations.
+        ``None`` selects NumPy. Use ``"cp"`` or ``"cupy"`` to request CuPy.
+    profile : bool, optional
+        If True, print timing diagnostics for the major rendering stages.
+    pix_scale : float, optional
+        Deprecated spelling for ``scale`` retained for compatibility.
+    psf_mode : {"kvalue", "real"}, optional
+        PSF Fourier sampling mode.  ``"kvalue"`` evaluates the analytic PSF
+        Fourier profile through the compiled backend; ``"real"`` draws the PSF
+        in real space and FFTs it.
+    force_input_flux : bool, optional
+        If True, normalise the final convolved image to ``gal_obj.flux``.
+    compensate_integration : {"quadrature", "exact_sinc"} or None, optional
+        Fourier-space compensation applied when ``integration_order > 1``.
+        ``"quadrature"`` removes the discrete Gauss-Legendre transfer function
+        introduced by block integration. ``"exact_sinc"`` removes the ideal
+        top-hat response instead. Using None leaves the block-integration
+        smoothing in the rendered image and is not recommended for regular usage.
+    use_true_center : bool, optional
+        If True, align the fine grid to GalSim's true-image-center convention
+        for the eventual coarse output grid. This is a functional mirror of the same
+        argument in ``galsim.drawImage``.
 
-        t = perf_counter() if profile else None
-        # Calculate the number of grids considering padding and truncation
-        npad = int(pad_arcsec / scale + 0.5) * 4
-        nn = npad * 2 + min(
-            gobj.getGoodImageSize(scale)
-            * truncate_ratio, ngrid * downsample_ratio
+    Returns
+    -------
+    ndarray
+        Rendered square image with shape ``(ngrid, ngrid)`` when ``ngrid`` is
+        provided, otherwise the automatically selected output shape.
+
+    Raises
+    ------
+    RuntimeError
+        Raised with a compact message if rendering fails after clearing cached
+        backend memory.
+    """
+    clean_error = None
+    cleanup_backend = None
+    result = None
+
+    try:
+        result = _simulate_galaxy_impl(
+            gal_obj=gal_obj,
+            scale=scale,
+            ngrid=ngrid,
+            transform_obj=transform_obj,
+            psf_obj=psf_obj,
+            draw_method=draw_method,
+            safety=safety,
+            max_supersample=max_supersample,
+            min_supersample=min_supersample,
+            integration_order=integration_order,
+            max_fine_grid=max_fine_grid,
+            pad=pad,
+            precision=precision,
+            backend=backend,
+            profile=profile,
+            pix_scale=pix_scale,
+            psf_mode=psf_mode,
+            force_input_flux=force_input_flux,
+            compensate_integration=compensate_integration,
+            use_true_center=use_true_center,
         )
-        nn = min(int(2 ** np.ceil(np.log2(nn))), maximum_num_grids)
-        if profile:
-            _log(f"grid_sizing={perf_counter() - t:.4e}s")
+    except Exception as exc:
+        err_type = type(exc).__name__
+        err_msg = str(exc)
 
-    if force_ngrid and nn < ngrid:
-        nn = ngrid
-        scale = pix_scale
-
-    # Initialize and Distort Coordinates in order
-    t_section = perf_counter() if profile else None
-    stamp = Stamp(nn=nn, scale=scale)
-
-    # Check if transform_obj is a list of transforms and apply them in order
-    if isinstance(transform_obj, list):
-        gal_coords = stamp.coords
-        for trf in transform_obj:
-            gal_coords = trf.transform(gal_coords)
-
-    # If transform_obj is a single transform, apply it directly
-    elif transform_obj is not None:
-        gal_coords = transform_obj.transform(stamp.coords)
-
-    # If no transform is provided, use the original coordinates
-    else:
-        gal_coords = stamp.coords
-
-    if profile:
-        _log(f"coords_transform={perf_counter() - t_section:.4e}s")
-
-    # Sample the galaxy flux
-    t = perf_counter() if profile else None
-    gal_prof = _gsinterface.getFluxVec(
-        scale=scale,
-        gsobj=gobj._sbp,
-        xy_coords=gal_coords
-    )
-    if profile:
-        _log(f"sample_flux={perf_counter() - t:.4e}s")
-
-    # No convolution necessary in this case so just return the fluxes
-    if draw_method == "no_pixel":
-        if psf_obj is None:
-            if profile:
-                _log(
-                    f"stats nn={nn} downsample_ratio={downsample_ratio} scale={scale:.4e} "
-                    f"pad_arcsec={pad_arcsec:.4e} draw_method={draw_method}"
-                )
-                _log(f"total={perf_counter() - t_total:.4e}s")
-            return gal_prof
-        else:
+        try:
+            cleanup_backend = _resolve_array_backend(backend)
+        except Exception:
             pass
-    elif draw_method == "auto":
-        t = perf_counter() if profile else None
-        if psf_obj is None:
-            psf_obj = galsim.Pixel(scale=pix_scale)
-        else:
-            psf_obj = _cached_effective_psf(psf_key)
-            psf_obj = galsim.Convolve([psf_obj, galsim.Pixel(scale=pix_scale)])
-        if profile:
-            _log(f"prepare_psf={perf_counter() - t:.4e}s")
-    else:
-        raise ValueError("do not support draw_method=%s" %draw_method)
-    
-    t = perf_counter() if profile else None
-    # Convolution in Fourier space
-    gal_prof = _gsinterface.convolvePsf(
-        scale=scale,
-        gsobj=psf_obj._sbp,
-        gal_prof=gal_prof,
-        downsample_ratio=downsample_ratio,
-        ngrid=ngrid
-    )
-    if profile:
-        _log(f"convolution_downsample={perf_counter() - t:.4e}s")
-        _log(
-            f"stats nn={nn} downsample_ratio={downsample_ratio} scale={scale:.4e} "
-            f"pad_arcsec={pad_arcsec:.4e} draw_method={draw_method}"
+
+        clean_error = (
+            f"simulate_galaxy failed cleanly after releasing backend memory " f"({err_type}: {err_msg})"
         )
-        _log(f"total={perf_counter() - t_total:.4e}s")
-    return gal_prof
+
+    if cleanup_backend is not None:
+        _release_backend_memory(cleanup_backend)
+
+    if clean_error is not None:
+        raise RuntimeError(clean_error) from None
+
+    return result
 
 
-def simulate_galaxy_batch(
-        ngrid,
-        pix_scale,
-        gal_obj_list,
-        transform_obj=None,
-        psf_obj=None,
-        truncate_ratio=1.0,
-        maximum_num_grids=4096,
-        draw_method="auto",
-        nproc=4,
-        force_ngrid=False,
-        profile=False
+def _simulate_galaxy_impl(
+    gal_obj,
+    scale=None,
+    ngrid=None,
+    transform_obj=None,
+    psf_obj=None,
+    draw_method="auto",
+    safety=2.0,
+    max_supersample=64,
+    min_supersample=4,
+    integration_order=2,
+    max_fine_grid=4096,
+    pad=16,
+    precision="single",
+    backend="np",
+    profile=False,
+    pix_scale=None,
+    psf_mode="kvalue",
+    force_input_flux=False,
+    compensate_integration="quadrature",
+    use_true_center=True,
 ):
-
     """
-    The function samples the surface density field of a galaxy at the grids
+    Implement the render pipeline after public error handling is stripped away.
 
-    Args:
-
-    ngrid (int):        number of grids
-    pix_scale (float):  pixel scale
-    gal_obj_list (list):   List of Galsim galaxy objects to sample on the grids
-    transform_obj :     Coordinate transform object
-    psf_obj (galsim):   Galsim PSF object to smear the image
-    truncate_ratio (float):    truncate at truncate_ratio times good_image_size
-    maximum_num_grids (int):   maximum number of grids for simulation in real space
-    draw_method (str):  method to draw the galaxy image, "auto" will convolve with
-                        pixel response, "no_pixel" is as it implies
-    nproc (int):        Number of processors to use for multiprocessing. Default is 4
-    profile (bool):     If True, enable per-galaxy profiling logs in workers
+    The requested output ngrid controls only the final crop. The internal
+    simulation grid is chosen from the galaxy/PSF support so that changing
+    ngrid does not change the high-resolution simulation footprint.
     """
+    if scale is None:
+        if pix_scale is None:
+            raise TypeError("simulate_galaxy requires scale or pix_scale.")
+        scale = pix_scale
+    elif pix_scale is not None and not np.isclose(scale, pix_scale):
+        raise ValueError("scale and pix_scale were both supplied with different values.")
 
-    original_omp_num_threads = os.environ.get('OMP_NUM_THREADS', None)
-    os.environ['OMP_NUM_THREADS'] = '1'
+    if psf_mode not in ("real", "kvalue"):
+        raise ValueError(f"Invalid psf_mode '{psf_mode}'; must be 'real' or 'kvalue'.")
 
-    mp.set_start_method('spawn', force=True)
+    if draw_method not in ("auto", "no_pixel"):
+        raise ValueError(f"Invalid draw_method '{draw_method}'; must be 'auto' or 'no_pixel'.")
 
-    with mp.Pool(nproc) as p:
+    integration_compensation_mode = _resolve_integration_compensation(compensate_integration)
 
-        args_list = [
-                        (
-                        ngrid,
-                        pix_scale,
-                        gal_obj,
-                        transform_obj,
-                        psf_obj,
-                        truncate_ratio,
-                        maximum_num_grids,
-                        draw_method,
-                        force_ngrid,
-                        0.0,
-                        0.0,
-                        profile
-                        ) for gal_obj in gal_obj_list
-                    ]
+    xp = _resolve_array_backend(backend)
 
-        outcome = p.starmap(simulate_galaxy, args_list)
+    dtypes = _precision_dtypes(xp, precision)
+    real_dtype, _ = dtypes
 
-    if original_omp_num_threads is None:
-        del os.environ['OMP_NUM_THREADS']
+    min_supersample = int(min_supersample)
+    max_supersample = int(max_supersample)
+
+    if min_supersample < 1:
+        raise ValueError("min_supersample must be >= 1.")
+    if max_supersample < 1:
+        raise ValueError("max_supersample must be >= 1.")
+    if max_supersample < min_supersample:
+        max_supersample = min_supersample
+
+    sim_ngrid = _resolve_simulation_ngrid(gal_obj, psf_obj, scale)
+    output_ngrid = sim_ngrid if ngrid is None else int(ngrid)
+
+    target_flux = gal_obj.flux if force_input_flux else None
+
+    requested_integration_order = int(integration_order)
+    if requested_integration_order < 1:
+        raise ValueError("integration_order must be >= 1.")
+
+    effective_integration_order = (
+        requested_integration_order if _needs_fourier_render(psf_obj, draw_method) else 1
+    )
+
+    supersample = _determine_supersampling(
+        gal_obj,
+        scale,
+        effective_integration_order,
+        sim_ngrid=sim_ngrid,
+        pad=pad,
+        safety=safety,
+        max_supersample=max_supersample,
+        min_supersample=min_supersample,
+        max_fine_grid=max_fine_grid,
+    )
+
+    requested_supersample = supersample
+    fft_supersample, integration_order = _resolve_integration_sampling(
+        supersample=requested_supersample,
+        integration_order=effective_integration_order,
+    )
+
+    fft_supersample = max(fft_supersample, min_supersample)
+
+    grid = _make_fine_grid(
+        gal_obj=gal_obj,
+        scale=scale,
+        sim_ngrid=sim_ngrid,
+        supersample=fft_supersample,
+        pad=pad,
+        max_fine_grid=max_fine_grid,
+    )
+
+    # Check if supersampling is too aggressive while preserving the requested
+    # lower bound on the FFT supersampling factor.
+    while (
+        max_fine_grid is not None
+        and grid.fine_compact / max_fine_grid >= 3
+        and fft_supersample > min_supersample
+    ):
+        next_fft_supersample = max(min_supersample, fft_supersample // 2)
+        if next_fft_supersample == fft_supersample:
+            break
+
+        fft_supersample = next_fft_supersample
+        grid = _make_fine_grid(
+            gal_obj=gal_obj,
+            scale=scale,
+            sim_ngrid=sim_ngrid,
+            supersample=fft_supersample,
+            pad=pad,
+            max_fine_grid=max_fine_grid,
+        )
+
+    if profile:
+        print(
+            "Grid sizing: "
+            f"sim_ngrid={sim_ngrid}, supersample={requested_supersample}, "
+            f"integration_order={integration_order}, "
+            f"fft_supersample={fft_supersample}, "
+            f"fine_ngrid={grid.fine_ngrid}, fine_compact={grid.fine_compact}, "
+            f"max_fine_grid={max_fine_grid}"
+        )
+
+    if profile:
+        sync_if_gpu(xp)
+    start = time.time()
+
+    stamp = Stamp(
+        nn=grid.fine_ngrid,
+        scale=grid.fine_scale,
+        backend=xp,
+        dtype=real_dtype,
+        use_true_center=use_true_center,
+        downsample_ratio=fft_supersample,
+    )
+    center_index = stamp.center_index
+
+    if profile:
+        sync_if_gpu(xp)
+        end = time.time()
+        print(f"Stamp construction took {end - start:.3f} seconds")
+
+    gal_prof = _sample_galaxy_profile_on_stamp(
+        gal_obj=gal_obj,
+        stamp=stamp,
+        transform_obj=transform_obj,
+        fine_scale=grid.fine_scale,
+        real_dtype=real_dtype,
+        xp=xp,
+        integration_order=integration_order,
+        profile=profile,
+    )
+    del stamp
+
+    if profile:
+        sync_if_gpu(xp)
+    start = time.time()
+
+    needs_fft = _needs_fourier_render(psf_obj, draw_method)
+
+    if needs_fft:
+        sim_image = _convolve_psf_fft(
+            xp=xp,
+            gal_prof=gal_prof,
+            target_flux=target_flux,
+            scale=grid.fine_scale,
+            pix_scale=scale,
+            psf_obj=psf_obj,
+            downsample_ratio=fft_supersample,
+            draw_method=draw_method,
+            dtypes=dtypes,
+            psf_mode=psf_mode,
+            integration_order=integration_order,
+            integration_compensation_mode=integration_compensation_mode,
+            center_index=center_index,
+            profile=profile,
+        )
+        del gal_prof
     else:
-        os.environ['OMP_NUM_THREADS'] = original_omp_num_threads
+        # The sampled image is still in centred real-space order because it has
+        # not passed through the FFT path.
+        sim_image = _extract_centered_real_space_coarse_image(
+            xp=xp,
+            image=gal_prof,
+            downsample_ratio=fft_supersample,
+        )
+        del gal_prof
 
-    return outcome
+    if profile:
+        sync_if_gpu(xp)
+        end = time.time()
+        print(f"FFT and convolution took {end - start:.3f} seconds")
+
+    sim_image = _center_crop_or_pad(sim_image, (output_ngrid, output_ngrid))
+    if target_flux is not None and not needs_fft:
+        sim_image *= target_flux / sim_image.sum()
+
+    return sim_image

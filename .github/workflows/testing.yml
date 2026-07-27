@@ -39,18 +39,17 @@ jobs:
         conda config --set always_yes yes
         conda install mamba
         mamba install stackvana galsim pytest black fitsio \
-          matplotlib astropy
+          matplotlib astropy 'pybind11>=3,<4'
 
-        python -m pip install --upgrade pip
-        pip install -U setuptools
+        python -m pip install --upgrade pip setuptools wheel
 
-        pip install . --user
+        python -m pip install .
 
 
     - name: Lint with black
       shell: bash -l {0}
       run: |
-        black src/batsim
+        black --check src tests benchmarks setup.py docs/conf.py
 
     - name: Test with pytest
       shell: bash -l {0}

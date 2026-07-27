@@ -5,28 +5,14 @@
     "branches": [
         "HEAD"
     ],
-    "build_command": [
-        "python -m build --wheel -o {build_cache_dir} {build_dir}"
-    ],
     "dvcs": "git",
-    "environment_type": "virtualenv",
-    "show_commit_url": "Change this value according to the instructions on RTD",
+    "environment_type": "existing",
     "pythons": [
         "3.10"
     ],
-    "matrix": {
-        "Cython": [],
-        "build": [],
-        "packaging": []
-    },
     "benchmark_dir": ".",
     "env_dir": "env",
     "results_dir": "_results",
     "html_dir": "_html",
-    "build_cache_size": 8,
-    "benchmarks": {
-            "name": "time_shear_speed",
-            "params": [],
-            "number": 1
-    }
+    "build_cache_size": 8
 }
