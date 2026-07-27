@@ -66,7 +66,7 @@ class Transform:
     Parameters
     ----------
     center : sequence of float, optional
-        Reference coordinate for the center of the transform ``[x, y]``. 
+        Reference coordinate for the center of the transform ``[x, y]``.
         Defaults to ``[0, 0]``.
     backend : module, optional
         NumPy or CuPy. If None, NumPy is used for stored transform arrays.

@@ -132,8 +132,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: MIT License",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Operating System :: Unix",
