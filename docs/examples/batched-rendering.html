@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batched Rendering &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Advanced Configuration" href="advanced-configuration.html" />
+    <link rel="prev" title="Custom Transform Example: Pinwheel Transform" href="custom-transforms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home page</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simple-render.html">Simple galaxy rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="affine-lensing.html">Affine lensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intrinsic-alignment.html">Intrinsic alignment model example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flexion.html">Flexion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-transforms.html">Custom transforms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Batched rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-configuration.html">Advanced configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catsim.html">CATSim</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Batched Rendering</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Batched-Rendering">
+<h1>Batched Rendering<a class="headerlink" href="#Batched-Rendering" title="Link to this heading"></a></h1>
+<p>Currently, for batched processing with BATSim, we recomend setting <code class="docutils literal notranslate"><span class="pre">OMP</span></code> threads to 1 and using Python multiprocessing. This is because by default Galsim’s C++ sampler will try and multi-thread, and for large samples, processing a single galaxy per thread is usually fastest.</p>
+<p>Be aware that <code class="docutils literal notranslate"><span class="pre">OMP</span></code> threads must be set <strong>before</strong> Galsim is imported.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># This is the key part, and must be run BEFORE Galsim imports</span>
+<span class="n">original_omp_threads</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">cpu_count</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;serif&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.serif&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cmr10&#39;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;mathtext.fontset&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;cm&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.facecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">unicode_minus</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes.formatter&#39;</span><span class="p">,</span> <span class="n">use_mathtext</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Let’s start by generating a set of 100 Sersic galaxy profiles using Galsim. To keep things simple, we’ll randomly sample a range of half-light radii and Sersic indices from a uniform distribution.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_gals</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c1"># Set morphological parameters to sample over</span>
+<span class="n">hlr_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">n_gals</span><span class="p">)</span>
+<span class="n">n_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">n_gals</span><span class="p">)</span> <span class="c1"># allowed range of Galsim values</span>
+<span class="n">intrinsic_e1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">n_gals</span><span class="p">)</span>
+<span class="n">intrinsic_e2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">n_gals</span><span class="p">)</span>
+
+<span class="c1"># Construct list containing GSObjects for parameter combinations</span>
+<span class="n">gal_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hlr_vec</span><span class="p">)):</span>
+    <span class="n">gal_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span>
+            <span class="n">half_light_radius</span><span class="o">=</span><span class="n">hlr_vec</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="n">n_vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span> <span class="c1"># give the galaxies some random intrinsic ellipticity</span>
+            <span class="n">e1</span><span class="o">=</span><span class="n">intrinsic_e1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">e2</span><span class="o">=</span><span class="n">intrinsic_e2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># Define PSF</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Moffat</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>By now, you should be familiar with BATSim’s usage and transforms, so lets look at something new: the ability to pass multiple transforms as a sequence.</p>
+<p>When multiple transforms are passed, the are applied in the order they appear in the sequence. Consider we wish to simulate a weak lensing survey with intrinsic alignments. Since IA is a physical distortion, we must apply this transform first, followed by the lensing, as this is an image level effect.</p>
+<p>Because BATSim’s IA shear is calculated as a function of half-light radius, we need to be smart about how we construct this multiprocessing pool.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define image parameters</span>
+<span class="n">npix</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="n">pix_scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">lens_shear</span> <span class="o">=</span> <span class="mf">0.02</span>
+
+<span class="c1"># define a function to parallelise</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">batch_batsim</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="p">,</span>
+        <span class="n">scale</span><span class="p">,</span>
+        <span class="n">psf_obj</span><span class="p">,</span>
+        <span class="n">lens_shear</span><span class="p">,</span>
+        <span class="n">hlr</span>
+    <span class="p">):</span>
+
+    <span class="c1"># Instantiate ia_transform based on HLR using default G19 fit</span>
+    <span class="c1"># ampltiude and power</span>
+    <span class="n">ia_transform</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">IATransform</span><span class="p">(</span>
+        <span class="n">hlr</span><span class="o">=</span><span class="n">hlr</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">scale</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Instantiate lensing transform</span>
+    <span class="n">lens_transform</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">LensTransform</span><span class="p">(</span>
+        <span class="n">gamma1</span><span class="o">=</span><span class="n">lens_shear</span><span class="p">,</span>
+        <span class="n">gamma2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">kappa</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Call BATSim render passing both transform objects</span>
+    <span class="n">gal_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="n">ngrid</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="p">[</span><span class="n">ia_transform</span><span class="p">,</span> <span class="n">lens_transform</span><span class="p">],</span>
+        <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf_obj</span>
+    <span class="p">)</span>
+
+    <span class="c1"># BATSim returns np.array(), but we return a galsim.Image here</span>
+    <span class="c1"># to make stiching the individual stamps easier later</span>
+    <span class="k">return</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">gal_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>For multiprocessing, we will use an arguemnt list and <code class="docutils literal notranslate"><span class="pre">Pool.starmap</span></code> to allow multiple arguments to be passed. Unfortunately, despite <code class="docutils literal notranslate"><span class="pre">LensTransform</span></code> being the same for all galaxies, we cannot pass the object itself to multiprocessing, so instead we instantiate it inside each worker.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># append function args into list for parallel processing</span>
+<span class="n">arg_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gal_list</span><span class="p">)):</span>
+    <span class="n">arg_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gal_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">npix</span><span class="p">,</span> <span class="n">pix_scale</span><span class="p">,</span> <span class="n">psf</span><span class="p">,</span> <span class="n">lens_shear</span><span class="p">,</span> <span class="n">hlr_vec</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+
+<span class="c1"># Set-up pool</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">cpu_count</span><span class="p">()</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span> <span class="c1"># Don&#39;t use more than half the available CPUs</span>
+
+    <span class="c1"># pass function and iterables to be parallel processed</span>
+    <span class="n">gal_images</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">batch_batsim</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="n">arg_list</span><span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+<span class="c1"># Get timing metrics</span>
+<span class="n">ptime</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">start</span>
+<span class="n">t_per_gal</span> <span class="o">=</span> <span class="n">ptime</span> <span class="o">/</span> <span class="n">n_gals</span> <span class="c1"># CPU core seconds, since we force 1 gal per thread</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CPU seconds per galaxy:&quot;</span><span class="p">,</span> <span class="n">t_per_gal</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU seconds per galaxy: 0.4531566262245178
+</pre></div></div>
+</div>
+<p>Let’s stich the results together using <code class="docutils literal notranslate"><span class="pre">batsim.pltutil</span></code> and inspect…</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># BATSim pltutil includes a function for stitching lists of images into a single</span>
+<span class="c1"># galsim.Image</span>
+<span class="n">gal_scene</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">stitch_images</span><span class="p">(</span><span class="n">gal_images</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;square&quot;</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">gal_scene</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_batched-rendering_10_0.png" src="../_images/examples_batched-rendering_10_0.png" />
+</div>
+</div>
+<p>And that covers batch simulating samples of galaxies with BATSim. You should observe the simulation of the 100 galaxies used here takes about 0.5 CPU core seconds per galaxy. This is evidently much slower than Galsim and we do hope to improve upon this in future, however, it is sufficient for simulating samples on the order of hundreds of thousands of galaxies with a single HPC node.</p>
+<p>For example, if you wished to generate a large weak lensing sample with intrinsic alignments, we would suggest using Galsim to handle the majority of the processing and only processing the fraction of galaxies which you wish to be intrinsically aligned with BATSim.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="custom-transforms.html" class="btn btn-neutral float-left" title="Custom Transform Example: Pinwheel Transform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="advanced-configuration.html" class="btn btn-neutral float-right" title="Advanced Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

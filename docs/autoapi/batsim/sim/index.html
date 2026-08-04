@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.sim &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.stamp" href="../stamp/index.html" />
+    <link rel="prev" title="batsim.sampling" href="../sampling/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.sim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.sim">
+<span id="batsim-sim"></span><h1>batsim.sim<a class="headerlink" href="#module-batsim.sim" title="Link to this heading"></a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.sim._sample_galaxy_profile_impl" title="batsim.sim._sample_galaxy_profile_impl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_sample_galaxy_profile_impl</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.sim._resolve_integration_compensation" title="batsim.sim._resolve_integration_compensation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_resolve_integration_compensation</span></code></a>(compensate_integration)</p></td>
+<td><p>Return the requested block-integration compensation mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.sim._needs_fourier_render" title="batsim.sim._needs_fourier_render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_needs_fourier_render</span></code></a>(psf_obj, draw_method)</p></td>
+<td><p>Return True when PSF or pixel convolution requires the FFT path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.sim._sample_galaxy_profile" title="batsim.sim._sample_galaxy_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_sample_galaxy_profile</span></code></a>(gal_obj, coords, fine_scale, ...)</p></td>
+<td><p>Compatibility wrapper for the sampling backend.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.sim._sample_galaxy_profile_on_stamp" title="batsim.sim._sample_galaxy_profile_on_stamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_sample_galaxy_profile_on_stamp</span></code></a>(gal_obj, stamp, ...[, ...])</p></td>
+<td><p>Sample the locally integrated galaxy profile on the fine simulation grid.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.sim.simulate_galaxy" title="batsim.sim.simulate_galaxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_galaxy</span></code></a>(gal_obj[, scale, ngrid, ...])</p></td>
+<td><p>Render a GalSim object through BATSim's non-affine sampling pipeline.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.sim._simulate_galaxy_impl" title="batsim.sim._simulate_galaxy_impl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_simulate_galaxy_impl</span></code></a>(gal_obj[, scale, ngrid, ...])</p></td>
+<td><p>Implement the render pipeline after public error handling is stripped away.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.sim._sample_galaxy_profile_impl">
+<span class="sig-name descname"><span class="pre">_sample_galaxy_profile_impl</span></span><a class="reference internal" href="../../../_modules/batsim/sim.html#_sample_galaxy_profile_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._sample_galaxy_profile_impl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim._resolve_integration_compensation">
+<span class="sig-name descname"><span class="pre">_resolve_integration_compensation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compensate_integration</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#_resolve_integration_compensation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._resolve_integration_compensation" title="Link to this definition"></a></dt>
+<dd><p>Return the requested block-integration compensation mode.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim._needs_fourier_render">
+<span class="sig-name descname"><span class="pre">_needs_fourier_render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#_needs_fourier_render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._needs_fourier_render" title="Link to this definition"></a></dt>
+<dd><p>Return True when PSF or pixel convolution requires the FFT path.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim._sample_galaxy_profile">
+<span class="sig-name descname"><span class="pre">_sample_galaxy_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#_sample_galaxy_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._sample_galaxy_profile" title="Link to this definition"></a></dt>
+<dd><p>Compatibility wrapper for the sampling backend.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim._sample_galaxy_profile_on_stamp">
+<span class="sig-name descname"><span class="pre">_sample_galaxy_profile_on_stamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#_sample_galaxy_profile_on_stamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._sample_galaxy_profile_on_stamp" title="Link to this definition"></a></dt>
+<dd><p>Sample the locally integrated galaxy profile on the fine simulation grid.</p>
+<p>This wrapper preserves legacy monkeypatching of
+<code class="docutils literal notranslate"><span class="pre">batsim.sim._sample_galaxy_profile</span></code> in internal tests and notebooks.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim.simulate_galaxy">
+<span class="sig-name descname"><span class="pre">simulate_galaxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fine_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'single'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'np'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kvalue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_input_flux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensate_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quadrature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_true_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#simulate_galaxy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim.simulate_galaxy" title="Link to this definition"></a></dt>
+<dd><p>Render a GalSim object through BATSim’s non-affine sampling pipeline.</p>
+<p>The galaxy profile is sampled on a supersampled coordinate grid, optional
+coordinate transforms are applied before profile evaluation, and optional
+PSF/pixel convolution is performed in Fourier space. The returned image is
+a NumPy array regardless of the backend used internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gal_obj</strong> (<em>galsim.GSObject</em>) – Galaxy surface-brightness profile to sample.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Output pixel scale in arcsec.  Either <code class="docutils literal notranslate"><span class="pre">scale</span></code> or <code class="docutils literal notranslate"><span class="pre">pix_scale</span></code> must
+be supplied.  If both are supplied, they must agree.</p></li>
+<li><p><strong>ngrid</strong> (<em>int</em><em>, </em><em>optional</em>) – Final square output size in pixels.  If omitted, BATSim chooses the
+output size from the GalSim object support at <code class="docutils literal notranslate"><span class="pre">scale</span></code>.</p></li>
+<li><p><strong>transform_obj</strong> (<em>object</em><em> or </em><em>sequence</em><em> of </em><em>objects</em><em>, </em><em>optional</em>) – Coordinate transform(s) applied before sampling the galaxy profile.
+Each transform must provide <code class="docutils literal notranslate"><span class="pre">transform(coords)</span></code> where <code class="docutils literal notranslate"><span class="pre">coords</span></code> has
+shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code>.  Transforms with a <code class="docutils literal notranslate"><span class="pre">to_backend</span></code> method
+are moved to the selected array backend before use.</p></li>
+<li><p><strong>psf_obj</strong> (<em>galsim.GSObject</em><em>, </em><em>optional</em>) – PSF profile to convolve with the sampled galaxy.</p></li>
+<li><p><strong>draw_method</strong> (<em>{&quot;auto&quot;</em><em>, </em><em>&quot;no_pixel&quot;}</em><em>, </em><em>optional</em>) – Pixel-response mode.  <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> applies the square-pixel response;
+<code class="docutils literal notranslate"><span class="pre">&quot;no_pixel&quot;</span></code> omits it.</p></li>
+<li><p><strong>safety</strong> (<em>float</em><em>, </em><em>optional</em>) – Multiplicative safety factor used when estimating the required
+supersampling from the galaxy Fourier bandwidth and Nyquist frequency.</p></li>
+<li><p><strong>max_supersample</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum total supersampling factor considered by the automatic grid
+selection.</p></li>
+<li><p><strong>min_supersample</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum FFT supersampling factor used by the renderer. Reducing this
+below 4 is not recommended, as it can result in very corase representations
+of non-affine shear gradients and aliasing.</p></li>
+<li><p><strong>integration_order</strong> (<em>int</em><em>, </em><em>optional</em>) – Gauss-Legendre quadrature order for sub-pixel block integration. 1 is
+equivalent to no sub-pixel integration.  Higher orders reduce
+high-frequency leakage at the cost of more backend evaluations.</p></li>
+<li><p><strong>max_fine_grid</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Maximum fine-grid side length.  Use <code class="docutils literal notranslate"><span class="pre">None</span></code> to disable the cap.</p></li>
+<li><p><strong>pad</strong> (<em>int</em><em>, </em><em>optional</em>) – Padding, in coarse pixels, added around the internal simulation grid
+before supersampling.</p></li>
+<li><p><strong>precision</strong> (<em>{&quot;single&quot;</em><em>, </em><em>&quot;double&quot;}</em><em>, </em><em>optional</em>) – Floating-point precision for FFT-side arrays. Generally <code class="docutils literal notranslate"><span class="pre">&quot;single&quot;</span></code> is
+sufficient for most applications.</p></li>
+<li><p><strong>backend</strong> (<em>{&quot;np&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;cp&quot;</em><em>, </em><em>&quot;cupy&quot;}</em><em> or </em><em>module</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Array backend used for coordinate construction and FFT operations.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> selects NumPy. Use <code class="docutils literal notranslate"><span class="pre">&quot;cp&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cupy&quot;</span></code> to request CuPy.</p></li>
+<li><p><strong>profile</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, print timing diagnostics for the major rendering stages.</p></li>
+<li><p><strong>pix_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Deprecated spelling for <code class="docutils literal notranslate"><span class="pre">scale</span></code> retained for compatibility.</p></li>
+<li><p><strong>psf_mode</strong> (<em>{&quot;kvalue&quot;</em><em>, </em><em>&quot;real&quot;}</em><em>, </em><em>optional</em>) – PSF Fourier sampling mode.  <code class="docutils literal notranslate"><span class="pre">&quot;kvalue&quot;</span></code> evaluates the analytic PSF
+Fourier profile through the compiled backend; <code class="docutils literal notranslate"><span class="pre">&quot;real&quot;</span></code> draws the PSF
+in real space and FFTs it.</p></li>
+<li><p><strong>force_input_flux</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, normalise the final convolved image to <code class="docutils literal notranslate"><span class="pre">gal_obj.flux</span></code>.</p></li>
+<li><p><strong>compensate_integration</strong> (<em>{&quot;quadrature&quot;</em><em>, </em><em>&quot;exact_sinc&quot;}</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Fourier-space compensation applied when <code class="docutils literal notranslate"><span class="pre">integration_order</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>.
+<code class="docutils literal notranslate"><span class="pre">&quot;quadrature&quot;</span></code> removes the discrete Gauss-Legendre transfer function
+introduced by block integration. <code class="docutils literal notranslate"><span class="pre">&quot;exact_sinc&quot;</span></code> removes the ideal
+top-hat response instead. Using None leaves the block-integration
+smoothing in the rendered image and is not recommended for regular usage.</p></li>
+<li><p><strong>use_true_center</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, align the fine grid to GalSim’s true-image-center convention
+for the eventual coarse output grid. This is a functional mirror of the same
+argument in <code class="docutils literal notranslate"><span class="pre">galsim.drawImage</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rendered square image with shape <code class="docutils literal notranslate"><span class="pre">(ngrid,</span> <span class="pre">ngrid)</span></code> when <code class="docutils literal notranslate"><span class="pre">ngrid</span></code> is
+provided, otherwise the automatically selected output shape.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raised with a compact message if rendering fails after clearing cached
+backend memory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.sim._simulate_galaxy_impl">
+<span class="sig-name descname"><span class="pre">_simulate_galaxy_impl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fine_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'single'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'np'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kvalue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_input_flux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensate_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quadrature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_true_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/sim.html#_simulate_galaxy_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.sim._simulate_galaxy_impl" title="Link to this definition"></a></dt>
+<dd><p>Implement the render pipeline after public error handling is stripped away.</p>
+<p>The requested output ngrid controls only the final crop. The internal
+simulation grid is chosen from the galaxy/PSF support so that changing
+ngrid does not change the high-resolution simulation footprint.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../sampling/index.html" class="btn btn-neutral float-left" title="batsim.sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../stamp/index.html" class="btn btn-neutral float-right" title="batsim.stamp" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

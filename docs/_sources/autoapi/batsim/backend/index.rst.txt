@@ -1,0 +1,84 @@
+batsim.backend
+==============
+
+.. py:module:: batsim.backend
+
+.. autoapi-nested-parse::
+
+   Array backend selection and memory-management helpers.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.backend._get_array_backend
+   batsim.backend._resolve_array_backend
+   batsim.backend._to_numpy
+   batsim.backend._precision_dtypes
+   batsim.backend._release_backend_memory
+   batsim.backend.clear_backend_memory
+   batsim.backend.sync_if_gpu
+
+
+Module Contents
+---------------
+
+.. py:function:: _get_array_backend()
+
+   Return BATSim's default array backend.
+
+   NumPy is the default backend. CuPy is used only when explicitly requested
+   through ``_resolve_array_backend("cp")`` or supplied as a module object.
+
+
+.. py:function:: _resolve_array_backend(backend)
+
+   Resolve a user-supplied backend selector to an array module.
+
+   ``None`` means NumPy, string aliases request a specific backend, and
+   module objects allow tests or callers to pass an already-imported array
+   module.
+
+
+.. py:function:: _to_numpy(xp, array)
+
+   Convert a NumPy/CuPy array to a NumPy array.
+
+
+.. py:function:: _precision_dtypes(xp, precision)
+
+   Return real and complex dtypes for the requested FFT precision.
+
+
+.. py:function:: _release_backend_memory(xp)
+
+   Release cached CuPy allocations after a simulation.
+
+   NumPy has no comparable memory pools, so this is intentionally a no-op for
+   CPU-backed renders.
+
+
+.. py:function:: clear_backend_memory(backend=None)
+
+   Clear cached memory held by the selected array backend.
+
+   This is primarily useful after CuPy out-of-memory errors in notebooks or
+   long-running sessions.  Calling it for the NumPy backend is a no-op.
+
+   :param backend: Backend to clear.  ``None`` selects NumPy, strings select NumPy or
+                   CuPy explicitly, and module objects are used directly.
+   :type backend: {"np", "numpy", "cp", "cupy"} or module or None, optional
+
+   :rtype: None
+
+
+.. py:function:: sync_if_gpu(xp)
+
+   Synchronise the default CuPy stream when using a GPU backend.
+
+   This is only used for timing and profiling and is a no-op for the NumPy backend.
+
+

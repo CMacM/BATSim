@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.backend &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../batsim.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.backend</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for batsim.backend</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Array backend selection and memory-management helpers.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="_get_array_backend">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend._get_array_backend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_array_backend</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return BATSim&#39;s default array backend.</span>
+
+<span class="sd">    NumPy is the default backend. CuPy is used only when explicitly requested</span>
+<span class="sd">    through ``_resolve_array_backend(&quot;cp&quot;)`` or supplied as a module object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span></div>
+
+
+
+<div class="viewcode-block" id="_resolve_array_backend">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend._resolve_array_backend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_array_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve a user-supplied backend selector to an array module.</span>
+
+<span class="sd">    ``None`` means NumPy, string aliases request a specific backend, and</span>
+<span class="sd">    module objects allow tests or callers to pass an already-imported array</span>
+<span class="sd">    module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="n">np</span> <span class="ow">or</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;np&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="s2">&quot;cupy&quot;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+            <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">cp</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;backend=&#39;cp&#39; was requested, but CuPy is unavailable.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">backend</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;; must be &#39;np&#39;, &#39;cp&#39;, a module, or None.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_to_numpy">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend._to_numpy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_numpy</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a NumPy/CuPy array to a NumPy array.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="n">np</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">xp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">array</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_precision_dtypes">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend._precision_dtypes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_precision_dtypes</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">precision</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return real and complex dtypes for the requested FFT precision.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;single&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xp</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">complex64</span>
+
+    <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s2">&quot;double&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xp</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">xp</span><span class="o">.</span><span class="n">complex128</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid precision &#39;</span><span class="si">{</span><span class="n">precision</span><span class="si">}</span><span class="s2">&#39;; must be &#39;single&#39; or &#39;double&#39;.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_release_backend_memory">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend._release_backend_memory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_release_backend_memory</span><span class="p">(</span><span class="n">xp</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Release cached CuPy allocations after a simulation.</span>
+
+<span class="sd">    NumPy has no comparable memory pools, so this is intentionally a no-op for</span>
+<span class="sd">    CPU-backed renders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="n">np</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">xp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">null</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">xp</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_plan_cache</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">xp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">xp</span><span class="o">.</span><span class="n">get_default_pinned_memory_pool</span><span class="p">()</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="clear_backend_memory">
+<a class="viewcode-back" href="../../autoapi/batsim/index.html#batsim.backend.clear_backend_memory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_backend_memory</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Clear cached memory held by the selected array backend.</span>
+
+<span class="sd">    This is primarily useful after CuPy out-of-memory errors in notebooks or</span>
+<span class="sd">    long-running sessions.  Calling it for the NumPy backend is a no-op.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    backend : {&quot;np&quot;, &quot;numpy&quot;, &quot;cp&quot;, &quot;cupy&quot;} or module or None, optional</span>
+<span class="sd">        Backend to clear.  ``None`` selects NumPy, strings select NumPy or</span>
+<span class="sd">        CuPy explicitly, and module objects are used directly.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">_resolve_array_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+    <span class="n">_release_backend_memory</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="sync_if_gpu">
+<a class="viewcode-back" href="../../autoapi/batsim/backend/index.html#batsim.backend.sync_if_gpu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Synchronise the default CuPy stream when using a GPU backend.</span>
+
+<span class="sd">    This is only used for timing and profiling and is a no-op for the NumPy backend.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="p">:</span>
+        <span class="n">xp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">null</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

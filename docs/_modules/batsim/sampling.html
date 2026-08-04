@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.sampling &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../batsim.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.sampling</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for batsim.sampling</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Real-space GalSim profile sampling helpers.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">_to_numpy</span><span class="p">,</span> <span class="n">sync_if_gpu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.grid</span><span class="w"> </span><span class="kn">import</span> <span class="n">_integration_offsets</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_gsinterface</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+<div class="viewcode-block" id="_gsinterface">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._gsinterface">[docs]</a>
+    <span class="n">_gsinterface</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="_require_gsinterface">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._require_gsinterface">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_require_gsinterface</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the compiled C++ sampling backend, or raise a clear error.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_gsinterface</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s2">&quot;batsim._gsinterface is not compiled. Reinstall BATSim with &quot;</span>
+            <span class="s2">&quot;GalSim&#39;s C++ shared library built and linked. Instructions can be found here: &quot;</span>
+            <span class="s2">&quot;https://galsim-developers.github.io/GalSim/_build/html/install_pip.html#installing-the-c-shared-library&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_gsinterface</span></div>
+
+
+
+<div class="viewcode-block" id="_prepare_transforms">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._prepare_transforms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_transforms</span><span class="p">(</span><span class="n">transform_obj</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move transform objects to the selected backend once per sampling call.</span>
+
+<span class="sd">    Transforms that do not provide ``to_backend`` are left untouched, which</span>
+<span class="sd">    preserves support for simple user-defined transform objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">transform_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transform_obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">transform_obj</span> <span class="o">=</span> <span class="p">[</span><span class="n">transform_obj</span><span class="p">]</span>
+
+    <span class="n">prepared</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="n">transform_obj</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="s2">&quot;to_backend&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">trf</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">to_backend</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">trf</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">to_backend</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">prepared</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">prepared</span></div>
+
+
+
+<div class="viewcode-block" id="_apply_prepared_transforms">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._apply_prepared_transforms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_prepared_transforms</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">transform_obj</span><span class="p">,</span> <span class="n">xp</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply backend-prepared transforms to a coordinate array.</span>
+
+<span class="sd">    Transforms are applied in the order supplied by the caller.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">transform_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">coords</span>
+
+    <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="n">transform_obj</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+
+
+<div class="viewcode-block" id="_sample_galaxy_profile">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._sample_galaxy_profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_galaxy_profile</span><span class="p">(</span><span class="n">gal_obj</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">fine_scale</span><span class="p">,</span> <span class="n">real_dtype</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the galaxy surface brightness using the compiled C++ backend.</span>
+
+<span class="sd">    The Python renderer keeps coordinates on the selected array backend until</span>
+<span class="sd">    this boundary, then passes NumPy coordinates to GalSim&#39;s C++ API to sample</span>
+<span class="sd">    flux at each coordinate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gsinterface</span> <span class="o">=</span> <span class="n">_require_gsinterface</span><span class="p">()</span>
+    <span class="n">use_single</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">real_dtype</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">gsinterface</span><span class="o">.</span><span class="n">getFluxVec32</span> <span class="k">if</span> <span class="n">use_single</span> <span class="k">else</span> <span class="n">gsinterface</span><span class="o">.</span><span class="n">getFluxVec64</span>
+
+    <span class="k">return</span> <span class="n">sampler</span><span class="p">(</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">gsobj</span><span class="o">=</span><span class="n">gal_obj</span><span class="o">.</span><span class="n">_sbp</span><span class="p">,</span>
+        <span class="n">xy_coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_sample_galaxy_profile_on_stamp">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._sample_galaxy_profile_on_stamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_galaxy_profile_on_stamp</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="p">,</span>
+    <span class="n">stamp</span><span class="p">,</span>
+    <span class="n">transform_obj</span><span class="p">,</span>
+    <span class="n">fine_scale</span><span class="p">,</span>
+    <span class="n">real_dtype</span><span class="p">,</span>
+    <span class="n">xp</span><span class="p">,</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the locally integrated galaxy profile on the fine simulation grid.</span>
+
+<span class="sd">    For ``integration_order &gt; 1``, each fine pixel is evaluated at</span>
+<span class="sd">    Gauss-Legendre sub-pixel offsets and reduced to one integrated fine-grid</span>
+<span class="sd">    value before returning to the FFT pipeline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">transform_obj</span> <span class="o">=</span> <span class="n">_prepare_transforms</span><span class="p">(</span>
+        <span class="n">transform_obj</span><span class="p">,</span>
+        <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">offsets</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">_integration_offsets</span><span class="p">(</span>
+        <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+        <span class="n">fine_scale</span><span class="o">=</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">integration_order</span><span class="o">=</span><span class="n">integration_order</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">offsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">coords_backend</span> <span class="o">=</span> <span class="n">stamp</span><span class="o">.</span><span class="n">coords</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_offsets</span> <span class="o">=</span> <span class="n">offsets</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Keep all offset coordinates in one large batch so the transform and</span>
+        <span class="c1"># C++ sampling calls remain vectorized.</span>
+        <span class="n">coords_backend</span> <span class="o">=</span> <span class="n">stamp</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">coords_backend</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">coords_backend</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">coords_backend</span> <span class="o">=</span> <span class="n">coords_backend</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_offsets</span> <span class="o">*</span> <span class="n">stamp</span><span class="o">.</span><span class="n">nn</span> <span class="o">*</span> <span class="n">stamp</span><span class="o">.</span><span class="n">nn</span><span class="p">)</span>
+
+    <span class="n">coords_backend</span> <span class="o">=</span> <span class="n">_apply_prepared_transforms</span><span class="p">(</span>
+        <span class="n">coords</span><span class="o">=</span><span class="n">coords_backend</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform_obj</span><span class="p">,</span>
+        <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Build coordinates and transforms took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">_to_numpy</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">coords_backend</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">coords_backend</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transfer coords to CPU took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">gal_prof</span> <span class="o">=</span> <span class="n">_sample_galaxy_profile</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+        <span class="n">fine_scale</span><span class="o">=</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">real_dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">integration_order</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">gal_prof</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gal_prof</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">integration_order</span> <span class="o">*</span> <span class="n">integration_order</span><span class="p">,</span>
+            <span class="n">stamp</span><span class="o">.</span><span class="n">nn</span><span class="p">,</span>
+            <span class="n">stamp</span><span class="o">.</span><span class="n">nn</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">_to_numpy</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">real_dtype</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">gal_prof</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span>
+            <span class="n">weights</span><span class="p">,</span>
+            <span class="n">gal_prof</span><span class="p">,</span>
+            <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">real_dtype</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Galaxy sampling took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">del</span> <span class="n">coords</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">gal_prof</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gal_prof</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="s2">&quot;GPU&quot;</span> <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span> <span class="k">else</span> <span class="s2">&quot;NumPy&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transfer galaxy profile to </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gal_prof</span></div>
+
+
+
+<div class="viewcode-block" id="_sample_psf_spectrum">
+<a class="viewcode-back" href="../../autoapi/batsim/sampling/index.html#batsim.sampling._sample_psf_spectrum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_psf_spectrum</span><span class="p">(</span><span class="n">psf_obj</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fine_scale</span><span class="p">,</span> <span class="n">complex_dtype</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the analytic PSF Fourier transform on an rFFT frequency grid.</span>
+
+<span class="sd">    This backs ``psf_mode=&quot;kvalue&quot;`` and returns a spectrum in the same layout</span>
+<span class="sd">    as ``numpy.fft.rfft2``/``cupy.fft.rfft2``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gsinterface</span> <span class="o">=</span> <span class="n">_require_gsinterface</span><span class="p">()</span>
+    <span class="n">sampler</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">gsinterface</span><span class="o">.</span><span class="n">getPsfKValue32</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">complex_dtype</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+        <span class="k">else</span> <span class="n">gsinterface</span><span class="o">.</span><span class="n">getPsfKValue64</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sampler</span><span class="p">(</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">gsobj</span><span class="o">=</span><span class="n">psf_obj</span><span class="o">.</span><span class="n">_sbp</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

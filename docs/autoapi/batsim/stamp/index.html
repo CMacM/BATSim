@@ -1,0 +1,247 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.stamp &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.transforms" href="../transforms/index.html" />
+    <link rel="prev" title="batsim.sim" href="../sim/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.stamp</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.stamp">
+<span id="batsim-stamp"></span><h1>batsim.stamp<a class="headerlink" href="#module-batsim.stamp" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.stamp.Stamp" title="batsim.stamp.Stamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Stamp</span></code></a></p></td>
+<td><p>Coordinate grid used for sampling GalSim profiles. Currently, BATSim only</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Stamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_true_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/stamp.html#Stamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.stamp.Stamp" title="Link to this definition"></a></dt>
+<dd><p>Coordinate grid used for sampling GalSim profiles. Currently, BATSim only
+supports square grids for transforms and rendering, but it is planned to
+support rectangular grids in the future.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Stamp</span></code> stores flattened <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code> coordinates with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">nn</span> <span class="pre">*</span> <span class="pre">nn)</span></code>.  Coordinates are built on the requested array backend so
+transform operations can run on either NumPy or CuPy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nn</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of pixels along each side of the square coordinate grid.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Pixel scale in arcsec.</p></li>
+<li><p><strong>backend</strong> (<em>module</em><em>, </em><em>optional</em>) – Array backend, usually <code class="docutils literal notranslate"><span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">cupy</span></code>.  If omitted, NumPy is
+used.</p></li>
+<li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>optional</em>) – Coordinate dtype.  Defaults to <code class="docutils literal notranslate"><span class="pre">float32</span></code> for CuPy and <code class="docutils literal notranslate"><span class="pre">float64</span></code> for
+NumPy.</p></li>
+<li><p><strong>use_true_center</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use GalSim’s true-image-center convention.  When the fine grid
+will later be downsampled, this aligns it to the true center of the
+coarse output grid.</p></li>
+<li><p><strong>downsample_ratio</strong> (<em>int</em><em>, </em><em>optional</em>) – Ratio between the fine grid and the eventual coarse output grid.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.coords">
+<span class="sig-name descname"><span class="pre">coords</span></span><a class="headerlink" href="#batsim.stamp.Stamp.coords" title="Link to this definition"></a></dt>
+<dd><p>Flattened coordinate array ordered as <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code> with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">nn</span> <span class="pre">*</span> <span class="pre">nn)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.pixel_area">
+<span class="sig-name descname"><span class="pre">pixel_area</span></span><a class="headerlink" href="#batsim.stamp.Stamp.pixel_area" title="Link to this definition"></a></dt>
+<dd><p>Fine-grid pixel area in square arcsec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.center_index">
+<span class="sig-name descname"><span class="pre">center_index</span></span><a class="headerlink" href="#batsim.stamp.Stamp.center_index" title="Link to this definition"></a></dt>
+<dd><p>Pixel index used as the coordinate origin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.xp">
+<span class="sig-name descname"><span class="pre">xp</span></span><a class="reference internal" href="../../../_modules/batsim/stamp.html#Stamp.xp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.stamp.Stamp.xp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/batsim/stamp.html#Stamp.dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.stamp.Stamp.dtype" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.set_coords">
+<span class="sig-name descname"><span class="pre">set_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_true_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/stamp.html#Stamp.set_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.stamp.Stamp.set_coords" title="Link to this definition"></a></dt>
+<dd><p>Construct coordinates with shape (2, nn*nn), ordered as [x, y].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nn</strong> (<em>int</em>) – Number of grid points along each side.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Pixel scale in arcsec.</p></li>
+<li><p><strong>use_true_center</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use GalSim’s true-image-center convention.</p></li>
+<li><p><strong>downsample_ratio</strong> (<em>int</em><em>, </em><em>optional</em>) – Coarse-to-fine pixel ratio used for true-center alignment.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.stamp.Stamp.to_numpy">
+<span class="sig-name descname"><span class="pre">to_numpy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/stamp.html#Stamp.to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.stamp.Stamp.to_numpy" title="Link to this definition"></a></dt>
+<dd><p>Return coordinates as NumPy array.</p>
+<p>Useful when passing coordinates to CPU-only code such as a C++/GalSim
+sampling backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Coordinate array with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">nn</span> <span class="pre">*</span> <span class="pre">nn)</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../sim/index.html" class="btn btn-neutral float-left" title="batsim.sim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../transforms/index.html" class="btn btn-neutral float-right" title="batsim.transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

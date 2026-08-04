@@ -1,0 +1,43 @@
+batsim.experimental.wcs
+=======================
+
+.. py:module:: batsim.experimental.wcs
+
+.. autoapi-nested-parse::
+
+   Experimental WCS helpers.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   batsim.experimental.wcs.WCS
+
+
+Module Contents
+---------------
+
+.. py:class:: WCS(file_name=None)
+
+   Bases: :py:obj:`object`
+
+
+   Read SIP distortion coefficients from a FITS image header.
+
+   The parsed coefficients are stored in ``ab`` with shape
+   ``(2, order + 1, order + 1)``. The first plane contains the A polynomial
+   coefficients and the second plane contains the B polynomial coefficients.
+
+
+   .. py:method:: _set_ab(header)
+
+      Populate the SIP A/B coefficient array from a FITS header.
+
+      :param header: FITS header object containing SIP polynomial metadata.
+      :type header: mapping
+
+
+

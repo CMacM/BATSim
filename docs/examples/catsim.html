@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CATSim &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Advanced Configuration" href="advanced-configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home page</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simple-render.html">Simple galaxy rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="affine-lensing.html">Affine lensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intrinsic-alignment.html">Intrinsic alignment model example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flexion.html">Flexion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-transforms.html">Custom transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batched-rendering.html">Batched rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-configuration.html">Advanced configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">CATSim</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">CATSim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="CATSim">
+<h1>CATSim<a class="headerlink" href="#CATSim" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="o">%</span><span class="k">reload_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageSequence</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fpfs</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">fpfs</span> <span class="o">=</span> <span class="kc">None</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cat_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;cat.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="n">cat_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;notebooks/CATSim&quot;</span><span class="p">)</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;cat.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_cat_galaxy</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">)):</span>
+    <span class="c1"># Build a GalSim interpolated profile from the CATSim source image.</span>
+    <span class="n">image_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">galsim</span><span class="o">.</span><span class="n">InterpolatedImage</span><span class="p">(</span><span class="n">galsim</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">image_array</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">render_cat</span><span class="p">(</span><span class="n">galaxy</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Render through BATSim&#39;s current public API.</span>
+    <span class="k">return</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">galaxy</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+        <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;no_pixel&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cat_gal</span> <span class="o">=</span> <span class="n">make_cat_galaxy</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">))</span>
+<span class="n">cat_noshear</span> <span class="o">=</span> <span class="n">cat_gal</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cat_noshear</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Unsheared cat&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;cat_noshear.png&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_catsim_3_0.png" src="../_images/examples_catsim_3_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lens</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">LensTransform</span><span class="p">(</span><span class="n">gamma1</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">gamma2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">cat_lensed</span> <span class="o">=</span> <span class="n">render_cat</span><span class="p">(</span><span class="n">cat_gal</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">lens</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cat_lensed</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Affine Lensing&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;lens_cat.png&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_catsim_4_0.png" src="../_images/examples_catsim_4_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ia_cat</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">IaTransform</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">90</span><span class="p">),</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hlr</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span>
+<span class="n">cat_IA</span> <span class="o">=</span> <span class="n">render_cat</span><span class="p">(</span><span class="n">cat_gal</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ia_cat</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cat_IA</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Intrinsic Alignment&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;&lt;--- Alignment Axis ---&gt;&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;IA_cat.png&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_catsim_5_0.png" src="../_images/examples_catsim_5_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cat_residual</span> <span class="o">=</span> <span class="n">cat_noshear</span> <span class="o">-</span> <span class="n">cat_IA</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cat_residual</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.image.AxesImage at 0x7f0659d0b950&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_catsim_6_1.png" src="../_images/examples_catsim_6_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flex_cat_gal</span> <span class="o">=</span> <span class="n">make_cat_galaxy</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
+<span class="n">felinexion</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">FlexionTransform</span><span class="p">(</span>
+    <span class="n">gamma1</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">gamma2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">kappa</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">F1</span><span class="o">=</span><span class="mf">0.015</span><span class="p">,</span>
+    <span class="n">F2</span><span class="o">=</span><span class="mf">0.015</span><span class="p">,</span>
+    <span class="n">G1</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+    <span class="n">G2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cat_flex</span> <span class="o">=</span> <span class="n">render_cat</span><span class="p">(</span><span class="n">flex_cat_gal</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">felinexion</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cat_flex</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;F(e)l(ine)exion (strong)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;flex_cat.png&quot;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_catsim_7_0.png" src="../_images/examples_catsim_7_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">psf_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">cat_lensed</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">psf_array</span><span class="p">[</span><span class="n">cat_lensed</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cat_lensed</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cat_lensed</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cat_lensed</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="k">if</span> <span class="n">fpfs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">shear</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Install fpfs to run the CATSim shear measurement cell.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">fp_task</span> <span class="o">=</span> <span class="n">fpfs</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">measure_source</span><span class="p">(</span><span class="n">psf_array</span><span class="p">,</span> <span class="n">pix_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma_arcsec</span><span class="o">=</span><span class="mf">0.52</span><span class="p">)</span>
+    <span class="n">measurements</span> <span class="o">=</span> <span class="n">fp_task</span><span class="o">.</span><span class="n">measure</span><span class="p">(</span><span class="n">cat_lensed</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+    <span class="n">measurements</span> <span class="o">=</span> <span class="n">fp_task</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span>
+    <span class="n">ellipticities</span> <span class="o">=</span> <span class="n">fpfs</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">fpfs_m2e</span><span class="p">(</span><span class="n">measurements</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">ellipticities</span><span class="p">[</span><span class="s2">&quot;fpfs_R1E&quot;</span><span class="p">])</span>
+    <span class="n">shear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">ellipticities</span><span class="p">[</span><span class="s2">&quot;fpfs_e1&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">response</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;measured shear: </span><span class="si">%.6f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">shear</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023/10/20 15:50:55 ---  Unable to initialize backend &#39;cuda&#39;: module &#39;jaxlib.xla_extension&#39; has no attribute &#39;GpuAllocatorConfig&#39;
+2023/10/20 15:50:55 ---  Unable to initialize backend &#39;rocm&#39;: module &#39;jaxlib.xla_extension&#39; has no attribute &#39;GpuAllocatorConfig&#39;
+2023/10/20 15:50:55 ---  Unable to initialize backend &#39;tpu&#39;: INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+2023/10/20 15:50:55 ---  Order of the shear estimator: nnord=4
+2023/10/20 15:50:55 ---  Shapelet kernel in configuration space: sigma= 0.5200 arcsec
+2023/10/20 15:50:55 ---  Detection kernel in configuration space: sigma= 0.5200 arcsec
+2023/10/20 15:50:55 ---  Maximum |k| is 3.117
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+measured shear: 0.367881
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">shear</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">shear</span> <span class="o">-</span> <span class="mf">0.2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">bias</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">bias</span> <span class="o">/</span> <span class="mf">0.2</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0.16788100651928028
+0.8394050325964014
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image_paths</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;cat_noshear.png&quot;</span><span class="p">,</span>
+    <span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;lens_cat.png&quot;</span><span class="p">,</span>
+    <span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;IA_cat.png&quot;</span><span class="p">,</span>
+    <span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;flex_cat.png&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">]</span>
+<span class="n">frame_duration</span> <span class="o">=</span> <span class="mi">2000</span>
+
+<span class="n">gif_frames</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="n">Image</span><span class="o">.</span><span class="n">ADAPTIVE</span><span class="p">)</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_duration</span>
+    <span class="n">gif_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+<span class="n">gif_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+    <span class="n">cat_dir</span> <span class="o">/</span> <span class="s2">&quot;cat_shear.gif&quot;</span><span class="p">,</span>
+    <span class="n">save_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">append_images</span><span class="o">=</span><span class="n">gif_frames</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+    <span class="n">loop</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/tmp/ipykernel_87110/2428314930.py:19: DeprecationWarning: ADAPTIVE is deprecated and will be removed in Pillow 10 (2023-07-01). Use Palette.ADAPTIVE instead.
+  img = img.convert(&#34;P&#34;, palette=Image.ADAPTIVE)
+</pre></div></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced-configuration.html" class="btn btn-neutral float-left" title="Advanced Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

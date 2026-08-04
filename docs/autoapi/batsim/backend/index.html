@@ -1,0 +1,224 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.backend &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.experimental" href="../experimental/index.html" />
+    <link rel="prev" title="batsim._version" href="../_version/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.backend</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.backend">
+<span id="batsim-backend"></span><h1>batsim.backend<a class="headerlink" href="#module-batsim.backend" title="Link to this heading"></a></h1>
+<p>Array backend selection and memory-management helpers.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.backend._get_array_backend" title="batsim.backend._get_array_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_get_array_backend</span></code></a>()</p></td>
+<td><p>Return BATSim's default array backend.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.backend._resolve_array_backend" title="batsim.backend._resolve_array_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_resolve_array_backend</span></code></a>(backend)</p></td>
+<td><p>Resolve a user-supplied backend selector to an array module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.backend._to_numpy" title="batsim.backend._to_numpy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_to_numpy</span></code></a>(xp, array)</p></td>
+<td><p>Convert a NumPy/CuPy array to a NumPy array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.backend._precision_dtypes" title="batsim.backend._precision_dtypes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_precision_dtypes</span></code></a>(xp, precision)</p></td>
+<td><p>Return real and complex dtypes for the requested FFT precision.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.backend._release_backend_memory" title="batsim.backend._release_backend_memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_release_backend_memory</span></code></a>(xp)</p></td>
+<td><p>Release cached CuPy allocations after a simulation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.backend.clear_backend_memory" title="batsim.backend.clear_backend_memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_backend_memory</span></code></a>([backend])</p></td>
+<td><p>Clear cached memory held by the selected array backend.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.backend.sync_if_gpu" title="batsim.backend.sync_if_gpu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync_if_gpu</span></code></a>(xp)</p></td>
+<td><p>Synchronise the default CuPy stream when using a GPU backend.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend._get_array_backend">
+<span class="sig-name descname"><span class="pre">_get_array_backend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#_get_array_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend._get_array_backend" title="Link to this definition"></a></dt>
+<dd><p>Return BATSim’s default array backend.</p>
+<p>NumPy is the default backend. CuPy is used only when explicitly requested
+through <code class="docutils literal notranslate"><span class="pre">_resolve_array_backend(&quot;cp&quot;)</span></code> or supplied as a module object.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend._resolve_array_backend">
+<span class="sig-name descname"><span class="pre">_resolve_array_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#_resolve_array_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend._resolve_array_backend" title="Link to this definition"></a></dt>
+<dd><p>Resolve a user-supplied backend selector to an array module.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> means NumPy, string aliases request a specific backend, and
+module objects allow tests or callers to pass an already-imported array
+module.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend._to_numpy">
+<span class="sig-name descname"><span class="pre">_to_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#_to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend._to_numpy" title="Link to this definition"></a></dt>
+<dd><p>Convert a NumPy/CuPy array to a NumPy array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend._precision_dtypes">
+<span class="sig-name descname"><span class="pre">_precision_dtypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#_precision_dtypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend._precision_dtypes" title="Link to this definition"></a></dt>
+<dd><p>Return real and complex dtypes for the requested FFT precision.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend._release_backend_memory">
+<span class="sig-name descname"><span class="pre">_release_backend_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#_release_backend_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend._release_backend_memory" title="Link to this definition"></a></dt>
+<dd><p>Release cached CuPy allocations after a simulation.</p>
+<p>NumPy has no comparable memory pools, so this is intentionally a no-op for
+CPU-backed renders.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend.clear_backend_memory">
+<span class="sig-name descname"><span class="pre">clear_backend_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#clear_backend_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend.clear_backend_memory" title="Link to this definition"></a></dt>
+<dd><p>Clear cached memory held by the selected array backend.</p>
+<p>This is primarily useful after CuPy out-of-memory errors in notebooks or
+long-running sessions.  Calling it for the NumPy backend is a no-op.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>backend</strong> (<em>{&quot;np&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;cp&quot;</em><em>, </em><em>&quot;cupy&quot;}</em><em> or </em><em>module</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Backend to clear.  <code class="docutils literal notranslate"><span class="pre">None</span></code> selects NumPy, strings select NumPy or
+CuPy explicitly, and module objects are used directly.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.backend.sync_if_gpu">
+<span class="sig-name descname"><span class="pre">sync_if_gpu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/backend.html#sync_if_gpu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.backend.sync_if_gpu" title="Link to this definition"></a></dt>
+<dd><p>Synchronise the default CuPy stream when using a GPU backend.</p>
+<p>This is only used for timing and profiling and is a no-op for the NumPy backend.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../_version/index.html" class="btn btn-neutral float-left" title="batsim._version" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../experimental/index.html" class="btn btn-neutral float-right" title="batsim.experimental" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

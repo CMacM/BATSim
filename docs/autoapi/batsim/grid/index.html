@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.grid &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.pltutil" href="../pltutil/index.html" />
+    <link rel="prev" title="batsim.fft" href="../fft/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.grid</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.grid">
+<span id="batsim-grid"></span><h1>batsim.grid<a class="headerlink" href="#module-batsim.grid" title="Link to this heading"></a></h1>
+<p>Grid sizing and quadrature helpers for BATSim rendering.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.grid.FineGrid" title="batsim.grid.FineGrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FineGrid</span></code></a></p></td>
+<td><p>Description of the high-resolution grid used by the renderer.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.grid._determine_supersampling" title="batsim.grid._determine_supersampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_determine_supersampling</span></code></a>(obj, scale, ...[, safety, ...])</p></td>
+<td><p>Estimate supersampling from Fourier bandwidth and compact image extent.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.grid._resolve_simulation_ngrid" title="batsim.grid._resolve_simulation_ngrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_resolve_simulation_ngrid</span></code></a>(gal_obj, psf_obj, scale)</p></td>
+<td><p>Choose the coarse-grid simulation size.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.grid._make_fine_grid" title="batsim.grid._make_fine_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_make_fine_grid</span></code></a>(gal_obj, scale, sim_ngrid, ...[, ...])</p></td>
+<td><p>Construct the fine grid used for sampling and convolution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.grid._resolve_integration_sampling" title="batsim.grid._resolve_integration_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_resolve_integration_sampling</span></code></a>(supersample, ...)</p></td>
+<td><p>Split the anti-aliasing budget between integration and FFT supersampling.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.grid._integration_offsets" title="batsim.grid._integration_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_integration_offsets</span></code></a>(xp, fine_scale, ...)</p></td>
+<td><p>Return sub-pixel offsets and weights for Gauss-Legendre block integration.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.grid.FineGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FineGrid</span></span><a class="reference internal" href="../../../_modules/batsim/grid.html#FineGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid.FineGrid" title="Link to this definition"></a></dt>
+<dd><p>Description of the high-resolution grid used by the renderer.</p>
+<p>The fine grid is where BATSim samples the GalSim profile before any
+Fourier-space PSF or pixel convolution to ensure any fine-structure and non-affine
+shear is adequately sampled. <code class="docutils literal notranslate"><span class="pre">fine_compact</span></code> records the
+GalSim-recommended compact support at <code class="docutils literal notranslate"><span class="pre">fine_scale</span></code> so callers can inspect
+whether a size cap forced the simulation grid smaller than that support.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.grid.FineGrid.fine_scale">
+<span class="sig-name descname"><span class="pre">fine_scale</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="reference internal" href="../../../_modules/batsim/grid.html#FineGrid.fine_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid.FineGrid.fine_scale" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.grid.FineGrid.fine_ngrid">
+<span class="sig-name descname"><span class="pre">fine_ngrid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference internal" href="../../../_modules/batsim/grid.html#FineGrid.fine_ngrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid.FineGrid.fine_ngrid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.grid.FineGrid.fine_compact">
+<span class="sig-name descname"><span class="pre">fine_compact</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference internal" href="../../../_modules/batsim/grid.html#FineGrid.fine_compact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid.FineGrid.fine_compact" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.grid._determine_supersampling">
+<span class="sig-name descname"><span class="pre">_determine_supersampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_ngrid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_supersample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fine_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/grid.html#_determine_supersampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid._determine_supersampling" title="Link to this definition"></a></dt>
+<dd><p>Estimate supersampling from Fourier bandwidth and compact image extent.</p>
+<p>The returned factor is the requested total anti-aliasing budget before it
+is split between sub-pixel integration and FFT supersampling.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.grid._resolve_simulation_ngrid">
+<span class="sig-name descname"><span class="pre">_resolve_simulation_ngrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/grid.html#_resolve_simulation_ngrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid._resolve_simulation_ngrid" title="Link to this definition"></a></dt>
+<dd><p>Choose the coarse-grid simulation size.</p>
+<p>This is deliberately independent of the requested final output ngrid
+and is only run when no user specified grid size is provided.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.grid._make_fine_grid">
+<span class="sig-name descname"><span class="pre">_make_fine_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gal_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_ngrid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fine_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/grid.html#_make_fine_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid._make_fine_grid" title="Link to this definition"></a></dt>
+<dd><p>Construct the fine grid used for sampling and convolution.</p>
+<p>The grid is at least large enough for the padded coarse simulation region
+and is rounded up to a whole number of supersampling blocks so later
+downsampling is exact.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.grid._resolve_integration_sampling">
+<span class="sig-name descname"><span class="pre">_resolve_integration_sampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">supersample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/grid.html#_resolve_integration_sampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid._resolve_integration_sampling" title="Link to this definition"></a></dt>
+<dd><p>Split the anti-aliasing budget between integration and FFT supersampling.</p>
+<p>The product of the returned FFT supersampling and integration order covers
+the requested total supersampling, with the integration order capped so it
+never exceeds that total budget.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.grid._integration_offsets">
+<span class="sig-name descname"><span class="pre">_integration_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/grid.html#_integration_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.grid._integration_offsets" title="Link to this definition"></a></dt>
+<dd><p>Return sub-pixel offsets and weights for Gauss-Legendre block integration.</p>
+<p>The weights integrate over one fine pixel in normalized coordinates and
+therefore sum to one.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../fft/index.html" class="btn btn-neutral float-left" title="batsim.fft" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../pltutil/index.html" class="btn btn-neutral float-right" title="batsim.pltutil" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

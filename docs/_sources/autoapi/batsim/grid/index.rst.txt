@@ -1,0 +1,99 @@
+batsim.grid
+===========
+
+.. py:module:: batsim.grid
+
+.. autoapi-nested-parse::
+
+   Grid sizing and quadrature helpers for BATSim rendering.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   batsim.grid.FineGrid
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.grid._determine_supersampling
+   batsim.grid._resolve_simulation_ngrid
+   batsim.grid._make_fine_grid
+   batsim.grid._resolve_integration_sampling
+   batsim.grid._integration_offsets
+
+
+Module Contents
+---------------
+
+.. py:class:: FineGrid
+
+   Description of the high-resolution grid used by the renderer.
+
+   The fine grid is where BATSim samples the GalSim profile before any
+   Fourier-space PSF or pixel convolution to ensure any fine-structure and non-affine
+   shear is adequately sampled. ``fine_compact`` records the
+   GalSim-recommended compact support at ``fine_scale`` so callers can inspect
+   whether a size cap forced the simulation grid smaller than that support.
+
+
+   .. py:attribute:: fine_scale
+      :type:  float
+
+
+   .. py:attribute:: fine_ngrid
+      :type:  int
+
+
+   .. py:attribute:: fine_compact
+      :type:  int
+
+
+.. py:function:: _determine_supersampling(obj, scale, integration_order, sim_ngrid, pad, safety=2.0, max_supersample=16, min_supersample=4, attenuation_target=0.5, max_fine_grid=None)
+
+   Estimate supersampling from Fourier bandwidth and compact image extent.
+
+   The returned factor is the requested total anti-aliasing budget before it
+   is split between sub-pixel integration and FFT supersampling.
+
+
+.. py:function:: _resolve_simulation_ngrid(gal_obj, psf_obj, scale)
+
+   Choose the coarse-grid simulation size.
+
+   This is deliberately independent of the requested final output ngrid
+   and is only run when no user specified grid size is provided.
+
+
+.. py:function:: _make_fine_grid(gal_obj, scale, sim_ngrid, supersample, pad, max_fine_grid=None)
+
+   Construct the fine grid used for sampling and convolution.
+
+   The grid is at least large enough for the padded coarse simulation region
+   and is rounded up to a whole number of supersampling blocks so later
+   downsampling is exact.
+
+
+.. py:function:: _resolve_integration_sampling(supersample, integration_order)
+
+   Split the anti-aliasing budget between integration and FFT supersampling.
+
+   The product of the returned FFT supersampling and integration order covers
+   the requested total supersampling, with the integration order capped so it
+   never exceeds that total budget.
+
+
+.. py:function:: _integration_offsets(xp, fine_scale, integration_order, dtype)
+
+   Return sub-pixel offsets and weights for Gauss-Legendre block integration.
+
+   The weights integrate over one fine pixel in normalized coordinates and
+   therefore sum to one.
+
+
