@@ -2,21 +2,31 @@
 
 BATSim renders GalSim surface-brightness profiles on coordinate grids that can
 be transformed before sampling. This makes it possible to apply non-affine shear
-fields, such as intrinsic alignment and flexion, while keeping the rendering
-pipeline close to GalSim's image conventions.
+fields, such as intrinsic alignment and flexion, while directly working with
+GalSim's infrastructure for galaxy and point spread function profiles. BATSim
+interfaces directly with GalSim's C++ API for faster sampling of profiles.
 
-The current renderer samples profiles on a supersampled grid, optionally applies
-sub-pixel block integration, and performs PSF and pixel convolution in Fourier
-space. The default render path uses:
+The current renderer workflow involves sampling profiles onto an internal
+high-resolution grid, applying optional sub-pixel integration for anti-aliasing,
+optionally performing an FFT to convolve PSF and pixel profiles, and finally
+downsampling an cropping to return the requested galaxy image.
 
-- `psf_mode="kvalue"` for analytic PSF Fourier sampling through BATSim's C++ layer
-- `force_input_flux=True` to preserve the input galaxy flux after convolution
-- `use_true_center=True` to match GalSim's true-image-center convention
-- `integration_order=2` for Gauss-Legendre block integration
+By default, BATSim's render has the following settings enables
+
+- `psf_mode="kvalue"` for analytic PSF Fourier sampling through BATSim's C++ layer.
+- `use_true_center=True` to match GalSim's true-image-center convention.
+- `integration_order=2` for real-space Gauss-Legendre block integration as an 
+    anti-aliasing measure.
 - `compensate_integration="quadrature"` to remove the matching Gauss-Legendre
-  transfer function; pass `"exact_sinc"` for ideal top-hat compensation or
-  `None` to disable compensation
-- `backend="np"` by default, with optional CuPy support for FFT-heavy steps
+  transfer function from the Fourier profile.
+- `backend="np"` Use NumPy for array ops by default, with optional CuPy 
+    support for FFT-heavy steps
+
+Currently, the CuPy backend support is not typically faster than pure NumPy for
+generating large samples of low-resolution images. It may be quicker should you
+wish to simulate large high-resolution images. We recommend at this stage only
+advanced users experiment with CuPy. Support is mostly intended for future
+development purposes at this stage.
 
 ## Quickstart
 
@@ -48,19 +58,20 @@ The stable top-level API is:
 - `batsim.clear_backend_memory`
 - `batsim.Stamp`
 - `batsim.Transform` base class for custom coordinate transforms
-- `batsim.LensTransform` and `batsim.AffineLensingTransform`
-- `batsim.IaTransform` and `batsim.IATransform`
-- `batsim.FlexionTransform`
+- `batsim.LensTransform` for affine lensing transform including magnification
+- `batsim.IaTransform` for non-affine intrinsic alignment shape distortion
+- `batsim.FlexionTransform` for higher order non-affine lensing effects
 - `batsim.experimental` for non-stable helpers such as SIP WCS parsing
 
 `batsim.pltutil` remains available for legacy plotting utilities used by older
-examples and validation notebooks.
+examples and validation notebooks. Users are welcome to use to the utilities
+available, but they may be deprecated in future.
 
 ## Building and Installing BATSim from Source
 
 BATSim currently expects GalSim's C++ shared library to be available at build
-time. The recommended route is to use conda or mamba with dependencies from
-conda-forge.
+time. The recommended route is to use mamba with dependencies from
+conda-forge. Conda can be used but will be significantly slower than mamba.
 
 First, clone the repository and switch to the repository root:
 
@@ -74,7 +85,7 @@ cd BATSim
 Create and activate a build environment:
 
 ```bash
-mamba create -n batsim -c conda-forge -c defaults python=3.10 conda-build boa
+mamba create -n batsim -c conda-forge -c defaults python=3.11 conda-build boa
 mamba activate batsim
 ```
 
@@ -111,7 +122,7 @@ without reinstalling:
 
 ```bash
 mamba create -n batsim-dev -c conda-forge -c defaults \
-    python=3.10 \
+    python=3.11 \
     galsim \
     eigen \
     pybind11 \
