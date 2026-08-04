@@ -25,8 +25,8 @@ By default, BATSim's render has the following settings enables
 Currently, the CuPy backend support is not typically faster than pure NumPy for
 generating large samples of low-resolution images. It may be quicker should you
 wish to simulate large high-resolution images. We recommend at this stage only
-advanced users experiment with CuPy. Support is mostly intended for future
-development purposes at this stage.
+advanced users experiment with CuPy. To install and set-up the CuPy backend run
+``batsim_install_gpu.py``.
 
 ## Quickstart
 

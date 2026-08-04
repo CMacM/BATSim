@@ -152,3 +152,4 @@ _html/
 notebooks/dev/
 notebooks/ia-analysis/
 notebooks/validation/
+.codex
