@@ -3,7 +3,7 @@ numpy>=1.26,<2.0
 galsim
 fitsio
 matplotlib>=3.8,<3.9
-astropy>=6.0,<6.1
+astropy
 pip
 pybind11>=3,<4
 

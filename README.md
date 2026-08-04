@@ -73,6 +73,10 @@ BATSim currently expects GalSim's C++ shared library to be available at build
 time. The recommended route is to use mamba with dependencies from
 conda-forge. Conda can be used but will be significantly slower than mamba.
 
+We are assuming that you are starting from a point where you have a working
+conda installation with mamba installed and the correct conda channels 
+configured, specifically, conda-forge.
+
 First, clone the repository and switch to the repository root:
 
 ```bash
@@ -89,10 +93,10 @@ mamba create -n batsim -c conda-forge -c defaults python=3.11 conda-build boa
 mamba activate batsim
 ```
 
-Build the package:
+Build the package (this may take some time):
 
 ```bash
-conda mambabuild --override-channels -c conda-forge -c defaults conda/recipe
+conda mambabuild --override-channels -c conda-forge -c defaults conda/recipe --python 3.11
 ```
 
 This creates an isolated build environment, installs dependencies, compiles the
