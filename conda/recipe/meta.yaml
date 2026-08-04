@@ -1,5 +1,5 @@
 {% set name = "batsim" %}
-{% set version = "1.0.0" %}
+{% set version = "0.1.0" %}
 
 package:
   name: {{ name|lower }}
@@ -11,12 +11,11 @@ source:
 build:
   number: 0
   script: "{{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation"
-  # skip: true  # [not linux]  # uncomment if you want linux-only builds
+  skip: true  # [py<310 or py>=313]
 
 requirements:
-  build: []
   host:
-    - python >=3.10,<3.13
+    - python {{ python }}
     - pip
     - setuptools
     - wheel
@@ -31,7 +30,7 @@ requirements:
     - galsim
     - fitsio
     - matplotlib >=3.8,<3.9
-    - astropy >=6.0,<6.1
+    - astropy
 
 test:
   imports:
