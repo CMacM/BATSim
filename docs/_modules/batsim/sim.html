@@ -1,0 +1,589 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.sim &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../batsim.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.sim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for batsim.sim</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.backend</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_precision_dtypes</span><span class="p">,</span>
+    <span class="n">_release_backend_memory</span><span class="p">,</span>
+    <span class="n">_resolve_array_backend</span><span class="p">,</span>
+    <span class="n">_to_numpy</span><span class="p">,</span>
+    <span class="n">clear_backend_memory</span><span class="p">,</span>
+    <span class="n">sync_if_gpu</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">sampling</span> <span class="k">as</span> <span class="n">_sampling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fft</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_apply_centering_phase</span><span class="p">,</span>
+    <span class="n">_apply_pixel_response</span><span class="p">,</span>
+    <span class="n">_center_crop_or_pad</span><span class="p">,</span>
+    <span class="n">_compensate_block_integration</span><span class="p">,</span>
+    <span class="n">_convolve_psf_fft</span><span class="p">,</span>
+    <span class="n">_draw_centered_psf</span><span class="p">,</span>
+    <span class="n">_extract_centered_coarse_image</span><span class="p">,</span>
+    <span class="n">_extract_centered_real_space_coarse_image</span><span class="p">,</span>
+    <span class="n">_rfft_centered_image</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.grid</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FineGrid</span><span class="p">,</span>
+    <span class="n">_determine_supersampling</span><span class="p">,</span>
+    <span class="n">_integration_offsets</span><span class="p">,</span>
+    <span class="n">_make_fine_grid</span><span class="p">,</span>
+    <span class="n">_resolve_integration_sampling</span><span class="p">,</span>
+    <span class="n">_resolve_simulation_ngrid</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_apply_prepared_transforms</span><span class="p">,</span>
+    <span class="n">_prepare_transforms</span><span class="p">,</span>
+    <span class="n">_require_gsinterface</span><span class="p">,</span>
+    <span class="n">_sample_psf_spectrum</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.stamp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stamp</span>
+
+<div class="viewcode-block" id="_sample_galaxy_profile_impl">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._sample_galaxy_profile_impl">[docs]</a>
+<span class="n">_sample_galaxy_profile_impl</span> <span class="o">=</span> <span class="n">_sampling</span><span class="o">.</span><span class="n">_sample_galaxy_profile</span></div>
+
+
+
+<div class="viewcode-block" id="_resolve_integration_compensation">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._resolve_integration_compensation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_integration_compensation</span><span class="p">(</span><span class="n">compensate_integration</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the requested block-integration compensation mode.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">compensate_integration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">compensate_integration</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;quadrature&quot;</span><span class="p">,</span> <span class="s2">&quot;exact_sinc&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">compensate_integration</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="s2">&quot;Invalid compensate_integration value &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">compensate_integration</span><span class="si">}</span><span class="s2">&#39;; use &#39;quadrature&#39;, &#39;exact_sinc&#39;, or None.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_needs_fourier_render">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._needs_fourier_render">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_needs_fourier_render</span><span class="p">(</span><span class="n">psf_obj</span><span class="p">,</span> <span class="n">draw_method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True when PSF or pixel convolution requires the FFT path.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">psf_obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">draw_method</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="_sample_galaxy_profile">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._sample_galaxy_profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_galaxy_profile</span><span class="p">(</span><span class="n">gal_obj</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">fine_scale</span><span class="p">,</span> <span class="n">real_dtype</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility wrapper for the sampling backend.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_sample_galaxy_profile_impl</span><span class="p">(</span><span class="n">gal_obj</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">fine_scale</span><span class="p">,</span> <span class="n">real_dtype</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_sample_galaxy_profile_on_stamp">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._sample_galaxy_profile_on_stamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_galaxy_profile_on_stamp</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="p">,</span>
+    <span class="n">stamp</span><span class="p">,</span>
+    <span class="n">transform_obj</span><span class="p">,</span>
+    <span class="n">fine_scale</span><span class="p">,</span>
+    <span class="n">real_dtype</span><span class="p">,</span>
+    <span class="n">xp</span><span class="p">,</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the locally integrated galaxy profile on the fine simulation grid.</span>
+
+<span class="sd">    This wrapper preserves legacy monkeypatching of</span>
+<span class="sd">    ``batsim.sim._sample_galaxy_profile`` in internal tests and notebooks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">original_sampler</span> <span class="o">=</span> <span class="n">_sampling</span><span class="o">.</span><span class="n">_sample_galaxy_profile</span>
+    <span class="n">_sampling</span><span class="o">.</span><span class="n">_sample_galaxy_profile</span> <span class="o">=</span> <span class="n">_sample_galaxy_profile</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_sampling</span><span class="o">.</span><span class="n">_sample_galaxy_profile_on_stamp</span><span class="p">(</span>
+            <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+            <span class="n">stamp</span><span class="o">=</span><span class="n">stamp</span><span class="p">,</span>
+            <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform_obj</span><span class="p">,</span>
+            <span class="n">fine_scale</span><span class="o">=</span><span class="n">fine_scale</span><span class="p">,</span>
+            <span class="n">real_dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+            <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+            <span class="n">integration_order</span><span class="o">=</span><span class="n">integration_order</span><span class="p">,</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_sampling</span><span class="o">.</span><span class="n">_sample_galaxy_profile</span> <span class="o">=</span> <span class="n">original_sampler</span></div>
+
+
+
+<div class="viewcode-block" id="simulate_galaxy">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim.simulate_galaxy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="p">,</span>
+    <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">safety</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">max_supersample</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">min_supersample</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">max_fine_grid</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span>
+    <span class="n">pad</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;np&quot;</span><span class="p">,</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">pix_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">psf_mode</span><span class="o">=</span><span class="s2">&quot;kvalue&quot;</span><span class="p">,</span>
+    <span class="n">force_input_flux</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">compensate_integration</span><span class="o">=</span><span class="s2">&quot;quadrature&quot;</span><span class="p">,</span>
+    <span class="n">use_true_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Render a GalSim object through BATSim&#39;s non-affine sampling pipeline.</span>
+
+<span class="sd">    The galaxy profile is sampled on a supersampled coordinate grid, optional</span>
+<span class="sd">    coordinate transforms are applied before profile evaluation, and optional</span>
+<span class="sd">    PSF/pixel convolution is performed in Fourier space. The returned image is</span>
+<span class="sd">    a NumPy array regardless of the backend used internally.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gal_obj : galsim.GSObject</span>
+<span class="sd">        Galaxy surface-brightness profile to sample.</span>
+<span class="sd">    scale : float, optional</span>
+<span class="sd">        Output pixel scale in arcsec.  Either ``scale`` or ``pix_scale`` must</span>
+<span class="sd">        be supplied.  If both are supplied, they must agree.</span>
+<span class="sd">    ngrid : int, optional</span>
+<span class="sd">        Final square output size in pixels.  If omitted, BATSim chooses the</span>
+<span class="sd">        output size from the GalSim object support at ``scale``.</span>
+<span class="sd">    transform_obj : object or sequence of objects, optional</span>
+<span class="sd">        Coordinate transform(s) applied before sampling the galaxy profile.</span>
+<span class="sd">        Each transform must provide ``transform(coords)`` where ``coords`` has</span>
+<span class="sd">        shape ``(2, npoints)``.  Transforms with a ``to_backend`` method</span>
+<span class="sd">        are moved to the selected array backend before use.</span>
+<span class="sd">    psf_obj : galsim.GSObject, optional</span>
+<span class="sd">        PSF profile to convolve with the sampled galaxy.</span>
+<span class="sd">    draw_method : {&quot;auto&quot;, &quot;no_pixel&quot;}, optional</span>
+<span class="sd">        Pixel-response mode.  ``&quot;auto&quot;`` applies the square-pixel response;</span>
+<span class="sd">        ``&quot;no_pixel&quot;`` omits it.</span>
+<span class="sd">    safety : float, optional</span>
+<span class="sd">        Multiplicative safety factor used when estimating the required</span>
+<span class="sd">        supersampling from the galaxy Fourier bandwidth and Nyquist frequency.</span>
+<span class="sd">    max_supersample : int, optional</span>
+<span class="sd">        Maximum total supersampling factor considered by the automatic grid</span>
+<span class="sd">        selection.</span>
+<span class="sd">    min_supersample : int, optional</span>
+<span class="sd">        Minimum FFT supersampling factor used by the renderer. Reducing this</span>
+<span class="sd">        below 4 is not recommended, as it can result in very corase representations</span>
+<span class="sd">        of non-affine shear gradients and aliasing.</span>
+<span class="sd">    integration_order : int, optional</span>
+<span class="sd">        Gauss-Legendre quadrature order for sub-pixel block integration. 1 is</span>
+<span class="sd">        equivalent to no sub-pixel integration.  Higher orders reduce</span>
+<span class="sd">        high-frequency leakage at the cost of more backend evaluations.</span>
+<span class="sd">    max_fine_grid : int or None, optional</span>
+<span class="sd">        Maximum fine-grid side length.  Use ``None`` to disable the cap.</span>
+<span class="sd">    pad : int, optional</span>
+<span class="sd">        Padding, in coarse pixels, added around the internal simulation grid</span>
+<span class="sd">        before supersampling.</span>
+<span class="sd">    precision : {&quot;single&quot;, &quot;double&quot;}, optional</span>
+<span class="sd">        Floating-point precision for FFT-side arrays. Generally ``&quot;single&quot;`` is</span>
+<span class="sd">        sufficient for most applications.</span>
+<span class="sd">    backend : {&quot;np&quot;, &quot;numpy&quot;, &quot;cp&quot;, &quot;cupy&quot;} or module or None, optional</span>
+<span class="sd">        Array backend used for coordinate construction and FFT operations.</span>
+<span class="sd">        ``None`` selects NumPy. Use ``&quot;cp&quot;`` or ``&quot;cupy&quot;`` to request CuPy.</span>
+<span class="sd">    profile : bool, optional</span>
+<span class="sd">        If True, print timing diagnostics for the major rendering stages.</span>
+<span class="sd">    pix_scale : float, optional</span>
+<span class="sd">        Deprecated spelling for ``scale`` retained for compatibility.</span>
+<span class="sd">    psf_mode : {&quot;kvalue&quot;, &quot;real&quot;}, optional</span>
+<span class="sd">        PSF Fourier sampling mode.  ``&quot;kvalue&quot;`` evaluates the analytic PSF</span>
+<span class="sd">        Fourier profile through the compiled backend; ``&quot;real&quot;`` draws the PSF</span>
+<span class="sd">        in real space and FFTs it.</span>
+<span class="sd">    force_input_flux : bool, optional</span>
+<span class="sd">        If True, normalise the final convolved image to ``gal_obj.flux``.</span>
+<span class="sd">    compensate_integration : {&quot;quadrature&quot;, &quot;exact_sinc&quot;} or None, optional</span>
+<span class="sd">        Fourier-space compensation applied when ``integration_order &gt; 1``.</span>
+<span class="sd">        ``&quot;quadrature&quot;`` removes the discrete Gauss-Legendre transfer function</span>
+<span class="sd">        introduced by block integration. ``&quot;exact_sinc&quot;`` removes the ideal</span>
+<span class="sd">        top-hat response instead. Using None leaves the block-integration</span>
+<span class="sd">        smoothing in the rendered image and is not recommended for regular usage.</span>
+<span class="sd">    use_true_center : bool, optional</span>
+<span class="sd">        If True, align the fine grid to GalSim&#39;s true-image-center convention</span>
+<span class="sd">        for the eventual coarse output grid. This is a functional mirror of the same</span>
+<span class="sd">        argument in ``galsim.drawImage``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray</span>
+<span class="sd">        Rendered square image with shape ``(ngrid, ngrid)`` when ``ngrid`` is</span>
+<span class="sd">        provided, otherwise the automatically selected output shape.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">        Raised with a compact message if rendering fails after clearing cached</span>
+<span class="sd">        backend memory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clean_error</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">cleanup_backend</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">_simulate_galaxy_impl</span><span class="p">(</span>
+            <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">ngrid</span><span class="o">=</span><span class="n">ngrid</span><span class="p">,</span>
+            <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform_obj</span><span class="p">,</span>
+            <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf_obj</span><span class="p">,</span>
+            <span class="n">draw_method</span><span class="o">=</span><span class="n">draw_method</span><span class="p">,</span>
+            <span class="n">safety</span><span class="o">=</span><span class="n">safety</span><span class="p">,</span>
+            <span class="n">max_supersample</span><span class="o">=</span><span class="n">max_supersample</span><span class="p">,</span>
+            <span class="n">min_supersample</span><span class="o">=</span><span class="n">min_supersample</span><span class="p">,</span>
+            <span class="n">integration_order</span><span class="o">=</span><span class="n">integration_order</span><span class="p">,</span>
+            <span class="n">max_fine_grid</span><span class="o">=</span><span class="n">max_fine_grid</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span>
+            <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+            <span class="n">pix_scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+            <span class="n">psf_mode</span><span class="o">=</span><span class="n">psf_mode</span><span class="p">,</span>
+            <span class="n">force_input_flux</span><span class="o">=</span><span class="n">force_input_flux</span><span class="p">,</span>
+            <span class="n">compensate_integration</span><span class="o">=</span><span class="n">compensate_integration</span><span class="p">,</span>
+            <span class="n">use_true_center</span><span class="o">=</span><span class="n">use_true_center</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">err_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">err_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cleanup_backend</span> <span class="o">=</span> <span class="n">_resolve_array_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">clean_error</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;simulate_galaxy failed cleanly after releasing backend memory &quot;</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">err_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err_msg</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cleanup_backend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_release_backend_memory</span><span class="p">(</span><span class="n">cleanup_backend</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">clean_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">clean_error</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="_simulate_galaxy_impl">
+<a class="viewcode-back" href="../../autoapi/batsim/sim/index.html#batsim._simulate_galaxy_impl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_simulate_galaxy_impl</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="p">,</span>
+    <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">safety</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">max_supersample</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">min_supersample</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">max_fine_grid</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span>
+    <span class="n">pad</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;np&quot;</span><span class="p">,</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">pix_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">psf_mode</span><span class="o">=</span><span class="s2">&quot;kvalue&quot;</span><span class="p">,</span>
+    <span class="n">force_input_flux</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">compensate_integration</span><span class="o">=</span><span class="s2">&quot;quadrature&quot;</span><span class="p">,</span>
+    <span class="n">use_true_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implement the render pipeline after public error handling is stripped away.</span>
+
+<span class="sd">    The requested output ngrid controls only the final crop. The internal</span>
+<span class="sd">    simulation grid is chosen from the galaxy/PSF support so that changing</span>
+<span class="sd">    ngrid does not change the high-resolution simulation footprint.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pix_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;simulate_galaxy requires scale or pix_scale.&quot;</span><span class="p">)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">pix_scale</span>
+    <span class="k">elif</span> <span class="n">pix_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">pix_scale</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;scale and pix_scale were both supplied with different values.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">psf_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="s2">&quot;kvalue&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid psf_mode &#39;</span><span class="si">{</span><span class="n">psf_mode</span><span class="si">}</span><span class="s2">&#39;; must be &#39;real&#39; or &#39;kvalue&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;no_pixel&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid draw_method &#39;</span><span class="si">{</span><span class="n">draw_method</span><span class="si">}</span><span class="s2">&#39;; must be &#39;auto&#39; or &#39;no_pixel&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">integration_compensation_mode</span> <span class="o">=</span> <span class="n">_resolve_integration_compensation</span><span class="p">(</span><span class="n">compensate_integration</span><span class="p">)</span>
+
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">_resolve_array_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">_precision_dtypes</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
+    <span class="n">real_dtype</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dtypes</span>
+
+    <span class="n">min_supersample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_supersample</span><span class="p">)</span>
+    <span class="n">max_supersample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_supersample</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">min_supersample</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;min_supersample must be &gt;= 1.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_supersample</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_supersample must be &gt;= 1.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_supersample</span> <span class="o">&lt;</span> <span class="n">min_supersample</span><span class="p">:</span>
+        <span class="n">max_supersample</span> <span class="o">=</span> <span class="n">min_supersample</span>
+
+    <span class="n">sim_ngrid</span> <span class="o">=</span> <span class="n">_resolve_simulation_ngrid</span><span class="p">(</span><span class="n">gal_obj</span><span class="p">,</span> <span class="n">psf_obj</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">output_ngrid</span> <span class="o">=</span> <span class="n">sim_ngrid</span> <span class="k">if</span> <span class="n">ngrid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">ngrid</span><span class="p">)</span>
+
+    <span class="n">target_flux</span> <span class="o">=</span> <span class="n">gal_obj</span><span class="o">.</span><span class="n">flux</span> <span class="k">if</span> <span class="n">force_input_flux</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="n">requested_integration_order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">integration_order</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">requested_integration_order</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;integration_order must be &gt;= 1.&quot;</span><span class="p">)</span>
+
+    <span class="n">effective_integration_order</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">requested_integration_order</span> <span class="k">if</span> <span class="n">_needs_fourier_render</span><span class="p">(</span><span class="n">psf_obj</span><span class="p">,</span> <span class="n">draw_method</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="p">)</span>
+
+    <span class="n">supersample</span> <span class="o">=</span> <span class="n">_determine_supersampling</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">scale</span><span class="p">,</span>
+        <span class="n">effective_integration_order</span><span class="p">,</span>
+        <span class="n">sim_ngrid</span><span class="o">=</span><span class="n">sim_ngrid</span><span class="p">,</span>
+        <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span>
+        <span class="n">safety</span><span class="o">=</span><span class="n">safety</span><span class="p">,</span>
+        <span class="n">max_supersample</span><span class="o">=</span><span class="n">max_supersample</span><span class="p">,</span>
+        <span class="n">min_supersample</span><span class="o">=</span><span class="n">min_supersample</span><span class="p">,</span>
+        <span class="n">max_fine_grid</span><span class="o">=</span><span class="n">max_fine_grid</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">requested_supersample</span> <span class="o">=</span> <span class="n">supersample</span>
+    <span class="n">fft_supersample</span><span class="p">,</span> <span class="n">integration_order</span> <span class="o">=</span> <span class="n">_resolve_integration_sampling</span><span class="p">(</span>
+        <span class="n">supersample</span><span class="o">=</span><span class="n">requested_supersample</span><span class="p">,</span>
+        <span class="n">integration_order</span><span class="o">=</span><span class="n">effective_integration_order</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fft_supersample</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">fft_supersample</span><span class="p">,</span> <span class="n">min_supersample</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">_make_fine_grid</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+        <span class="n">sim_ngrid</span><span class="o">=</span><span class="n">sim_ngrid</span><span class="p">,</span>
+        <span class="n">supersample</span><span class="o">=</span><span class="n">fft_supersample</span><span class="p">,</span>
+        <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span>
+        <span class="n">max_fine_grid</span><span class="o">=</span><span class="n">max_fine_grid</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Check if supersampling is too aggressive while preserving the requested</span>
+    <span class="c1"># lower bound on the FFT supersampling factor.</span>
+    <span class="k">while</span> <span class="p">(</span>
+        <span class="n">max_fine_grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">fine_compact</span> <span class="o">/</span> <span class="n">max_fine_grid</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+        <span class="ow">and</span> <span class="n">fft_supersample</span> <span class="o">&gt;</span> <span class="n">min_supersample</span>
+    <span class="p">):</span>
+        <span class="n">next_fft_supersample</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_supersample</span><span class="p">,</span> <span class="n">fft_supersample</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_fft_supersample</span> <span class="o">==</span> <span class="n">fft_supersample</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">fft_supersample</span> <span class="o">=</span> <span class="n">next_fft_supersample</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">_make_fine_grid</span><span class="p">(</span>
+            <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">sim_ngrid</span><span class="o">=</span><span class="n">sim_ngrid</span><span class="p">,</span>
+            <span class="n">supersample</span><span class="o">=</span><span class="n">fft_supersample</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span>
+            <span class="n">max_fine_grid</span><span class="o">=</span><span class="n">max_fine_grid</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Grid sizing: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;sim_ngrid=</span><span class="si">{</span><span class="n">sim_ngrid</span><span class="si">}</span><span class="s2">, supersample=</span><span class="si">{</span><span class="n">requested_supersample</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;integration_order=</span><span class="si">{</span><span class="n">integration_order</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;fft_supersample=</span><span class="si">{</span><span class="n">fft_supersample</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;fine_ngrid=</span><span class="si">{</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_ngrid</span><span class="si">}</span><span class="s2">, fine_compact=</span><span class="si">{</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_compact</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;max_fine_grid=</span><span class="si">{</span><span class="n">max_fine_grid</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">stamp</span> <span class="o">=</span> <span class="n">Stamp</span><span class="p">(</span>
+        <span class="n">nn</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_ngrid</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">backend</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+        <span class="n">use_true_center</span><span class="o">=</span><span class="n">use_true_center</span><span class="p">,</span>
+        <span class="n">downsample_ratio</span><span class="o">=</span><span class="n">fft_supersample</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">center_index</span> <span class="o">=</span> <span class="n">stamp</span><span class="o">.</span><span class="n">center_index</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stamp construction took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="n">gal_prof</span> <span class="o">=</span> <span class="n">_sample_galaxy_profile_on_stamp</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal_obj</span><span class="p">,</span>
+        <span class="n">stamp</span><span class="o">=</span><span class="n">stamp</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform_obj</span><span class="p">,</span>
+        <span class="n">fine_scale</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_scale</span><span class="p">,</span>
+        <span class="n">real_dtype</span><span class="o">=</span><span class="n">real_dtype</span><span class="p">,</span>
+        <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+        <span class="n">integration_order</span><span class="o">=</span><span class="n">integration_order</span><span class="p">,</span>
+        <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">del</span> <span class="n">stamp</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">needs_fft</span> <span class="o">=</span> <span class="n">_needs_fourier_render</span><span class="p">(</span><span class="n">psf_obj</span><span class="p">,</span> <span class="n">draw_method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">needs_fft</span><span class="p">:</span>
+        <span class="n">sim_image</span> <span class="o">=</span> <span class="n">_convolve_psf_fft</span><span class="p">(</span>
+            <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+            <span class="n">gal_prof</span><span class="o">=</span><span class="n">gal_prof</span><span class="p">,</span>
+            <span class="n">target_flux</span><span class="o">=</span><span class="n">target_flux</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">fine_scale</span><span class="p">,</span>
+            <span class="n">pix_scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf_obj</span><span class="p">,</span>
+            <span class="n">downsample_ratio</span><span class="o">=</span><span class="n">fft_supersample</span><span class="p">,</span>
+            <span class="n">draw_method</span><span class="o">=</span><span class="n">draw_method</span><span class="p">,</span>
+            <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+            <span class="n">psf_mode</span><span class="o">=</span><span class="n">psf_mode</span><span class="p">,</span>
+            <span class="n">integration_order</span><span class="o">=</span><span class="n">integration_order</span><span class="p">,</span>
+            <span class="n">integration_compensation_mode</span><span class="o">=</span><span class="n">integration_compensation_mode</span><span class="p">,</span>
+            <span class="n">center_index</span><span class="o">=</span><span class="n">center_index</span><span class="p">,</span>
+            <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">del</span> <span class="n">gal_prof</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># The sampled image is still in centred real-space order because it has</span>
+        <span class="c1"># not passed through the FFT path.</span>
+        <span class="n">sim_image</span> <span class="o">=</span> <span class="n">_extract_centered_real_space_coarse_image</span><span class="p">(</span>
+            <span class="n">xp</span><span class="o">=</span><span class="n">xp</span><span class="p">,</span>
+            <span class="n">image</span><span class="o">=</span><span class="n">gal_prof</span><span class="p">,</span>
+            <span class="n">downsample_ratio</span><span class="o">=</span><span class="n">fft_supersample</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">del</span> <span class="n">gal_prof</span>
+
+    <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+        <span class="n">sync_if_gpu</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FFT and convolution took </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="n">sim_image</span> <span class="o">=</span> <span class="n">_center_crop_or_pad</span><span class="p">(</span><span class="n">sim_image</span><span class="p">,</span> <span class="p">(</span><span class="n">output_ngrid</span><span class="p">,</span> <span class="n">output_ngrid</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">target_flux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">needs_fft</span><span class="p">:</span>
+        <span class="n">sim_image</span> <span class="o">*=</span> <span class="n">target_flux</span> <span class="o">/</span> <span class="n">sim_image</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">sim_image</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

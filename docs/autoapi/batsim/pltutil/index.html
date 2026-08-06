@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.pltutil &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.sampling" href="../sampling/index.html" />
+    <link rel="prev" title="batsim.grid" href="../grid/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.pltutil</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.pltutil">
+<span id="batsim-pltutil"></span><h1>batsim.pltutil<a class="headerlink" href="#module-batsim.pltutil" title="Link to this heading"></a></h1>
+<p>Legacy plotting utilities used by BATSim examples and validation notebooks.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.pltutil.colors" title="batsim.pltutil.colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.pltutil.cblues" title="batsim.pltutil.cblues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cblues</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.pltutil.creds" title="batsim.pltutil.creds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">creds</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.pltutil.make_figure_axes" title="batsim.pltutil.make_figure_axes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_figure_axes</span></code></a>([ny, nx, square])</p></td>
+<td><p>Create a Matplotlib figure with one of BATSim's preset subplot layouts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.pltutil.determine_cuts" title="batsim.pltutil.determine_cuts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">determine_cuts</span></code></a>(data)</p></td>
+<td><p>Determine display cuts for image data using fixed percentiles.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.pltutil.make_plot_image" title="batsim.pltutil.make_plot_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_plot_image</span></code></a>(data)</p></td>
+<td><p>Display image data with BATSim's default asinh plotting normalisation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.pltutil.stitch_images" title="batsim.pltutil.stitch_images"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stitch_images</span></code></a>(images[, direction, spacing])</p></td>
+<td><p>Stitch equal-sized Galsim image objects into a single composite image.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.pltutil.split_image" title="batsim.pltutil.split_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_image</span></code></a>(image, nsplit[, direction, spacing])</p></td>
+<td><p>Split a stitched GalSim image into equal-sized image stamps.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.pltutil.colors">
+<span class="sig-name descname"><span class="pre">colors</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#000000',</span> <span class="pre">'#1976D2',</span> <span class="pre">'#E53935',</span> <span class="pre">'#43A047',</span> <span class="pre">'#673AB7',</span> <span class="pre">'#4DD0E1',</span> <span class="pre">'#E91E63',</span> <span class="pre">'#F2D026',...</span></em><a class="reference internal" href="../../../_modules/batsim/pltutil.html#colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.colors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.pltutil.cblues">
+<span class="sig-name descname"><span class="pre">cblues</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#004c6d',</span> <span class="pre">'#346888',</span> <span class="pre">'#5886a5',</span> <span class="pre">'#7aa6c2',</span> <span class="pre">'#9dc6e0',</span> <span class="pre">'#c1e7ff']</span></em><a class="reference internal" href="../../../_modules/batsim/pltutil.html#cblues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.cblues" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.pltutil.creds">
+<span class="sig-name descname"><span class="pre">creds</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#DC1C13',</span> <span class="pre">'#EA4C46',</span> <span class="pre">'#F07470',</span> <span class="pre">'#F1959B',</span> <span class="pre">'#F6BDC0',</span> <span class="pre">'#F8D8E3']</span></em><a class="reference internal" href="../../../_modules/batsim/pltutil.html#creds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.creds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.pltutil.make_figure_axes">
+<span class="sig-name descname"><span class="pre">make_figure_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">square</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/pltutil.html#make_figure_axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.make_figure_axes" title="Link to this definition"></a></dt>
+<dd><p>Create a Matplotlib figure with one of BATSim’s preset subplot layouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ny</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of subplot rows.</p></li>
+<li><p><strong>nx</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of subplot columns.</p></li>
+<li><p><strong>square</strong> (<em>bool</em><em>, </em><em>optional</em>) – Select the taller preset size for the supported <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">x</span> <span class="pre">1</span></code> layout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(fig,</span> <span class="pre">axes)</span></code> where <code class="docutils literal notranslate"><span class="pre">fig</span></code> is a Matplotlib figure and <code class="docutils literal notranslate"><span class="pre">axes</span></code> is a
+flat list of axes in creation order.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – Raised if <code class="docutils literal notranslate"><span class="pre">ny</span></code> or <code class="docutils literal notranslate"><span class="pre">nx</span></code> is not an integer.</p></li>
+<li><p><strong>ValueError</strong> – Raised if the requested layout is not one of the supported presets.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.pltutil.determine_cuts">
+<span class="sig-name descname"><span class="pre">determine_cuts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/pltutil.html#determine_cuts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.determine_cuts" title="Link to this definition"></a></dt>
+<dd><p>Determine display cuts for image data using fixed percentiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>ndarray</em>) – Image array used to calculate display cuts.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(min_cut,</span> <span class="pre">max_cut)</span></code> from the 5th and 98th percentiles of the
+flattened input data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.pltutil.make_plot_image">
+<span class="sig-name descname"><span class="pre">make_plot_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/pltutil.html#make_plot_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.make_plot_image" title="Link to this definition"></a></dt>
+<dd><p>Display image data with BATSim’s default asinh plotting normalisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>ndarray</em>) – Two-dimensional image array to display.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Image artist returned by <code class="docutils literal notranslate"><span class="pre">matplotlib.pyplot.imshow</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.image.AxesImage</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.pltutil.stitch_images">
+<span class="sig-name descname"><span class="pre">stitch_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/pltutil.html#stitch_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.stitch_images" title="Link to this definition"></a></dt>
+<dd><p>Stitch equal-sized Galsim image objects into a single composite image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>images</strong> (<em>sequence</em><em> of </em><em>galsim.Image</em>) – Images to stitch together. All images are expected to share the same
+dimensions and pixel scale.</p></li>
+<li><p><strong>direction</strong> (<em>{&quot;horizontal&quot;</em><em>, </em><em>&quot;vertical&quot;</em><em>, </em><em>&quot;square&quot;}</em><em>, </em><em>optional</em>) – Direction in which images are concatenated. <code class="docutils literal notranslate"><span class="pre">&quot;square&quot;</span></code> arranges the
+images on a square grid, leaving any unused cells blank.</p></li>
+<li><p><strong>spacing</strong> (<em>None</em><em>, </em><em>optional</em>) – Placeholder for future gap support. Only <code class="docutils literal notranslate"><span class="pre">None</span></code> is currently
+implemented.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Composite image when <code class="docutils literal notranslate"><span class="pre">spacing</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">direction</span></code> is
+supported; otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>galsim.ImageF or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.pltutil.split_image">
+<span class="sig-name descname"><span class="pre">split_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsplit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/pltutil.html#split_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.pltutil.split_image" title="Link to this definition"></a></dt>
+<dd><p>Split a stitched GalSim image into equal-sized image stamps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>galsim.Image</em>) – Input image to split.</p></li>
+<li><p><strong>nsplit</strong> (<em>int</em>) – Number of equal pieces to extract along the split direction.</p></li>
+<li><p><strong>direction</strong> (<em>{&quot;horizontal&quot;</em><em>, </em><em>&quot;vertical&quot;}</em><em>, </em><em>optional</em>) – Axis along which the input image is split.</p></li>
+<li><p><strong>spacing</strong> (<em>None</em><em>, </em><em>optional</em>) – Placeholder for future gap support. Only <code class="docutils literal notranslate"><span class="pre">None</span></code> is currently
+implemented.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of split images when <code class="docutils literal notranslate"><span class="pre">spacing</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">direction</span></code> is
+supported; otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of galsim.ImageF or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../grid/index.html" class="btn btn-neutral float-left" title="batsim.grid" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../sampling/index.html" class="btn btn-neutral float-right" title="batsim.sampling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

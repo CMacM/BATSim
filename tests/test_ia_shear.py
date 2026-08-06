@@ -1,86 +1,136 @@
-# This function test the implementation of the IA transform with power 0
-# (constant shear) and compares it with BATSim's affine transfrom
-import os
-
 import galsim
 import numpy as np
 
 import batsim
 
 
-def test_ia_shear():
-    ## create a galaxy with raidall dependent shear
-    flux = 40
+def _moments(image, scale):
+    n = image.shape[0]
+    ind = (np.arange(n) - 0.5 * (n - 1)) * scale
+    yy, xx = np.meshgrid(ind, ind, indexing="ij")
+
+    flux = image.sum()
+    x0 = (image * xx).sum() / flux
+    y0 = (image * yy).sum() / flux
+
+    dx = xx - x0
+    dy = yy - y0
+    qxx = (image * dx * dx).sum() / flux
+    qyy = (image * dy * dy).sum() / flux
+    qxy = (image * dx * dy).sum() / flux
+
+    trace = qxx + qyy
+    return np.array(
+        [
+            flux,
+            x0,
+            y0,
+            (qxx - qyy) / trace,
+            2.0 * qxy / trace,
+            trace,
+        ]
+    )
+
+
+def _reduced_shear_inverse_matrix(g1, g2):
+    inv_norm = 1.0 / np.sqrt(1.0 - g1 * g1 - g2 * g2)
+    return inv_norm * np.array([[1.0 - g1, -g2], [-g2, 1.0 + g1]])
+
+
+def test_beta_zero_ia_transform_uses_unit_determinant_reduced_shear_matrix():
     scale = 0.2
-    nn = 64
     hlr = 1.4
+    amplitude = 0.2
+    phi = 0.3
 
-    # create galaxy to be sampled by shear stamp objects
-    sersic_gal = galsim.Sersic(n=1.0, half_light_radius=hlr, flux=flux, trunc=0)
+    gamma1 = amplitude * np.cos(2.0 * phi)
+    gamma2 = amplitude * np.sin(2.0 * phi)
 
-    # apply affine shear with BATSim
-    Lens = batsim.LensTransform(gamma1=0.2, gamma2=0, kappa=0)
+    ia_transform = batsim.IaTransform(A=amplitude, beta=0.0, phi=phi, scale=scale, hlr=hlr)
 
-    # sample galaxy object onto stamp
-    Lens_gal = batsim.simulate_galaxy(
-        ngrid=nn,
-        pix_scale=scale,
-        gal_obj=sersic_gal,
-        transform_obj=Lens,
+    x = np.linspace(-2.0 * hlr, 2.0 * hlr, 9)
+    y = np.linspace(-1.5 * hlr, 1.5 * hlr, 7)
+    yy, xx = np.meshgrid(y, x, indexing="ij")
+    coords = np.stack([xx.ravel(), yy.ravel()], axis=0)
+
+    expected_matrix = _reduced_shear_inverse_matrix(gamma1, gamma2)
+
+    np.testing.assert_allclose(np.linalg.det(expected_matrix), 1.0, rtol=1.0e-14)
+    np.testing.assert_allclose(
+        ia_transform.transform(coords),
+        expected_matrix @ coords,
+        rtol=1.0e-14,
+        atol=1.0e-14,
     )
 
-    # determine correct IA ampltidue to match g1 shear
-    A_IA = galsim.Shear(g1=0.2).e1
 
-    # apply IA shear to galaxy
-    IA = batsim.IaTransform(A=A_IA, beta=0, phi=0, scale=scale, hlr=hlr)
+def test_beta_zero_ia_render_matches_galsim_reduced_shear_moments():
+    flux = 40
+    scale = 0.15
+    nn = 96
+    hlr = 1.1
+    g1 = 0.18
+    g2 = 0.07
+    amplitude = np.hypot(g1, g2)
+    phi = 0.5 * np.arctan2(g2, g1)
 
-    # get galaxy array from stamp object
-    IA_gal = batsim.simulate_galaxy(
-        ngrid=nn,
-        pix_scale=scale,
-        gal_obj=sersic_gal,
-        transform_obj=IA,
+    gal = galsim.Gaussian(half_light_radius=hlr, flux=flux)
+    ia_transform = batsim.IaTransform(A=amplitude, beta=0.0, phi=phi, scale=scale, hlr=hlr)
+
+    reference = (
+        gal.shear(g1=g1, g2=g2)
+        .drawImage(
+            nx=nn,
+            ny=nn,
+            scale=scale,
+            method="no_pixel",
+            use_true_center=False,
+        )
+        .array
     )
 
-    np.testing.assert_array_almost_equal(IA_gal, Lens_gal)
+    ia_image = batsim.simulate_galaxy(
+        ngrid=nn,
+        pix_scale=scale,
+        gal_obj=gal,
+        transform_obj=ia_transform,
+        draw_method="no_pixel",
+        force_input_flux=False,
+        use_true_center=False,
+    )
 
-    # Now we test that the power law gives us the expected value at
-    # the half light radius
+    reference_moments = _moments(reference, scale)
+    ia_moments = _moments(ia_image, scale)
 
-    # initialise new transform with non-zero power law
-    IA_pow = batsim.IaTransform(A=A_IA, beta=0.8, phi=0, scale=scale, hlr=hlr)
+    np.testing.assert_allclose(ia_moments[0], reference_moments[0], rtol=5.0e-6)
+    np.testing.assert_allclose(
+        ia_moments[3:6],
+        reference_moments[3:6],
+        rtol=2.0e-3,
+        atol=2.0e-4,
+    )
 
-    # set coords for hlr
-    x = np.array([hlr])
-    y = np.array([0])
 
-    # get the expected g1 at the half light radius
-    test_g1, _ = IA_pow.get_g1g2(x, y)
-    # shear at hlr should = input amplitude
-    np.testing.assert_almost_equal(test_g1, 0.2)
+def test_ia_power_law_amplitude_is_hlr_normalized():
+    scale = 0.2
+    hlr = 1.4
+    amplitude = 0.2
+    beta = 0.8
 
-    # now do same but for coord outside hlr
-    # set coords for hlr
-    x = np.array([0])
-    y = np.array([1.2 * hlr])
+    ia_transform = batsim.IaTransform(A=amplitude, beta=beta, phi=0.0, scale=scale, hlr=hlr)
 
-    # get the expected g1 at the half light radius
-    test_g1, _ = IA_pow.get_g1g2(x, y)
-    # outside shear should be greater than hlr shear
-    np.testing.assert_array_less(0.2, test_g1)
+    test_g1, test_g2 = ia_transform.get_g1g2(np.array([hlr]), np.array([0.0]))
+    np.testing.assert_allclose(test_g1, amplitude)
+    np.testing.assert_allclose(test_g2, 0.0)
 
-    # now do same but for coord inside hlr
-    # set coords for hlr
-    x = np.array([0])
-    y = np.array([0.8 * hlr])
+    inner_g1, _ = ia_transform.get_g1g2(np.array([0.0]), np.array([0.8 * hlr]))
+    outer_g1, _ = ia_transform.get_g1g2(np.array([0.0]), np.array([1.2 * hlr]))
 
-    # get the expected g1 at the half light radius
-    test_g1, _ = IA_pow.get_g1g2(x, y)
-    # inside shear should be less than hlr shear
-    np.testing.assert_array_less(test_g1, 0.2)
-    return
+    assert inner_g1 < amplitude
+    assert outer_g1 > amplitude
 
 
 if __name__ == "__main__":
-    test_ia_shear()
+    test_beta_zero_ia_transform_uses_unit_determinant_reduced_shear_matrix()
+    test_beta_zero_ia_render_matches_galsim_reduced_shear_moments()
+    test_ia_power_law_amplitude_is_hlr_normalized()

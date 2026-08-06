@@ -1,0 +1,120 @@
+batsim.fft
+==========
+
+.. py:module:: batsim.fft
+
+.. autoapi-nested-parse::
+
+   Fourier-space convolution and image extraction helpers.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.fft._center_crop_or_pad
+   batsim.fft._draw_centered_psf
+   batsim.fft._rfft_centered_image
+   batsim.fft._apply_centering_phase
+   batsim.fft._apply_pixel_response
+   batsim.fft._block_integration_response
+   batsim.fft._compensate_block_integration
+   batsim.fft._extract_centered_coarse_image
+   batsim.fft._extract_centered_real_space_coarse_image
+   batsim.fft._convolve_psf_fft
+
+
+Module Contents
+---------------
+
+.. py:function:: _center_crop_or_pad(array, target_shape)
+
+   Centrally crop or zero-pad an array to the requested shape.
+
+   This is used after the internal simulation grid has been rendered so the
+   caller's requested output size is a centered view of the same simulation.
+
+
+.. py:function:: _draw_centered_psf(xp, psf_obj, n, scale, dtype=None)
+
+   Draw the PSF on the full FFT grid.
+
+   Pixel convolution is not included here; the pixel response is applied
+   separately in Fourier space.
+
+
+.. py:function:: _rfft_centered_image(xp, image, real_dtype, complex_dtype, center_index=None)
+
+   Compute rfft2(ifftshift(image)) without explicitly shifting the image.
+
+   The input image remains in the centred real-space convention. The phase
+   correction converts the spectrum to the convention that would have been
+   obtained by first applying np.fft.ifftshift(image).
+
+
+.. py:function:: _apply_centering_phase(xp, spectrum, n, center_index=None)
+
+   Apply the Fourier phase equivalent to np.fft.ifftshift before an FFT.
+
+   This avoids materialising a shifted real-space image, which is expensive
+   for very large supersampled stamps.
+
+
+.. py:function:: _apply_pixel_response(xp, spectrum, n, fine_scale, pix_scale)
+
+   Apply the square-pixel Fourier response in-place on an rfft2 grid.
+
+   The response is separable, so this avoids allocating a full 2D pixel FFT.
+
+
+.. py:function:: _block_integration_response(xp, k, fine_scale, mode='quadrature', integration_order=None)
+
+   Return the 1D Fourier response introduced by block integration.
+
+
+.. py:function:: _compensate_block_integration(xp, spectrum, n, fine_scale, min_response=0.001, mode='quadrature', integration_order=None)
+
+   Remove the fine-pixel averaging response introduced by block integration.
+
+   Gauss-Legendre block integration approximates the mean surface brightness
+   over each fine-grid pixel, introducing a separable pre-smoothing response.
+   Divide out this response within the represented Fourier band before
+   applying the physical PSF convolution.
+
+   ``mode="quadrature"`` removes the discrete Gauss-Legendre transfer
+   function for the configured nodes and weights. ``mode="exact_sinc"`` keeps
+   the ideal top-hat response compensation available as an explicit option.
+
+
+.. py:function:: _extract_centered_coarse_image(xp, image, downsample_ratio, center_index=None)
+
+   Return fftshift(image)[::downsample_ratio, ::downsample_ratio] without
+   explicitly materialising fftshift(image).
+
+   This keeps the expensive full-resolution image shift out of both GPU and
+   CPU memory paths. Only the already-downsampled coarse image is gathered.
+
+
+.. py:function:: _extract_centered_real_space_coarse_image(xp, image, downsample_ratio)
+
+   Extract the aligned coarse grid from a centred real-space fine image.
+
+   Unlike ``_extract_centered_coarse_image``, this is for images that have not
+   passed through an inverse FFT and therefore are already in spatial order.
+
+
+.. py:function:: _convolve_psf_fft(xp, gal_prof, scale, pix_scale, psf_obj, downsample_ratio, draw_method, dtypes, psf_mode, integration_order=1, integration_compensation_mode='quadrature', center_index=None, target_flux=None, profile=False)
+
+   Convolve the sampled galaxy with PSF and/or pixel response using rFFT.
+
+   The expensive path avoids explicit fftshift/ifftshift operations. Instead:
+   - centred real-space images are converted by Fourier phase correction;
+   - the pixel response is applied separably in-place;
+   - the full fine-grid image is inverse FFT'd, then downsampled in real space.
+
+   ``psf_mode="kvalue"`` samples GalSim's analytic Fourier PSF through the C++
+   backend, avoiding a real-space PSF draw and an extra FFT.
+
+

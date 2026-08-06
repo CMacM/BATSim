@@ -1,0 +1,449 @@
+batsim.transforms
+=================
+
+.. py:module:: batsim.transforms
+
+.. autoapi-nested-parse::
+
+   Coordinate transforms used during image rendering.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   batsim.transforms.IATransform
+   batsim.transforms.AffineLensingTransform
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   batsim.transforms.Transform
+   batsim.transforms.FlexionTransform
+   batsim.transforms.IaTransform
+   batsim.transforms.LensTransform
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.transforms._coords_backend
+   batsim.transforms._coords_dtype
+   batsim.transforms.e_to_g
+
+
+Module Contents
+---------------
+
+.. py:function:: _coords_backend(coords)
+
+   Return the array backend for a coordinate array.
+
+
+.. py:function:: _coords_dtype(coords)
+
+   Return the dtype attached to a coordinate array, if present.
+
+
+.. py:class:: Transform(center=None, backend=None, dtype=None)
+
+   Base class for BATSim coordinate transforms.
+
+   Transform convention
+   --------------------
+   BATSim transforms implement backward coordinate mappings. Given coordinates
+   ``x`` on the regular output-image grid, ``transform(x)`` returns coordinates
+   ``u`` at which the source surface-brightness profile should be evaluated:
+
+       I_output(x) = I_source(u),    u = transform(x).
+
+   For a locally affine transformation with forward geometric matrix ``M``, a source
+   feature at ``u`` appears at
+
+       x = M @ u.
+
+   The corresponding BATSim coordinate transform must therefore return
+
+       u = inv(M) @ x.
+
+   Although the inverse matrix is used to sample the source profile, visible
+   features undergo the forward transformation. For example, a source feature
+   at ``u0`` appears where
+
+       inv(M) @ x = u0,
+
+   which implies
+
+       x = M @ u0.
+
+   This backward, or pull-based, convention evaluates the source profile once
+   for every output location and avoids the gaps and overlaps that can occur
+   when source samples are pushed forwards onto an output grid.
+
+   All transform implementations in this module must follow this convention:
+   their inputs are output-plane coordinates and their return values are
+   source-plane sampling coordinates.
+
+   Subclasses implement only the transform-specific coordinate logic in
+   ``_transform_relative``. The base class handles backend selection, dtype
+   promotion, coordinate coercion, reference-centre subtraction/addition, and
+   moving transform arrays between NumPy and CuPy via ``to_backend``.
+
+   :param center: Reference coordinate for the center of the transform ``[x, y]``.
+                  Defaults to ``[0, 0]``.
+   :type center: sequence of float, optional
+   :param backend: NumPy or CuPy. If None, NumPy is used for stored transform arrays.
+                   Calls to ``transform`` still preserve the backend of the input
+                   coordinate array.
+   :type backend: module, optional
+   :param dtype: Floating dtype for stored transform arrays.
+   :type dtype: dtype, optional
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec',)
+
+
+
+   .. py:attribute:: xp
+
+
+   .. py:attribute:: dtype
+      :value: None
+
+
+
+   .. py:attribute:: center
+
+
+   .. py:attribute:: ref_vec
+
+
+   .. py:method:: transform(coords)
+
+      Transform output-plane coordinates to source-plane sampling coordinates.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``.
+      :type coords: array-like
+
+      :returns: Transformed coordinate array using the same backend as ``coords``.
+      :rtype: array-like
+
+
+
+   .. py:method:: _prepare_coords(coords)
+
+      Coerce coordinate arrays and return backend-aware transform metadata.
+
+      :returns: ``(xp, dtype, coords, ref_vec)`` where ``xp`` is the coordinate
+                backend and ``ref_vec`` is stored on that backend.
+      :rtype: tuple
+
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+      :abstractmethod:
+
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: to_backend(backend=None, dtype=None)
+
+      Return a copy of this transform on another backend/dtype.
+
+      :param backend: Array backend to use for stored transform arrays. Use NumPy by
+                      default or pass CuPy for GPU-backed arrays.
+      :type backend: module, optional
+      :param dtype: Floating dtype for stored transform arrays. Defaults to this
+                    transform's current dtype.
+      :type dtype: dtype, optional
+
+      :returns: New transform with equivalent parameters stored on the requested
+                backend and dtype.
+      :rtype: Transform
+
+
+
+   .. py:method:: _to_numpy(array)
+      :staticmethod:
+
+
+      Convert a NumPy or CuPy array to NumPy.
+
+
+
+   .. py:method:: _as_backend_array(array, xp, dtype=None)
+
+      Return ``array`` on ``xp`` without implicit CuPy-to-NumPy conversion.
+
+
+
+.. py:class:: FlexionTransform(gamma1, gamma2, kappa, F1=0, F2=0, G1=0, G2=0, center=None, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Coordinate transform for affine lensing with first-order flexion terms.
+
+   The transform maps lensed-plane pixel-centre coordinates into the
+   corresponding pre-lensed/source-plane coordinates. Inputs may be NumPy or
+   CuPy arrays; the backend is inferred from the coordinate array passed to
+   ``transform`` or ``inverse_transform``.
+
+   :param gamma1: Components of the reduced shear field.
+   :type gamma1: float
+   :param gamma2: Components of the reduced shear field.
+   :type gamma2: float
+   :param kappa: Lensing convergence.
+   :type kappa: float
+   :param F1: Components of first flexion. Defaults to zero.
+   :type F1: float, optional
+   :param F2: Components of first flexion. Defaults to zero.
+   :type F2: float, optional
+   :param G1: Components of third flexion. Defaults to zero.
+   :type G1: float, optional
+   :param G2: Components of third flexion. Defaults to zero.
+   :type G2: float, optional
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec', 's2l_mat', 's2l_mat_inv', 'D')
+
+
+
+   .. py:attribute:: s2l_mat
+
+
+   .. py:attribute:: s2l_mat_inv
+
+
+   .. py:attribute:: D
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform pixel-centre coordinates from lensed to pre-lensed plane.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``. The first row holds
+                     x coordinates and the second row holds y coordinates, in a
+                     consistent angular unit such as arcseconds.
+      :type coords: array-like
+
+      :returns: Transformed coordinate array using the same backend as ``coords``.
+      :rtype: array-like
+
+
+
+   .. py:method:: inverse_transform(coords)
+
+      Approximate the inverse flexion transform for coordinate arrays.
+
+      :param coords: Coordinate array with shape ``(2, npoints)`` in the transformed
+                     plane.
+      :type coords: array-like
+
+      :returns: Approximate inverse-transformed coordinates using the same backend
+                as ``coords``.
+      :rtype: array-like
+
+      .. rubric:: Notes
+
+      The approximation follows the derivation in
+      https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf.
+
+
+
+.. py:class:: IaTransform(scale, hlr, A=0.000354, phi=0, beta=1.11, center=None, clip_radius=5, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Radius-dependent intrinsic-alignment shear transform.
+
+   The transform applies a reduced-shear coordinate mapping whose amplitude is
+   set by a power law in radius from ``center``. The radial coordinate is
+   measured in units of ``hlr`` and clipped at ``clip_radius`` before the
+   amplitude law is evaluated.
+
+   :param scale: Pixel scale in arcseconds. Stored for compatibility with existing
+                 callers.
+   :type scale: float
+   :param hlr: Half-light radius used to normalize the radial profile.
+   :type hlr: float
+   :param A: Distortion amplitude at one half-light radius. Defaults to the
+             Georgiou+19 best-fit value used by the existing pipeline.
+   :type A: float, optional
+   :param phi: Alignment angle in radians. A value of zero aligns the distortion with
+               the horizontal axis.
+   :type phi: float, optional
+   :param beta: Power-law index for the radial amplitude profile.
+   :type beta: float, optional
+   :param center: Coordinate origin ``[x, y]`` for the radial profile. Defaults to
+                  ``[0, 0]``.
+   :type center: sequence of float, optional
+   :param clip_radius: Maximum radius, in units of ``hlr``, used when evaluating the amplitude
+                       profile.
+   :type clip_radius: float, optional
+
+
+   .. py:attribute:: A
+      :value: 0.000354
+
+
+
+   .. py:attribute:: phi
+      :value: 0
+
+
+
+   .. py:attribute:: c2phi
+
+
+   .. py:attribute:: s2phi
+
+
+   .. py:attribute:: beta
+      :value: 1.11
+
+
+
+   .. py:attribute:: scale
+
+
+   .. py:attribute:: hlr
+
+
+   .. py:attribute:: xcen
+
+
+   .. py:attribute:: ycen
+
+
+   .. py:attribute:: clip_radius
+      :value: 5
+
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform coordinates using the local IA shear at each radius.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``. NumPy and CuPy inputs
+                     are both supported.
+      :type coords: array-like
+
+      :returns: Coordinate array transformed by the radius-dependent reduced shear.
+      :rtype: array-like
+
+
+
+   .. py:method:: get_g1g2(x, y)
+
+      Compute reduced-shear components for coordinates relative to center.
+
+      :param x: Coordinates relative to the transform center. Integer arrays are
+                promoted to floating point before the radial amplitude law is
+                evaluated.
+      :type x: array-like
+      :param y: Coordinates relative to the transform center. Integer arrays are
+                promoted to floating point before the radial amplitude law is
+                evaluated.
+      :type y: array-like
+
+      :returns: ``(g1, g2)`` reduced-shear components using the same backend as the
+                input arrays.
+      :rtype: tuple of array-like
+
+      :raises ValueError: Raised if the requested distortion amplitude exceeds one.
+
+
+
+.. py:data:: IATransform
+
+.. py:class:: LensTransform(gamma1, gamma2, kappa, center=None, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Affine lensing transform supporting either NumPy or CuPy arrays.
+
+   If CuPy is available and the input coordinates are CuPy arrays, the
+   transform runs natively on GPU.
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec', 'lens_mat')
+
+
+
+   .. py:attribute:: lens_mat
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform pixel-centre coordinates from lensed plane to pre-lensed plane.
+
+      :param coords: Coordinate array with shape (2, npoints). Can be NumPy or CuPy.
+      :type coords: array-like
+
+      :returns: Transformed coordinates using the configured backend.
+      :rtype: array-like
+
+
+
+.. py:data:: AffineLensingTransform
+
+.. py:function:: e_to_g(absesq)
+
+   Convert distortion amplitude squared to reduced shear scale factor.
+
+   This is a helper function not currently used in the transforms provided.
+
+   :param absesq: Squared distortion amplitude. Values near zero use a Taylor
+                  expansion for numerical stability.
+   :type absesq: float or array-like
+
+   :returns: Multiplicative factor that maps distortion components to reduced
+             shear components.
+   :rtype: float or array-like
+
+

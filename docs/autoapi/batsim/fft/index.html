@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.fft &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="batsim.grid" href="../grid/index.html" />
+    <link rel="prev" title="batsim.experimental.wcs" href="../experimental/wcs/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.fft</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.fft">
+<span id="batsim-fft"></span><h1>batsim.fft<a class="headerlink" href="#module-batsim.fft" title="Link to this heading"></a></h1>
+<p>Fourier-space convolution and image extraction helpers.</p>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.fft._center_crop_or_pad" title="batsim.fft._center_crop_or_pad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_center_crop_or_pad</span></code></a>(array, target_shape)</p></td>
+<td><p>Centrally crop or zero-pad an array to the requested shape.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.fft._draw_centered_psf" title="batsim.fft._draw_centered_psf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_draw_centered_psf</span></code></a>(xp, psf_obj, n, scale[, dtype])</p></td>
+<td><p>Draw the PSF on the full FFT grid.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.fft._rfft_centered_image" title="batsim.fft._rfft_centered_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_rfft_centered_image</span></code></a>(xp, image, real_dtype, complex_dtype)</p></td>
+<td><p>Compute rfft2(ifftshift(image)) without explicitly shifting the image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.fft._apply_centering_phase" title="batsim.fft._apply_centering_phase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_apply_centering_phase</span></code></a>(xp, spectrum, n[, center_index])</p></td>
+<td><p>Apply the Fourier phase equivalent to np.fft.ifftshift before an FFT.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.fft._apply_pixel_response" title="batsim.fft._apply_pixel_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_apply_pixel_response</span></code></a>(xp, spectrum, n, fine_scale, ...)</p></td>
+<td><p>Apply the square-pixel Fourier response in-place on an rfft2 grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.fft._block_integration_response" title="batsim.fft._block_integration_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_block_integration_response</span></code></a>(xp, k, fine_scale[, mode, ...])</p></td>
+<td><p>Return the 1D Fourier response introduced by block integration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.fft._compensate_block_integration" title="batsim.fft._compensate_block_integration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_compensate_block_integration</span></code></a>(xp, spectrum, n, fine_scale)</p></td>
+<td><p>Remove the fine-pixel averaging response introduced by block integration.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.fft._extract_centered_coarse_image" title="batsim.fft._extract_centered_coarse_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_extract_centered_coarse_image</span></code></a>(xp, image, downsample_ratio)</p></td>
+<td><p>Return fftshift(image)[::downsample_ratio, ::downsample_ratio] without</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.fft._extract_centered_real_space_coarse_image" title="batsim.fft._extract_centered_real_space_coarse_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_extract_centered_real_space_coarse_image</span></code></a>(xp, image, ...)</p></td>
+<td><p>Extract the aligned coarse grid from a centred real-space fine image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.fft._convolve_psf_fft" title="batsim.fft._convolve_psf_fft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_convolve_psf_fft</span></code></a>(xp, gal_prof, scale, pix_scale, ...)</p></td>
+<td><p>Convolve the sampled galaxy with PSF and/or pixel response using rFFT.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._center_crop_or_pad">
+<span class="sig-name descname"><span class="pre">_center_crop_or_pad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_center_crop_or_pad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._center_crop_or_pad" title="Link to this definition"></a></dt>
+<dd><p>Centrally crop or zero-pad an array to the requested shape.</p>
+<p>This is used after the internal simulation grid has been rendered so the
+caller’s requested output size is a centered view of the same simulation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._draw_centered_psf">
+<span class="sig-name descname"><span class="pre">_draw_centered_psf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_draw_centered_psf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._draw_centered_psf" title="Link to this definition"></a></dt>
+<dd><p>Draw the PSF on the full FFT grid.</p>
+<p>Pixel convolution is not included here; the pixel response is applied
+separately in Fourier space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._rfft_centered_image">
+<span class="sig-name descname"><span class="pre">_rfft_centered_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complex_dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_rfft_centered_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._rfft_centered_image" title="Link to this definition"></a></dt>
+<dd><p>Compute rfft2(ifftshift(image)) without explicitly shifting the image.</p>
+<p>The input image remains in the centred real-space convention. The phase
+correction converts the spectrum to the convention that would have been
+obtained by first applying np.fft.ifftshift(image).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._apply_centering_phase">
+<span class="sig-name descname"><span class="pre">_apply_centering_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_apply_centering_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._apply_centering_phase" title="Link to this definition"></a></dt>
+<dd><p>Apply the Fourier phase equivalent to np.fft.ifftshift before an FFT.</p>
+<p>This avoids materialising a shifted real-space image, which is expensive
+for very large supersampled stamps.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._apply_pixel_response">
+<span class="sig-name descname"><span class="pre">_apply_pixel_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_apply_pixel_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._apply_pixel_response" title="Link to this definition"></a></dt>
+<dd><p>Apply the square-pixel Fourier response in-place on an rfft2 grid.</p>
+<p>The response is separable, so this avoids allocating a full 2D pixel FFT.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._block_integration_response">
+<span class="sig-name descname"><span class="pre">_block_integration_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quadrature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_block_integration_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._block_integration_response" title="Link to this definition"></a></dt>
+<dd><p>Return the 1D Fourier response introduced by block integration.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._compensate_block_integration">
+<span class="sig-name descname"><span class="pre">_compensate_block_integration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fine_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quadrature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_compensate_block_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._compensate_block_integration" title="Link to this definition"></a></dt>
+<dd><p>Remove the fine-pixel averaging response introduced by block integration.</p>
+<p>Gauss-Legendre block integration approximates the mean surface brightness
+over each fine-grid pixel, introducing a separable pre-smoothing response.
+Divide out this response within the represented Fourier band before
+applying the physical PSF convolution.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mode=&quot;quadrature&quot;</span></code> removes the discrete Gauss-Legendre transfer
+function for the configured nodes and weights. <code class="docutils literal notranslate"><span class="pre">mode=&quot;exact_sinc&quot;</span></code> keeps
+the ideal top-hat response compensation available as an explicit option.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._extract_centered_coarse_image">
+<span class="sig-name descname"><span class="pre">_extract_centered_coarse_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_extract_centered_coarse_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._extract_centered_coarse_image" title="Link to this definition"></a></dt>
+<dd><p>Return fftshift(image)[::downsample_ratio, ::downsample_ratio] without
+explicitly materialising fftshift(image).</p>
+<p>This keeps the expensive full-resolution image shift out of both GPU and
+CPU memory paths. Only the already-downsampled coarse image is gathered.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._extract_centered_real_space_coarse_image">
+<span class="sig-name descname"><span class="pre">_extract_centered_real_space_coarse_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample_ratio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_extract_centered_real_space_coarse_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._extract_centered_real_space_coarse_image" title="Link to this definition"></a></dt>
+<dd><p>Extract the aligned coarse grid from a centred real-space fine image.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">_extract_centered_coarse_image</span></code>, this is for images that have not
+passed through an inverse FFT and therefore are already in spatial order.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.fft._convolve_psf_fft">
+<span class="sig-name descname"><span class="pre">_convolve_psf_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gal_prof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_compensation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quadrature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_flux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/fft.html#_convolve_psf_fft"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.fft._convolve_psf_fft" title="Link to this definition"></a></dt>
+<dd><p>Convolve the sampled galaxy with PSF and/or pixel response using rFFT.</p>
+<p>The expensive path avoids explicit fftshift/ifftshift operations. Instead:
+- centred real-space images are converted by Fourier phase correction;
+- the pixel response is applied separably in-place;
+- the full fine-grid image is inverse FFT’d, then downsampled in real space.</p>
+<p><code class="docutils literal notranslate"><span class="pre">psf_mode=&quot;kvalue&quot;</span></code> samples GalSim’s analytic Fourier PSF through the C++
+backend, avoiding a real-space PSF draw and an extra FFT.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../experimental/wcs/index.html" class="btn btn-neutral float-left" title="batsim.experimental.wcs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../grid/index.html" class="btn btn-neutral float-right" title="batsim.grid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

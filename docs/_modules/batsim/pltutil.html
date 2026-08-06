@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.pltutil &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../batsim.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.pltutil</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for batsim.pltutil</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Legacy plotting utilities used by BATSim examples and validation notebooks.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">simple_norm</span>
+
+<div class="viewcode-block" id="colors">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.colors">[docs]</a>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;#000000&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#1976D2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#E53935&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#43A047&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#673AB7&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#4DD0E1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#E91E63&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#F2D026&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#333333&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#9E9E9E&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#FB8C00&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#FFB300&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#795548&quot;</span><span class="p">,</span>
+<span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="cblues">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.cblues">[docs]</a>
+<span class="n">cblues</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#004c6d&quot;</span><span class="p">,</span> <span class="s2">&quot;#346888&quot;</span><span class="p">,</span> <span class="s2">&quot;#5886a5&quot;</span><span class="p">,</span> <span class="s2">&quot;#7aa6c2&quot;</span><span class="p">,</span> <span class="s2">&quot;#9dc6e0&quot;</span><span class="p">,</span> <span class="s2">&quot;#c1e7ff&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="creds">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.creds">[docs]</a>
+<span class="n">creds</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#DC1C13&quot;</span><span class="p">,</span> <span class="s2">&quot;#EA4C46&quot;</span><span class="p">,</span> <span class="s2">&quot;#F07470&quot;</span><span class="p">,</span> <span class="s2">&quot;#F1959B&quot;</span><span class="p">,</span> <span class="s2">&quot;#F6BDC0&quot;</span><span class="p">,</span> <span class="s2">&quot;#F8D8E3&quot;</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="make_figure_axes">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.make_figure_axes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_figure_axes</span><span class="p">(</span><span class="n">ny</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">square</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a Matplotlib figure with one of BATSim&#39;s preset subplot layouts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ny : int, optional</span>
+<span class="sd">        Number of subplot rows.</span>
+<span class="sd">    nx : int, optional</span>
+<span class="sd">        Number of subplot columns.</span>
+<span class="sd">    square : bool, optional</span>
+<span class="sd">        Select the taller preset size for the supported ``2 x 1`` layout.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        ``(fig, axes)`` where ``fig`` is a Matplotlib figure and ``axes`` is a</span>
+<span class="sd">        flat list of axes in creation order.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        Raised if ``ny`` or ``nx`` is not an integer.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if the requested layout is not one of the supported presets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;ny should be integer&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;nx should be integer&quot;</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">square</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">11</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Do not have option: ny=</span><span class="si">%s</span><span class="s2">, nx=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span></div>
+
+
+
+<div class="viewcode-block" id="determine_cuts">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.determine_cuts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">determine_cuts</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine display cuts for image data using fixed percentiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Image array used to calculate display cuts.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of float</span>
+<span class="sd">        ``(min_cut, max_cut)`` from the 5th and 98th percentiles of the</span>
+<span class="sd">        flattened input data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">min_cut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">max_cut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="mi">98</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">min_cut</span><span class="p">,</span> <span class="n">max_cut</span></div>
+
+
+
+<div class="viewcode-block" id="make_plot_image">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.make_plot_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_plot_image</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display image data with BATSim&#39;s default asinh plotting normalisation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray</span>
+<span class="sd">        Two-dimensional image array to display.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matplotlib.image.AxesImage</span>
+<span class="sd">        Image artist returned by ``matplotlib.pyplot.imshow``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">min_cut</span><span class="p">,</span> <span class="n">max_cut</span> <span class="o">=</span> <span class="n">determine_cuts</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">sn</span> <span class="o">=</span> <span class="n">simple_norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;asinh&quot;</span><span class="p">,</span> <span class="n">asinh_a</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">min_cut</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">max_cut</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdYlBu_r&quot;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">sn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="stitch_images">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.stitch_images">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stitch_images</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stitch equal-sized Galsim image objects into a single composite image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    images : sequence of galsim.Image</span>
+<span class="sd">        Images to stitch together. All images are expected to share the same</span>
+<span class="sd">        dimensions and pixel scale.</span>
+<span class="sd">    direction : {&quot;horizontal&quot;, &quot;vertical&quot;, &quot;square&quot;}, optional</span>
+<span class="sd">        Direction in which images are concatenated. ``&quot;square&quot;`` arranges the</span>
+<span class="sd">        images on a square grid, leaving any unused cells blank.</span>
+<span class="sd">    spacing : None, optional</span>
+<span class="sd">        Placeholder for future gap support. Only ``None`` is currently</span>
+<span class="sd">        implemented.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    galsim.ImageF or None</span>
+<span class="sd">        Composite image when ``spacing`` is ``None`` and ``direction`` is</span>
+<span class="sd">        supported; otherwise ``None``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># read in sizes of the individual images</span>
+    <span class="c1"># MUST BE SAME FOR ALL IMAGES RIGHT NOW</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xmax</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ymax</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scale</span>
+
+    <span class="c1"># Check is images should be stitched with no gap between them</span>
+    <span class="k">if</span> <span class="n">spacing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Check for direction of stitching</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;horizontal&quot;</span><span class="p">:</span>
+            <span class="c1"># Determine required size of final &#39;super&#39; image</span>
+            <span class="c1"># And create an empty canvas to draw to</span>
+            <span class="n">Nx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span> <span class="o">*</span> <span class="n">nx</span>
+            <span class="n">super_image</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">Nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+            <span class="c1"># Counter to ensure correct bounds are applied</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+                <span class="c1"># Determine the bounds within which image should be</span>
+                <span class="c1"># placed in super_image and then place</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">BoundsI</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span> <span class="n">xmax</span><span class="o">=</span><span class="n">nx</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="n">ny</span><span class="p">)</span>
+
+                <span class="n">super_image</span><span class="o">.</span><span class="n">setSubImage</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># update for next iteration</span>
+            <span class="k">return</span> <span class="n">super_image</span>
+
+        <span class="c1"># Same as above but for vertical stitching</span>
+        <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;vertical&quot;</span><span class="p">:</span>
+            <span class="c1"># Determine required size of final &#39;super&#39; image</span>
+            <span class="c1"># And create an empty canvas to draw to</span>
+            <span class="n">Ny</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span> <span class="o">*</span> <span class="n">ny</span>
+            <span class="n">super_image</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">Ny</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+            <span class="c1"># Counter to ensure correct bounds are applied</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+                <span class="c1"># Determine the bounds within which image should be</span>
+                <span class="c1"># placed in super_image and then place</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">BoundsI</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">nx</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span> <span class="n">ymax</span><span class="o">=</span><span class="n">ny</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">ny</span><span class="p">))</span>
+
+                <span class="n">super_image</span><span class="o">.</span><span class="n">setSubImage</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># update for next iteration</span>
+            <span class="k">return</span> <span class="n">super_image</span>
+
+        <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;square&quot;</span><span class="p">:</span>
+            <span class="n">nside</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">))))</span>
+            <span class="n">Nx</span> <span class="o">=</span> <span class="n">nside</span> <span class="o">*</span> <span class="n">nx</span>
+            <span class="n">Ny</span> <span class="o">=</span> <span class="n">nside</span> <span class="o">*</span> <span class="n">ny</span>
+            <span class="n">super_image</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">Nx</span><span class="p">,</span> <span class="n">Ny</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">i</span> <span class="o">//</span> <span class="n">nside</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">nside</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">BoundsI</span><span class="p">(</span>
+                    <span class="n">xmin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">col</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span>
+                    <span class="n">xmax</span><span class="o">=</span><span class="n">nx</span> <span class="o">+</span> <span class="p">(</span><span class="n">col</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span>
+                    <span class="n">ymin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span>
+                    <span class="n">ymax</span><span class="o">=</span><span class="n">ny</span> <span class="o">+</span> <span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="n">super_image</span><span class="o">.</span><span class="n">setSubImage</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">super_image</span></div>
+
+
+
+<div class="viewcode-block" id="split_image">
+<a class="viewcode-back" href="../../autoapi/batsim/pltutil/index.html#batsim.pltutil.split_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">nsplit</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split a stitched GalSim image into equal-sized image stamps.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : galsim.Image</span>
+<span class="sd">        Input image to split.</span>
+<span class="sd">    nsplit : int</span>
+<span class="sd">        Number of equal pieces to extract along the split direction.</span>
+<span class="sd">    direction : {&quot;horizontal&quot;, &quot;vertical&quot;}, optional</span>
+<span class="sd">        Axis along which the input image is split.</span>
+<span class="sd">    spacing : None, optional</span>
+<span class="sd">        Placeholder for future gap support. Only ``None`` is currently</span>
+<span class="sd">        implemented.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of galsim.ImageF or None</span>
+<span class="sd">        List of split images when ``spacing`` is ``None`` and ``direction`` is</span>
+<span class="sd">        supported; otherwise ``None``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># read in sizes of the image</span>
+    <span class="n">Nx</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">xmax</span>
+    <span class="n">Ny</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">ymax</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">scale</span>
+
+    <span class="c1"># Check if images have gaps between them</span>
+    <span class="k">if</span> <span class="n">spacing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Check for direction of spliting</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;horizontal&quot;</span><span class="p">:</span>
+            <span class="c1"># Determine required size of each split image</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">Nx</span> <span class="o">/</span> <span class="n">nsplit</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">Ny</span>
+            <span class="c1"># Counter to ensure correct bounds are applied</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># list to contain split images</span>
+            <span class="n">split_images</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsplit</span><span class="p">):</span>
+                <span class="n">split_image</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+                <span class="c1"># Determine bounds within which to get the sub image</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">BoundsI</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span> <span class="n">xmax</span><span class="o">=</span><span class="n">nx</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nx</span><span class="p">),</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="n">ny</span><span class="p">)</span>
+
+                <span class="n">sub_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">subImage</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+                <span class="n">split_image</span><span class="o">.</span><span class="n">copyFrom</span><span class="p">(</span><span class="n">sub_image</span><span class="p">)</span>
+                <span class="c1"># Determine the bounds within which image should be</span>
+                <span class="n">split_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_image</span><span class="p">)</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># update for next iteration</span>
+            <span class="k">return</span> <span class="n">split_images</span>
+
+        <span class="c1"># Same as above but for vertical stitching</span>
+        <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;vertical&quot;</span><span class="p">:</span>
+            <span class="c1"># Determine required size of each split image</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">Ny</span> <span class="o">/</span> <span class="n">nsplit</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">Nx</span>
+            <span class="c1"># Counter to ensure correct bounds are applied</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># list to contain split images</span>
+            <span class="n">split_images</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsplit</span><span class="p">):</span>
+                <span class="n">split_image</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">ImageF</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+                <span class="c1"># Determine bounds within which to get the sub image</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">BoundsI</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">nx</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span> <span class="n">ymax</span><span class="o">=</span><span class="n">ny</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">ny</span><span class="p">))</span>
+
+                <span class="n">sub_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">subImage</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+                <span class="n">split_image</span><span class="o">.</span><span class="n">copyFrom</span><span class="p">(</span><span class="n">sub_image</span><span class="p">)</span>
+                <span class="c1"># Determine the bounds within which image should be</span>
+                <span class="n">split_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_image</span><span class="p">)</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># update for next iteration</span>
+            <span class="k">return</span> <span class="n">split_images</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

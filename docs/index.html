@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BATSim &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">BATSim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="batsim">
+<h1>BATSim<a class="headerlink" href="#batsim" title="Link to this heading"></a></h1>
+<p>BATSim renders GalSim profiles on coordinate grids that can be transformed
+before sampling. This supports non-affine shear fields, including
+intrinsic-alignment-style radial shear and flexion, while preserving the current
+GalSim image-centering and flux conventions used by the renderer.</p>
+<section id="current-rendering-defaults">
+<h2>Current Rendering Defaults<a class="headerlink" href="#current-rendering-defaults" title="Link to this heading"></a></h2>
+<p>The public render entry point is <a class="reference internal" href="autoapi/batsim/index.html#batsim.simulate_galaxy" title="batsim.simulate_galaxy"><code class="xref py py-func docutils literal notranslate"><span class="pre">batsim.simulate_galaxy()</span></code></a>. Its current
+default pipeline uses:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">psf_mode=&quot;kvalue&quot;</span></code> to sample the analytic PSF Fourier profile through the
+compiled BATSim/GalSim bridge.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">force_input_flux=True</span></code> to preserve the input galaxy flux after convolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_true_center=True</span></code> to align the fine grid with GalSim's true image
+center convention.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">integration_order=2</span></code> to use Gauss-Legendre block integration before the
+FFT convolution path.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compensate_integration=&quot;quadrature&quot;</span></code> to remove the matching
+Gauss-Legendre transfer function. Pass <code class="docutils literal notranslate"><span class="pre">&quot;exact_sinc&quot;</span></code> for ideal top-hat
+compensation, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to disable compensation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend=&quot;np&quot;</span></code> by default. Passing <code class="docutils literal notranslate"><span class="pre">backend=None</span></code> also selects NumPy;
+pass <code class="docutils literal notranslate"><span class="pre">backend=&quot;cp&quot;</span></code> to request CuPy.</p></li>
+</ul>
+</section>
+<section id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">galsim</span>
+<span class="kn">import</span> <span class="nn">batsim</span>
+
+<span class="n">galaxy</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">half_light_radius</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">flux</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Gaussian</span><span class="p">(</span><span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">IaTransform</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">hlr</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">galaxy</span><span class="p">,</span>
+    <span class="n">scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">transform_obj</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">image</span></code> is returned as a NumPy array, even when CuPy is used internally for
+FFT-heavy work.</p>
+</section>
+<section id="installation-notes">
+<h2>Installation Notes<a class="headerlink" href="#installation-notes" title="Link to this heading"></a></h2>
+<p>BATSim links against GalSim's shared C++ library. The recommended installation
+route is currently a conda or mamba environment using conda-forge packages for
+GalSim, Eigen, pybind11, and NumPy, followed by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> for local
+development. See the repository README for full build instructions.</p>
+</section>
+<section id="public-api">
+<h2>Public API<a class="headerlink" href="#public-api" title="Link to this heading"></a></h2>
+<p>The stable top-level API includes:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.simulate_galaxy" title="batsim.simulate_galaxy"><code class="xref py py-func docutils literal notranslate"><span class="pre">batsim.simulate_galaxy()</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.clear_backend_memory" title="batsim.clear_backend_memory"><code class="xref py py-func docutils literal notranslate"><span class="pre">batsim.clear_backend_memory()</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.Stamp" title="batsim.Stamp"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.Stamp</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.Transform" title="batsim.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.Transform</span></code></a>, a base class for custom coordinate transforms</p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.LensTransform" title="batsim.LensTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.LensTransform</span></code></a> and <a class="reference internal" href="autoapi/batsim/index.html#batsim.AffineLensingTransform" title="batsim.AffineLensingTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.AffineLensingTransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.IaTransform" title="batsim.IaTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.IaTransform</span></code></a> and <a class="reference internal" href="autoapi/batsim/index.html#batsim.IATransform" title="batsim.IATransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.IATransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.FlexionTransform" title="batsim.FlexionTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.FlexionTransform</span></code></a></p></li>
+</ul>
+<p>Experimental helpers live under <a class="reference internal" href="autoapi/batsim/experimental/index.html#module-batsim.experimental" title="batsim.experimental"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.experimental</span></code></a>. They are available
+for development and validation work, but are not part of the stable top-level
+API.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,624 @@
+batsim
+======
+
+.. py:module:: batsim
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/batsim/_version/index
+   /autoapi/batsim/backend/index
+   /autoapi/batsim/experimental/index
+   /autoapi/batsim/fft/index
+   /autoapi/batsim/grid/index
+   /autoapi/batsim/pltutil/index
+   /autoapi/batsim/sampling/index
+   /autoapi/batsim/sim/index
+   /autoapi/batsim/stamp/index
+   /autoapi/batsim/transforms/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   batsim.__version__
+   batsim.version
+   batsim.AffineLensingTransform
+   batsim.IATransform
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   batsim.Stamp
+   batsim.FlexionTransform
+   batsim.IaTransform
+   batsim.LensTransform
+   batsim.Transform
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.clear_backend_memory
+   batsim.simulate_galaxy
+
+
+Package Contents
+----------------
+
+.. py:data:: __version__
+   :value: '1.0.0'
+
+
+.. py:data:: version
+   :value: '1.0.0'
+
+
+.. py:function:: clear_backend_memory(backend=None)
+
+   Clear cached memory held by the selected array backend.
+
+   This is primarily useful after CuPy out-of-memory errors in notebooks or
+   long-running sessions.  Calling it for the NumPy backend is a no-op.
+
+   :param backend: Backend to clear.  ``None`` selects NumPy, strings select NumPy or
+                   CuPy explicitly, and module objects are used directly.
+   :type backend: {"np", "numpy", "cp", "cupy"} or module or None, optional
+
+   :rtype: None
+
+
+.. py:function:: simulate_galaxy(gal_obj, scale=None, ngrid=None, transform_obj=None, psf_obj=None, draw_method='auto', safety=2.0, max_supersample=64, min_supersample=4, integration_order=2, max_fine_grid=4096, pad=16, precision='single', backend='np', profile=False, pix_scale=None, psf_mode='kvalue', force_input_flux=False, compensate_integration='quadrature', use_true_center=True)
+
+   Render a GalSim object through BATSim's non-affine sampling pipeline.
+
+   The galaxy profile is sampled on a supersampled coordinate grid, optional
+   coordinate transforms are applied before profile evaluation, and optional
+   PSF/pixel convolution is performed in Fourier space. The returned image is
+   a NumPy array regardless of the backend used internally.
+
+   :param gal_obj: Galaxy surface-brightness profile to sample.
+   :type gal_obj: galsim.GSObject
+   :param scale: Output pixel scale in arcsec.  Either ``scale`` or ``pix_scale`` must
+                 be supplied.  If both are supplied, they must agree.
+   :type scale: float, optional
+   :param ngrid: Final square output size in pixels.  If omitted, BATSim chooses the
+                 output size from the GalSim object support at ``scale``.
+   :type ngrid: int, optional
+   :param transform_obj: Coordinate transform(s) applied before sampling the galaxy profile.
+                         Each transform must provide ``transform(coords)`` where ``coords`` has
+                         shape ``(2, npoints)``.  Transforms with a ``to_backend`` method
+                         are moved to the selected array backend before use.
+   :type transform_obj: object or sequence of objects, optional
+   :param psf_obj: PSF profile to convolve with the sampled galaxy.
+   :type psf_obj: galsim.GSObject, optional
+   :param draw_method: Pixel-response mode.  ``"auto"`` applies the square-pixel response;
+                       ``"no_pixel"`` omits it.
+   :type draw_method: {"auto", "no_pixel"}, optional
+   :param safety: Multiplicative safety factor used when estimating the required
+                  supersampling from the galaxy Fourier bandwidth and Nyquist frequency.
+   :type safety: float, optional
+   :param max_supersample: Maximum total supersampling factor considered by the automatic grid
+                           selection.
+   :type max_supersample: int, optional
+   :param min_supersample: Minimum FFT supersampling factor used by the renderer. Reducing this
+                           below 4 is not recommended, as it can result in very corase representations
+                           of non-affine shear gradients and aliasing.
+   :type min_supersample: int, optional
+   :param integration_order: Gauss-Legendre quadrature order for sub-pixel block integration. 1 is
+                             equivalent to no sub-pixel integration.  Higher orders reduce
+                             high-frequency leakage at the cost of more backend evaluations.
+   :type integration_order: int, optional
+   :param max_fine_grid: Maximum fine-grid side length.  Use ``None`` to disable the cap.
+   :type max_fine_grid: int or None, optional
+   :param pad: Padding, in coarse pixels, added around the internal simulation grid
+               before supersampling.
+   :type pad: int, optional
+   :param precision: Floating-point precision for FFT-side arrays. Generally ``"single"`` is
+                     sufficient for most applications.
+   :type precision: {"single", "double"}, optional
+   :param backend: Array backend used for coordinate construction and FFT operations.
+                   ``None`` selects NumPy. Use ``"cp"`` or ``"cupy"`` to request CuPy.
+   :type backend: {"np", "numpy", "cp", "cupy"} or module or None, optional
+   :param profile: If True, print timing diagnostics for the major rendering stages.
+   :type profile: bool, optional
+   :param pix_scale: Deprecated spelling for ``scale`` retained for compatibility.
+   :type pix_scale: float, optional
+   :param psf_mode: PSF Fourier sampling mode.  ``"kvalue"`` evaluates the analytic PSF
+                    Fourier profile through the compiled backend; ``"real"`` draws the PSF
+                    in real space and FFTs it.
+   :type psf_mode: {"kvalue", "real"}, optional
+   :param force_input_flux: If True, normalise the final convolved image to ``gal_obj.flux``.
+   :type force_input_flux: bool, optional
+   :param compensate_integration: Fourier-space compensation applied when ``integration_order > 1``.
+                                  ``"quadrature"`` removes the discrete Gauss-Legendre transfer function
+                                  introduced by block integration. ``"exact_sinc"`` removes the ideal
+                                  top-hat response instead. Using None leaves the block-integration
+                                  smoothing in the rendered image and is not recommended for regular usage.
+   :type compensate_integration: {"quadrature", "exact_sinc"} or None, optional
+   :param use_true_center: If True, align the fine grid to GalSim's true-image-center convention
+                           for the eventual coarse output grid. This is a functional mirror of the same
+                           argument in ``galsim.drawImage``.
+   :type use_true_center: bool, optional
+
+   :returns: Rendered square image with shape ``(ngrid, ngrid)`` when ``ngrid`` is
+             provided, otherwise the automatically selected output shape.
+   :rtype: ndarray
+
+   :raises RuntimeError: Raised with a compact message if rendering fails after clearing cached
+       backend memory.
+
+
+.. py:class:: Stamp(nn: int = 32, scale: float = 0.2, backend=None, dtype=None, use_true_center=True, downsample_ratio=1)
+
+   Coordinate grid used for sampling GalSim profiles. Currently, BATSim only
+   supports square grids for transforms and rendering, but it is planned to
+   support rectangular grids in the future.
+
+   A ``Stamp`` stores flattened ``x``/``y`` coordinates with shape
+   ``(2, nn * nn)``.  Coordinates are built on the requested array backend so
+   transform operations can run on either NumPy or CuPy arrays.
+
+   :param nn: Number of pixels along each side of the square coordinate grid.
+   :type nn: int, optional
+   :param scale: Pixel scale in arcsec.
+   :type scale: float, optional
+   :param backend: Array backend, usually ``numpy`` or ``cupy``.  If omitted, NumPy is
+                   used.
+   :type backend: module, optional
+   :param dtype: Coordinate dtype.  Defaults to ``float32`` for CuPy and ``float64`` for
+                 NumPy.
+   :type dtype: dtype, optional
+   :param use_true_center: If True, use GalSim's true-image-center convention.  When the fine grid
+                           will later be downsampled, this aligns it to the true center of the
+                           coarse output grid.
+   :type use_true_center: bool, optional
+   :param downsample_ratio: Ratio between the fine grid and the eventual coarse output grid.
+   :type downsample_ratio: int, optional
+
+   .. attribute:: coords
+
+      Flattened coordinate array ordered as ``[x, y]`` with shape
+      ``(2, nn * nn)``.
+
+      :type: array-like
+
+   .. attribute:: pixel_area
+
+      Fine-grid pixel area in square arcsec.
+
+      :type: float
+
+   .. attribute:: center_index
+
+      Pixel index used as the coordinate origin.
+
+      :type: float
+
+
+   .. py:attribute:: xp
+
+
+   .. py:attribute:: dtype
+      :value: None
+
+
+
+   .. py:method:: set_coords(nn, scale, use_true_center=True, downsample_ratio=1)
+
+      Construct coordinates with shape (2, nn*nn), ordered as [x, y].
+
+      :param nn: Number of grid points along each side.
+      :type nn: int
+      :param scale: Pixel scale in arcsec.
+      :type scale: float
+      :param use_true_center: Whether to use GalSim's true-image-center convention.
+      :type use_true_center: bool, optional
+      :param downsample_ratio: Coarse-to-fine pixel ratio used for true-center alignment.
+      :type downsample_ratio: int, optional
+
+
+
+   .. py:method:: to_numpy()
+
+      Return coordinates as NumPy array.
+
+      Useful when passing coordinates to CPU-only code such as a C++/GalSim
+      sampling backend.
+
+      :returns: Coordinate array with shape ``(2, nn * nn)``.
+      :rtype: ndarray
+
+
+
+.. py:data:: AffineLensingTransform
+
+.. py:class:: FlexionTransform(gamma1, gamma2, kappa, F1=0, F2=0, G1=0, G2=0, center=None, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Coordinate transform for affine lensing with first-order flexion terms.
+
+   The transform maps lensed-plane pixel-centre coordinates into the
+   corresponding pre-lensed/source-plane coordinates. Inputs may be NumPy or
+   CuPy arrays; the backend is inferred from the coordinate array passed to
+   ``transform`` or ``inverse_transform``.
+
+   :param gamma1: Components of the reduced shear field.
+   :type gamma1: float
+   :param gamma2: Components of the reduced shear field.
+   :type gamma2: float
+   :param kappa: Lensing convergence.
+   :type kappa: float
+   :param F1: Components of first flexion. Defaults to zero.
+   :type F1: float, optional
+   :param F2: Components of first flexion. Defaults to zero.
+   :type F2: float, optional
+   :param G1: Components of third flexion. Defaults to zero.
+   :type G1: float, optional
+   :param G2: Components of third flexion. Defaults to zero.
+   :type G2: float, optional
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec', 's2l_mat', 's2l_mat_inv', 'D')
+
+
+
+   .. py:attribute:: s2l_mat
+
+
+   .. py:attribute:: s2l_mat_inv
+
+
+   .. py:attribute:: D
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform pixel-centre coordinates from lensed to pre-lensed plane.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``. The first row holds
+                     x coordinates and the second row holds y coordinates, in a
+                     consistent angular unit such as arcseconds.
+      :type coords: array-like
+
+      :returns: Transformed coordinate array using the same backend as ``coords``.
+      :rtype: array-like
+
+
+
+   .. py:method:: inverse_transform(coords)
+
+      Approximate the inverse flexion transform for coordinate arrays.
+
+      :param coords: Coordinate array with shape ``(2, npoints)`` in the transformed
+                     plane.
+      :type coords: array-like
+
+      :returns: Approximate inverse-transformed coordinates using the same backend
+                as ``coords``.
+      :rtype: array-like
+
+      .. rubric:: Notes
+
+      The approximation follows the derivation in
+      https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf.
+
+
+
+.. py:data:: IATransform
+
+.. py:class:: IaTransform(scale, hlr, A=0.000354, phi=0, beta=1.11, center=None, clip_radius=5, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Radius-dependent intrinsic-alignment shear transform.
+
+   The transform applies a reduced-shear coordinate mapping whose amplitude is
+   set by a power law in radius from ``center``. The radial coordinate is
+   measured in units of ``hlr`` and clipped at ``clip_radius`` before the
+   amplitude law is evaluated.
+
+   :param scale: Pixel scale in arcseconds. Stored for compatibility with existing
+                 callers.
+   :type scale: float
+   :param hlr: Half-light radius used to normalize the radial profile.
+   :type hlr: float
+   :param A: Distortion amplitude at one half-light radius. Defaults to the
+             Georgiou+19 best-fit value used by the existing pipeline.
+   :type A: float, optional
+   :param phi: Alignment angle in radians. A value of zero aligns the distortion with
+               the horizontal axis.
+   :type phi: float, optional
+   :param beta: Power-law index for the radial amplitude profile.
+   :type beta: float, optional
+   :param center: Coordinate origin ``[x, y]`` for the radial profile. Defaults to
+                  ``[0, 0]``.
+   :type center: sequence of float, optional
+   :param clip_radius: Maximum radius, in units of ``hlr``, used when evaluating the amplitude
+                       profile.
+   :type clip_radius: float, optional
+
+
+   .. py:attribute:: A
+      :value: 0.000354
+
+
+
+   .. py:attribute:: phi
+      :value: 0
+
+
+
+   .. py:attribute:: c2phi
+
+
+   .. py:attribute:: s2phi
+
+
+   .. py:attribute:: beta
+      :value: 1.11
+
+
+
+   .. py:attribute:: scale
+
+
+   .. py:attribute:: hlr
+
+
+   .. py:attribute:: xcen
+
+
+   .. py:attribute:: ycen
+
+
+   .. py:attribute:: clip_radius
+      :value: 5
+
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform coordinates using the local IA shear at each radius.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``. NumPy and CuPy inputs
+                     are both supported.
+      :type coords: array-like
+
+      :returns: Coordinate array transformed by the radius-dependent reduced shear.
+      :rtype: array-like
+
+
+
+   .. py:method:: get_g1g2(x, y)
+
+      Compute reduced-shear components for coordinates relative to center.
+
+      :param x: Coordinates relative to the transform center. Integer arrays are
+                promoted to floating point before the radial amplitude law is
+                evaluated.
+      :type x: array-like
+      :param y: Coordinates relative to the transform center. Integer arrays are
+                promoted to floating point before the radial amplitude law is
+                evaluated.
+      :type y: array-like
+
+      :returns: ``(g1, g2)`` reduced-shear components using the same backend as the
+                input arrays.
+      :rtype: tuple of array-like
+
+      :raises ValueError: Raised if the requested distortion amplitude exceeds one.
+
+
+
+.. py:class:: LensTransform(gamma1, gamma2, kappa, center=None, backend=None, dtype=None)
+
+   Bases: :py:obj:`Transform`
+
+
+   Affine lensing transform supporting either NumPy or CuPy arrays.
+
+   If CuPy is available and the input coordinates are CuPy arrays, the
+   transform runs natively on GPU.
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec', 'lens_mat')
+
+
+
+   .. py:attribute:: lens_mat
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: transform(coords)
+
+      Transform pixel-centre coordinates from lensed plane to pre-lensed plane.
+
+      :param coords: Coordinate array with shape (2, npoints). Can be NumPy or CuPy.
+      :type coords: array-like
+
+      :returns: Transformed coordinates using the configured backend.
+      :rtype: array-like
+
+
+
+.. py:class:: Transform(center=None, backend=None, dtype=None)
+
+   Base class for BATSim coordinate transforms.
+
+   Transform convention
+   --------------------
+   BATSim transforms implement backward coordinate mappings. Given coordinates
+   ``x`` on the regular output-image grid, ``transform(x)`` returns coordinates
+   ``u`` at which the source surface-brightness profile should be evaluated:
+
+       I_output(x) = I_source(u),    u = transform(x).
+
+   For a locally affine transformation with forward geometric matrix ``M``, a source
+   feature at ``u`` appears at
+
+       x = M @ u.
+
+   The corresponding BATSim coordinate transform must therefore return
+
+       u = inv(M) @ x.
+
+   Although the inverse matrix is used to sample the source profile, visible
+   features undergo the forward transformation. For example, a source feature
+   at ``u0`` appears where
+
+       inv(M) @ x = u0,
+
+   which implies
+
+       x = M @ u0.
+
+   This backward, or pull-based, convention evaluates the source profile once
+   for every output location and avoids the gaps and overlaps that can occur
+   when source samples are pushed forwards onto an output grid.
+
+   All transform implementations in this module must follow this convention:
+   their inputs are output-plane coordinates and their return values are
+   source-plane sampling coordinates.
+
+   Subclasses implement only the transform-specific coordinate logic in
+   ``_transform_relative``. The base class handles backend selection, dtype
+   promotion, coordinate coercion, reference-centre subtraction/addition, and
+   moving transform arrays between NumPy and CuPy via ``to_backend``.
+
+   :param center: Reference coordinate for the center of the transform ``[x, y]``.
+                  Defaults to ``[0, 0]``.
+   :type center: sequence of float, optional
+   :param backend: NumPy or CuPy. If None, NumPy is used for stored transform arrays.
+                   Calls to ``transform`` still preserve the backend of the input
+                   coordinate array.
+   :type backend: module, optional
+   :param dtype: Floating dtype for stored transform arrays.
+   :type dtype: dtype, optional
+
+
+   .. py:attribute:: _backend_array_attributes
+      :value: ('ref_vec',)
+
+
+
+   .. py:attribute:: xp
+
+
+   .. py:attribute:: dtype
+      :value: None
+
+
+
+   .. py:attribute:: center
+
+
+   .. py:attribute:: ref_vec
+
+
+   .. py:method:: transform(coords)
+
+      Transform output-plane coordinates to source-plane sampling coordinates.
+
+      :param coords: Coordinate array with shape ``(2, npoints)``.
+      :type coords: array-like
+
+      :returns: Transformed coordinate array using the same backend as ``coords``.
+      :rtype: array-like
+
+
+
+   .. py:method:: _prepare_coords(coords)
+
+      Coerce coordinate arrays and return backend-aware transform metadata.
+
+      :returns: ``(xp, dtype, coords, ref_vec)`` where ``xp`` is the coordinate
+                backend and ``ref_vec`` is stored on that backend.
+      :rtype: tuple
+
+
+
+   .. py:method:: _transform_relative(coords_relative, xp, dtype)
+      :abstractmethod:
+
+
+      Transform coordinates relative to ``self.center``.
+
+      Subclasses should override this method and return an array with shape
+      ``(2, npoints)`` using the supplied backend ``xp``.
+
+
+
+   .. py:method:: to_backend(backend=None, dtype=None)
+
+      Return a copy of this transform on another backend/dtype.
+
+      :param backend: Array backend to use for stored transform arrays. Use NumPy by
+                      default or pass CuPy for GPU-backed arrays.
+      :type backend: module, optional
+      :param dtype: Floating dtype for stored transform arrays. Defaults to this
+                    transform's current dtype.
+      :type dtype: dtype, optional
+
+      :returns: New transform with equivalent parameters stored on the requested
+                backend and dtype.
+      :rtype: Transform
+
+
+
+   .. py:method:: _to_numpy(array)
+      :staticmethod:
+
+
+      Convert a NumPy or CuPy array to NumPy.
+
+
+
+   .. py:method:: _as_backend_array(array, xp, dtype=None)
+
+      Return ``array`` on ``xp`` without implicit CuPy-to-NumPy conversion.
+
+
+

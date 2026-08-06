@@ -1,0 +1,145 @@
+batsim.sim
+==========
+
+.. py:module:: batsim.sim
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   batsim.sim._sample_galaxy_profile_impl
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   batsim.sim._resolve_integration_compensation
+   batsim.sim._needs_fourier_render
+   batsim.sim._sample_galaxy_profile
+   batsim.sim._sample_galaxy_profile_on_stamp
+   batsim.sim.simulate_galaxy
+   batsim.sim._simulate_galaxy_impl
+
+
+Module Contents
+---------------
+
+.. py:data:: _sample_galaxy_profile_impl
+
+.. py:function:: _resolve_integration_compensation(compensate_integration)
+
+   Return the requested block-integration compensation mode.
+
+
+.. py:function:: _needs_fourier_render(psf_obj, draw_method)
+
+   Return True when PSF or pixel convolution requires the FFT path.
+
+
+.. py:function:: _sample_galaxy_profile(gal_obj, coords, fine_scale, real_dtype)
+
+   Compatibility wrapper for the sampling backend.
+
+
+.. py:function:: _sample_galaxy_profile_on_stamp(gal_obj, stamp, transform_obj, fine_scale, real_dtype, xp, integration_order=2, profile=False)
+
+   Sample the locally integrated galaxy profile on the fine simulation grid.
+
+   This wrapper preserves legacy monkeypatching of
+   ``batsim.sim._sample_galaxy_profile`` in internal tests and notebooks.
+
+
+.. py:function:: simulate_galaxy(gal_obj, scale=None, ngrid=None, transform_obj=None, psf_obj=None, draw_method='auto', safety=2.0, max_supersample=64, min_supersample=4, integration_order=2, max_fine_grid=4096, pad=16, precision='single', backend='np', profile=False, pix_scale=None, psf_mode='kvalue', force_input_flux=False, compensate_integration='quadrature', use_true_center=True)
+
+   Render a GalSim object through BATSim's non-affine sampling pipeline.
+
+   The galaxy profile is sampled on a supersampled coordinate grid, optional
+   coordinate transforms are applied before profile evaluation, and optional
+   PSF/pixel convolution is performed in Fourier space. The returned image is
+   a NumPy array regardless of the backend used internally.
+
+   :param gal_obj: Galaxy surface-brightness profile to sample.
+   :type gal_obj: galsim.GSObject
+   :param scale: Output pixel scale in arcsec.  Either ``scale`` or ``pix_scale`` must
+                 be supplied.  If both are supplied, they must agree.
+   :type scale: float, optional
+   :param ngrid: Final square output size in pixels.  If omitted, BATSim chooses the
+                 output size from the GalSim object support at ``scale``.
+   :type ngrid: int, optional
+   :param transform_obj: Coordinate transform(s) applied before sampling the galaxy profile.
+                         Each transform must provide ``transform(coords)`` where ``coords`` has
+                         shape ``(2, npoints)``.  Transforms with a ``to_backend`` method
+                         are moved to the selected array backend before use.
+   :type transform_obj: object or sequence of objects, optional
+   :param psf_obj: PSF profile to convolve with the sampled galaxy.
+   :type psf_obj: galsim.GSObject, optional
+   :param draw_method: Pixel-response mode.  ``"auto"`` applies the square-pixel response;
+                       ``"no_pixel"`` omits it.
+   :type draw_method: {"auto", "no_pixel"}, optional
+   :param safety: Multiplicative safety factor used when estimating the required
+                  supersampling from the galaxy Fourier bandwidth and Nyquist frequency.
+   :type safety: float, optional
+   :param max_supersample: Maximum total supersampling factor considered by the automatic grid
+                           selection.
+   :type max_supersample: int, optional
+   :param min_supersample: Minimum FFT supersampling factor used by the renderer. Reducing this
+                           below 4 is not recommended, as it can result in very corase representations
+                           of non-affine shear gradients and aliasing.
+   :type min_supersample: int, optional
+   :param integration_order: Gauss-Legendre quadrature order for sub-pixel block integration. 1 is
+                             equivalent to no sub-pixel integration.  Higher orders reduce
+                             high-frequency leakage at the cost of more backend evaluations.
+   :type integration_order: int, optional
+   :param max_fine_grid: Maximum fine-grid side length.  Use ``None`` to disable the cap.
+   :type max_fine_grid: int or None, optional
+   :param pad: Padding, in coarse pixels, added around the internal simulation grid
+               before supersampling.
+   :type pad: int, optional
+   :param precision: Floating-point precision for FFT-side arrays. Generally ``"single"`` is
+                     sufficient for most applications.
+   :type precision: {"single", "double"}, optional
+   :param backend: Array backend used for coordinate construction and FFT operations.
+                   ``None`` selects NumPy. Use ``"cp"`` or ``"cupy"`` to request CuPy.
+   :type backend: {"np", "numpy", "cp", "cupy"} or module or None, optional
+   :param profile: If True, print timing diagnostics for the major rendering stages.
+   :type profile: bool, optional
+   :param pix_scale: Deprecated spelling for ``scale`` retained for compatibility.
+   :type pix_scale: float, optional
+   :param psf_mode: PSF Fourier sampling mode.  ``"kvalue"`` evaluates the analytic PSF
+                    Fourier profile through the compiled backend; ``"real"`` draws the PSF
+                    in real space and FFTs it.
+   :type psf_mode: {"kvalue", "real"}, optional
+   :param force_input_flux: If True, normalise the final convolved image to ``gal_obj.flux``.
+   :type force_input_flux: bool, optional
+   :param compensate_integration: Fourier-space compensation applied when ``integration_order > 1``.
+                                  ``"quadrature"`` removes the discrete Gauss-Legendre transfer function
+                                  introduced by block integration. ``"exact_sinc"`` removes the ideal
+                                  top-hat response instead. Using None leaves the block-integration
+                                  smoothing in the rendered image and is not recommended for regular usage.
+   :type compensate_integration: {"quadrature", "exact_sinc"} or None, optional
+   :param use_true_center: If True, align the fine grid to GalSim's true-image-center convention
+                           for the eventual coarse output grid. This is a functional mirror of the same
+                           argument in ``galsim.drawImage``.
+   :type use_true_center: bool, optional
+
+   :returns: Rendered square image with shape ``(ngrid, ngrid)`` when ``ngrid`` is
+             provided, otherwise the automatically selected output shape.
+   :rtype: ndarray
+
+   :raises RuntimeError: Raised with a compact message if rendering fails after clearing cached
+       backend memory.
+
+
+.. py:function:: _simulate_galaxy_impl(gal_obj, scale=None, ngrid=None, transform_obj=None, psf_obj=None, draw_method='auto', safety=2.0, max_supersample=64, min_supersample=4, integration_order=2, max_fine_grid=4096, pad=16, precision='single', backend='np', profile=False, pix_scale=None, psf_mode='kvalue', force_input_flux=False, compensate_integration='quadrature', use_true_center=True)
+
+   Implement the render pipeline after public error handling is stripped away.
+
+   The requested output ngrid controls only the final crop. The internal
+   simulation grid is chosen from the galaxy/PSF support so that changing
+   ngrid does not change the high-resolution simulation footprint.
+
+

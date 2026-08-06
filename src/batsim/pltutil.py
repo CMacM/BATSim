@@ -1,3 +1,5 @@
+"""Legacy plotting utilities used by BATSim examples and validation notebooks."""
+
 import galsim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,12 +26,30 @@ creds = ["#DC1C13", "#EA4C46", "#F07470", "#F1959B", "#F6BDC0", "#F8D8E3"]
 
 
 def make_figure_axes(ny=1, nx=1, square=True):
-    """Makes figure and axes
+    """
+    Create a Matplotlib figure with one of BATSim's preset subplot layouts.
 
-    Args:
-        ny (int):       number of subplots in y direction
-        nx (int):       number of subplots in y direction
-        square (bool):  whether using square plot
+    Parameters
+    ----------
+    ny : int, optional
+        Number of subplot rows.
+    nx : int, optional
+        Number of subplot columns.
+    square : bool, optional
+        Select the taller preset size for the supported ``2 x 1`` layout.
+
+    Returns
+    -------
+    tuple
+        ``(fig, axes)`` where ``fig`` is a Matplotlib figure and ``axes`` is a
+        flat list of axes in creation order.
+
+    Raises
+    ------
+    TypeError
+        Raised if ``ny`` or ``nx`` is not an integer.
+    ValueError
+        Raised if the requested layout is not one of the supported presets.
     """
     if not isinstance(ny, int):
         raise TypeError("ny should be integer")
@@ -81,14 +101,18 @@ def make_figure_axes(ny=1, nx=1, square=True):
 
 def determine_cuts(data):
     """
-    Determine min_cut and max_cut for the data using median and standard deviation.
+    Determine display cuts for image data using fixed percentiles.
 
-    Parameters:
-        data (ndarray): 2D numpy array containing the image data
-        sigma (int): Number of standard deviations to use for max_cut
+    Parameters
+    ----------
+    data : ndarray
+        Image array used to calculate display cuts.
 
-    Returns:
-        min_cut, max_cut: Calculated cuts
+    Returns
+    -------
+    tuple of float
+        ``(min_cut, max_cut)`` from the 5th and 98th percentiles of the
+        flattened input data.
     """
     min_cut = np.percentile(np.ravel(data), 5)
     max_cut = np.percentile(np.ravel(data), 98)
@@ -96,27 +120,46 @@ def determine_cuts(data):
 
 
 def make_plot_image(data):
+    """
+    Display image data with BATSim's default asinh plotting normalisation.
+
+    Parameters
+    ----------
+    data : ndarray
+        Two-dimensional image array to display.
+
+    Returns
+    -------
+    matplotlib.image.AxesImage
+        Image artist returned by ``matplotlib.pyplot.imshow``.
+    """
     min_cut, max_cut = determine_cuts(data)
-    sn = simple_norm(data, "asinh", asinh_a=0.1, min_cut=min_cut, max_cut=max_cut)
+    sn = simple_norm(data, "asinh", asinh_a=0.1, vmin=min_cut, vmax=max_cut)
     fig = plt.imshow(data, aspect="equal", cmap="RdYlBu_r", origin="lower", norm=sn)
     return fig
 
 
 def stitch_images(images, direction="horizontal", spacing=None):
     """
-    Stitch multiple images together to create a single composite image.
+    Stitch equal-sized Galsim image objects into a single composite image.
 
-    Args:
-        images (list): A list of images to be stitched together.
-        direction (str, optional): The direction of stitching. Can be 'horizontal' or 'vertical'. Defaults to 'horizontal'.
-        spacing (int, optional): The spacing between images. If None, images will be stitched with no gap between them. Defaults to None.
+    Parameters
+    ----------
+    images : sequence of galsim.Image
+        Images to stitch together. All images are expected to share the same
+        dimensions and pixel scale.
+    direction : {"horizontal", "vertical", "square"}, optional
+        Direction in which images are concatenated. ``"square"`` arranges the
+        images on a square grid, leaving any unused cells blank.
+    spacing : None, optional
+        Placeholder for future gap support. Only ``None`` is currently
+        implemented.
 
-    Returns:
-        galsim.ImageF: The stitched composite image.
-
-    Raises:
-        None
-
+    Returns
+    -------
+    galsim.ImageF or None
+        Composite image when ``spacing`` is ``None`` and ``direction`` is
+        supported; otherwise ``None``.
     """
     # read in sizes of the individual images
     # MUST BE SAME FOR ALL IMAGES RIGHT NOW
@@ -137,9 +180,7 @@ def stitch_images(images, direction="horizontal", spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(
-                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
-                )
+                bounds = galsim.BoundsI(xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny)
 
                 super_image.setSubImage(bounds, image)
 
@@ -157,20 +198,56 @@ def stitch_images(images, direction="horizontal", spacing=None):
             for image in images:
                 # Determine the bounds within which image should be
                 # placed in super_image and then place
-                bounds = galsim.BoundsI(
-                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
-                )
+                bounds = galsim.BoundsI(xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny))
 
                 super_image.setSubImage(bounds, image)
 
                 i = i + 1  # update for next iteration
             return super_image
-    # TODO: Allow for empty space to be inserted between images
+
+        elif direction == "square":
+            nside = int(np.ceil(np.sqrt(len(images))))
+            Nx = nside * nx
+            Ny = nside * ny
+            super_image = galsim.ImageF(Nx, Ny, scale=scale)
+
+            for i, image in enumerate(images):
+                row = i // nside
+                col = i % nside
+                bounds = galsim.BoundsI(
+                    xmin=1 + (col * nx),
+                    xmax=nx + (col * nx),
+                    ymin=1 + (row * ny),
+                    ymax=ny + (row * ny),
+                )
+
+                super_image.setSubImage(bounds, image)
+
+            return super_image
 
 
 def split_image(image, nsplit, direction="horizontal", spacing=None):
-    """Utility function which can be used to split galsim images
-    into smaller individual stamps."""
+    """
+    Split a stitched GalSim image into equal-sized image stamps.
+
+    Parameters
+    ----------
+    image : galsim.Image
+        Input image to split.
+    nsplit : int
+        Number of equal pieces to extract along the split direction.
+    direction : {"horizontal", "vertical"}, optional
+        Axis along which the input image is split.
+    spacing : None, optional
+        Placeholder for future gap support. Only ``None`` is currently
+        implemented.
+
+    Returns
+    -------
+    list of galsim.ImageF or None
+        List of split images when ``spacing`` is ``None`` and ``direction`` is
+        supported; otherwise ``None``.
+    """
     # read in sizes of the image
     Nx = image.xmax
     Ny = image.ymax
@@ -190,9 +267,7 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(
-                    xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny
-                )
+                bounds = galsim.BoundsI(xmin=1 + (i * nx), xmax=nx + (i * nx), ymin=1, ymax=ny)
 
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)
@@ -214,9 +289,7 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
             for i in range(nsplit):
                 split_image = galsim.ImageF(nx, ny, scale=scale)
                 # Determine bounds within which to get the sub image
-                bounds = galsim.BoundsI(
-                    xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny)
-                )
+                bounds = galsim.BoundsI(xmin=1, xmax=nx, ymin=1 + (i * ny), ymax=ny + (i * ny))
 
                 sub_image = image.subImage(bounds)
                 split_image.copyFrom(sub_image)
@@ -225,4 +298,3 @@ def split_image(image, nsplit, direction="horizontal", spacing=None):
 
                 i = i + 1  # update for next iteration
             return split_images
-    # TODO: Allow for empty space to be inserted between images

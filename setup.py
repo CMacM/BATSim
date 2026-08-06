@@ -5,6 +5,10 @@ import sysconfig
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+version_ns = {}
+with open(os.path.join("src", "batsim", "_version.py")) as version_file:
+    exec(version_file.read(), version_ns)
+
 
 class BuildExt(build_ext):
     def build_extensions(self):
@@ -36,13 +40,28 @@ class BuildExt(build_ext):
         super().build_extensions()
 
     def _find_pybind11_paths(self):
-        prefix_include = os.path.join(sys.prefix, "include")
-        if os.path.exists(os.path.join(prefix_include, "pybind11", "pybind11.h")):
-            return [prefix_include]
-
         import pybind11
 
-        return [pybind11.get_include()]
+        candidates = [
+            pybind11.get_include(),
+            os.path.join(sys.prefix, "include"),
+        ]
+        include_dirs = []
+        for directory in self._dedupe(candidates):
+            if self._has_pybind11_conduit(directory):
+                include_dirs.append(directory)
+
+        if include_dirs:
+            return include_dirs
+
+        search_paths = ", ".join(self._dedupe(candidates)) or "<none>"
+        raise RuntimeError(
+            "BATSim requires pybind11 >= 3 with the conduit headers. "
+            f"Searched pybind11 include paths: {search_paths}"
+        )
+
+    def _has_pybind11_conduit(self, include_dir):
+        return os.path.exists(os.path.join(include_dir, "pybind11", "conduit", "pybind11_conduit_v1.h"))
 
     def _find_galsim_paths(self):
         include_dirs = []
@@ -94,7 +113,11 @@ class BuildExt(build_ext):
 
     def _has_library(self, library_dirs, name):
         patterns = [f"lib{name}.so", f"lib{name}.dylib", f"{name}.lib"]
-        return any(os.path.exists(os.path.join(directory, pattern)) for directory in library_dirs for pattern in patterns)
+        return any(
+            os.path.exists(os.path.join(directory, pattern))
+            for directory in library_dirs
+            for pattern in patterns
+        )
 
     def _dedupe(self, values):
         out = []
@@ -116,6 +139,7 @@ gsinterface = Extension(
 
 setup(
     name="batsim",
+    version=version_ns["__version__"],
     author="Charlie MacMahon, Andy Park",
     author_email="c.macmahon@ncl.ac.uk, chanhyup@andrew.cmu.edu",
     license="MIT",
@@ -123,8 +147,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: MIT License",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Operating System :: Unix",
@@ -143,6 +166,7 @@ setup(
         "astropy>=6.0,<6.1",
     ],
     extras_require={
+        "benchmark": ["asv>=0.6"],
         "cuda12": ["cupy-cuda12x>=13.6,<14"],
         "cuda13": ["cupy-cuda13x>=13.6,<14"],
     },

@@ -1,0 +1,660 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>batsim.transforms &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="batsim.stamp" href="../stamp/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api.html#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../../api.html#generated-module-pages">Generated Module Pages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">Raw generated package index</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#attributes">Attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../api.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">batsim</a></li>
+      <li class="breadcrumb-item active">batsim.transforms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-batsim.transforms">
+<span id="batsim-transforms"></span><h1>batsim.transforms<a class="headerlink" href="#module-batsim.transforms" title="Link to this heading"></a></h1>
+<p>Coordinate transforms used during image rendering.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.transforms.IATransform" title="batsim.transforms.IATransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IATransform</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.transforms.AffineLensingTransform" title="batsim.transforms.AffineLensingTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffineLensingTransform</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.transforms.Transform" title="batsim.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p></td>
+<td><p>Base class for BATSim coordinate transforms.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.transforms.FlexionTransform" title="batsim.transforms.FlexionTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlexionTransform</span></code></a></p></td>
+<td><p>Coordinate transform for affine lensing with first-order flexion terms.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.transforms.IaTransform" title="batsim.transforms.IaTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IaTransform</span></code></a></p></td>
+<td><p>Radius-dependent intrinsic-alignment shear transform.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.transforms.LensTransform" title="batsim.transforms.LensTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LensTransform</span></code></a></p></td>
+<td><p>Affine lensing transform supporting either NumPy or CuPy arrays.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.transforms._coords_backend" title="batsim.transforms._coords_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_coords_backend</span></code></a>(coords)</p></td>
+<td><p>Return the array backend for a coordinate array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#batsim.transforms._coords_dtype" title="batsim.transforms._coords_dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_coords_dtype</span></code></a>(coords)</p></td>
+<td><p>Return the dtype attached to a coordinate array, if present.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#batsim.transforms.e_to_g" title="batsim.transforms.e_to_g"><code class="xref py py-obj docutils literal notranslate"><span class="pre">e_to_g</span></code></a>(absesq)</p></td>
+<td><p>Convert distortion amplitude squared to reduced shear scale factor.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.transforms._coords_backend">
+<span class="sig-name descname"><span class="pre">_coords_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#_coords_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms._coords_backend" title="Link to this definition"></a></dt>
+<dd><p>Return the array backend for a coordinate array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.transforms._coords_dtype">
+<span class="sig-name descname"><span class="pre">_coords_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#_coords_dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms._coords_dtype" title="Link to this definition"></a></dt>
+<dd><p>Return the dtype attached to a coordinate array, if present.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.transforms.Transform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform" title="Link to this definition"></a></dt>
+<dd><p>Base class for BATSim coordinate transforms.</p>
+<section id="transform-convention">
+<h3>Transform convention<a class="headerlink" href="#transform-convention" title="Link to this heading"></a></h3>
+<p>BATSim transforms implement backward coordinate mappings. Given coordinates
+<code class="docutils literal notranslate"><span class="pre">x</span></code> on the regular output-image grid, <code class="docutils literal notranslate"><span class="pre">transform(x)</span></code> returns coordinates
+<code class="docutils literal notranslate"><span class="pre">u</span></code> at which the source surface-brightness profile should be evaluated:</p>
+<blockquote>
+<div><p>I_output(x) = I_source(u),    u = transform(x).</p>
+</div></blockquote>
+<p>For a locally affine transformation with forward geometric matrix <code class="docutils literal notranslate"><span class="pre">M</span></code>, a source
+feature at <code class="docutils literal notranslate"><span class="pre">u</span></code> appears at</p>
+<blockquote>
+<div><p>x = M &#64; u.</p>
+</div></blockquote>
+<p>The corresponding BATSim coordinate transform must therefore return</p>
+<blockquote>
+<div><p>u = inv(M) &#64; x.</p>
+</div></blockquote>
+<p>Although the inverse matrix is used to sample the source profile, visible
+features undergo the forward transformation. For example, a source feature
+at <code class="docutils literal notranslate"><span class="pre">u0</span></code> appears where</p>
+<blockquote>
+<div><p>inv(M) &#64; x = u0,</p>
+</div></blockquote>
+<p>which implies</p>
+<blockquote>
+<div><p>x = M &#64; u0.</p>
+</div></blockquote>
+<p>This backward, or pull-based, convention evaluates the source profile once
+for every output location and avoids the gaps and overlaps that can occur
+when source samples are pushed forwards onto an output grid.</p>
+<p>All transform implementations in this module must follow this convention:
+their inputs are output-plane coordinates and their return values are
+source-plane sampling coordinates.</p>
+<p>Subclasses implement only the transform-specific coordinate logic in
+<code class="docutils literal notranslate"><span class="pre">_transform_relative</span></code>. The base class handles backend selection, dtype
+promotion, coordinate coercion, reference-centre subtraction/addition, and
+moving transform arrays between NumPy and CuPy via <code class="docutils literal notranslate"><span class="pre">to_backend</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">param center<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference coordinate for the center of the transform <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code>.
+Defaults to <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code>.</p>
+</dd>
+<dt class="field-even">type center<span class="colon">:</span></dt>
+<dd class="field-even"><p>sequence of float, optional</p>
+</dd>
+<dt class="field-odd">param backend<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NumPy or CuPy. If None, NumPy is used for stored transform arrays.
+Calls to <code class="docutils literal notranslate"><span class="pre">transform</span></code> still preserve the backend of the input
+coordinate array.</p>
+</dd>
+<dt class="field-even">type backend<span class="colon">:</span></dt>
+<dd class="field-even"><p>module, optional</p>
+</dd>
+<dt class="field-odd">param dtype<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Floating dtype for stored transform arrays.</p>
+</dd>
+<dt class="field-even">type dtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>dtype, optional</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.Transform._backend_array_attributes">
+<span class="sig-name descname"><span class="pre">_backend_array_attributes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('ref_vec',)</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform._backend_array_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform._backend_array_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.xp">
+<span class="sig-name descname"><span class="pre">xp</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.xp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.xp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.dtype" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.center">
+<span class="sig-name descname"><span class="pre">center</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.center"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.center" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.ref_vec">
+<span class="sig-name descname"><span class="pre">ref_vec</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.ref_vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.ref_vec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.transform" title="Link to this definition"></a></dt>
+<dd><p>Transform output-plane coordinates to source-plane sampling coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – Coordinate array with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed coordinate array using the same backend as <code class="docutils literal notranslate"><span class="pre">coords</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform._prepare_coords">
+<span class="sig-name descname"><span class="pre">_prepare_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform._prepare_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform._prepare_coords" title="Link to this definition"></a></dt>
+<dd><p>Coerce coordinate arrays and return backend-aware transform metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(xp,</span> <span class="pre">dtype,</span> <span class="pre">coords,</span> <span class="pre">ref_vec)</span></code> where <code class="docutils literal notranslate"><span class="pre">xp</span></code> is the coordinate
+backend and <code class="docutils literal notranslate"><span class="pre">ref_vec</span></code> is stored on that backend.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform._transform_relative">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_transform_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_relative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform._transform_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform._transform_relative" title="Link to this definition"></a></dt>
+<dd><p>Transform coordinates relative to <code class="docutils literal notranslate"><span class="pre">self.center</span></code>.</p>
+<p>Subclasses should override this method and return an array with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code> using the supplied backend <code class="docutils literal notranslate"><span class="pre">xp</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform.to_backend">
+<span class="sig-name descname"><span class="pre">to_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform.to_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform.to_backend" title="Link to this definition"></a></dt>
+<dd><p>Return a copy of this transform on another backend/dtype.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backend</strong> (<em>module</em><em>, </em><em>optional</em>) – Array backend to use for stored transform arrays. Use NumPy by
+default or pass CuPy for GPU-backed arrays.</p></li>
+<li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>optional</em>) – Floating dtype for stored transform arrays. Defaults to this
+transform’s current dtype.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>New transform with equivalent parameters stored on the requested
+backend and dtype.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#batsim.transforms.Transform" title="batsim.transforms.Transform">Transform</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform._to_numpy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_to_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform._to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform._to_numpy" title="Link to this definition"></a></dt>
+<dd><p>Convert a NumPy or CuPy array to NumPy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.Transform._as_backend_array">
+<span class="sig-name descname"><span class="pre">_as_backend_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#Transform._as_backend_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.Transform._as_backend_array" title="Link to this definition"></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">array</span></code> on <code class="docutils literal notranslate"><span class="pre">xp</span></code> without implicit CuPy-to-NumPy conversion.</p>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FlexionTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#batsim.transforms.Transform" title="batsim.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+<p>Coordinate transform for affine lensing with first-order flexion terms.</p>
+<p>The transform maps lensed-plane pixel-centre coordinates into the
+corresponding pre-lensed/source-plane coordinates. Inputs may be NumPy or
+CuPy arrays; the backend is inferred from the coordinate array passed to
+<code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">inverse_transform</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gamma1</strong> (<em>float</em>) – Components of the reduced shear field.</p></li>
+<li><p><strong>gamma2</strong> (<em>float</em>) – Components of the reduced shear field.</p></li>
+<li><p><strong>kappa</strong> (<em>float</em>) – Lensing convergence.</p></li>
+<li><p><strong>F1</strong> (<em>float</em><em>, </em><em>optional</em>) – Components of first flexion. Defaults to zero.</p></li>
+<li><p><strong>F2</strong> (<em>float</em><em>, </em><em>optional</em>) – Components of first flexion. Defaults to zero.</p></li>
+<li><p><strong>G1</strong> (<em>float</em><em>, </em><em>optional</em>) – Components of third flexion. Defaults to zero.</p></li>
+<li><p><strong>G2</strong> (<em>float</em><em>, </em><em>optional</em>) – Components of third flexion. Defaults to zero.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform._backend_array_attributes">
+<span class="sig-name descname"><span class="pre">_backend_array_attributes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('ref_vec',</span> <span class="pre">'s2l_mat',</span> <span class="pre">'s2l_mat_inv',</span> <span class="pre">'D')</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform._backend_array_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform._backend_array_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform.s2l_mat">
+<span class="sig-name descname"><span class="pre">s2l_mat</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform.s2l_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform.s2l_mat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform.s2l_mat_inv">
+<span class="sig-name descname"><span class="pre">s2l_mat_inv</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform.s2l_mat_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform.s2l_mat_inv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform.D">
+<span class="sig-name descname"><span class="pre">D</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform.D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform.D" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform._transform_relative">
+<span class="sig-name descname"><span class="pre">_transform_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_relative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform._transform_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform._transform_relative" title="Link to this definition"></a></dt>
+<dd><p>Transform coordinates relative to <code class="docutils literal notranslate"><span class="pre">self.center</span></code>.</p>
+<p>Subclasses should override this method and return an array with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code> using the supplied backend <code class="docutils literal notranslate"><span class="pre">xp</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform.transform" title="Link to this definition"></a></dt>
+<dd><p>Transform pixel-centre coordinates from lensed to pre-lensed plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – Coordinate array with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code>. The first row holds
+x coordinates and the second row holds y coordinates, in a
+consistent angular unit such as arcseconds.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed coordinate array using the same backend as <code class="docutils literal notranslate"><span class="pre">coords</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.FlexionTransform.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#FlexionTransform.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.FlexionTransform.inverse_transform" title="Link to this definition"></a></dt>
+<dd><p>Approximate the inverse flexion transform for coordinate arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – Coordinate array with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code> in the transformed
+plane.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Approximate inverse-transformed coordinates using the same backend
+as <code class="docutils literal notranslate"><span class="pre">coords</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The approximation follows the derivation in
+<a class="reference external" href="https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf">https://github.com/garyang3/Notes/blob/main/Flexion_inverse_transform.pdf</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">IaTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hlr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.000354</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#batsim.transforms.Transform" title="batsim.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+<p>Radius-dependent intrinsic-alignment shear transform.</p>
+<p>The transform applies a reduced-shear coordinate mapping whose amplitude is
+set by a power law in radius from <code class="docutils literal notranslate"><span class="pre">center</span></code>. The radial coordinate is
+measured in units of <code class="docutils literal notranslate"><span class="pre">hlr</span></code> and clipped at <code class="docutils literal notranslate"><span class="pre">clip_radius</span></code> before the
+amplitude law is evaluated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>float</em>) – Pixel scale in arcseconds. Stored for compatibility with existing
+callers.</p></li>
+<li><p><strong>hlr</strong> (<em>float</em>) – Half-light radius used to normalize the radial profile.</p></li>
+<li><p><strong>A</strong> (<em>float</em><em>, </em><em>optional</em>) – Distortion amplitude at one half-light radius. Defaults to the
+Georgiou+19 best-fit value used by the existing pipeline.</p></li>
+<li><p><strong>phi</strong> (<em>float</em><em>, </em><em>optional</em>) – Alignment angle in radians. A value of zero aligns the distortion with
+the horizontal axis.</p></li>
+<li><p><strong>beta</strong> (<em>float</em><em>, </em><em>optional</em>) – Power-law index for the radial amplitude profile.</p></li>
+<li><p><strong>center</strong> (<em>sequence</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Coordinate origin <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code> for the radial profile. Defaults to
+<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code>.</p></li>
+<li><p><strong>clip_radius</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum radius, in units of <code class="docutils literal notranslate"><span class="pre">hlr</span></code>, used when evaluating the amplitude
+profile.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.A">
+<span class="sig-name descname"><span class="pre">A</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.000354</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.A" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.phi">
+<span class="sig-name descname"><span class="pre">phi</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.phi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.c2phi">
+<span class="sig-name descname"><span class="pre">c2phi</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.c2phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.c2phi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.s2phi">
+<span class="sig-name descname"><span class="pre">s2phi</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.s2phi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.s2phi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.beta">
+<span class="sig-name descname"><span class="pre">beta</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.11</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.beta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.beta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.scale">
+<span class="sig-name descname"><span class="pre">scale</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.scale" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.hlr">
+<span class="sig-name descname"><span class="pre">hlr</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.hlr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.hlr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.xcen">
+<span class="sig-name descname"><span class="pre">xcen</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.xcen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.xcen" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.ycen">
+<span class="sig-name descname"><span class="pre">ycen</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.ycen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.ycen" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.clip_radius">
+<span class="sig-name descname"><span class="pre">clip_radius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.clip_radius"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.clip_radius" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform._transform_relative">
+<span class="sig-name descname"><span class="pre">_transform_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_relative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform._transform_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform._transform_relative" title="Link to this definition"></a></dt>
+<dd><p>Transform coordinates relative to <code class="docutils literal notranslate"><span class="pre">self.center</span></code>.</p>
+<p>Subclasses should override this method and return an array with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code> using the supplied backend <code class="docutils literal notranslate"><span class="pre">xp</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.transform" title="Link to this definition"></a></dt>
+<dd><p>Transform coordinates using the local IA shear at each radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – Coordinate array with shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code>. NumPy and CuPy inputs
+are both supported.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Coordinate array transformed by the radius-dependent reduced shear.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.IaTransform.get_g1g2">
+<span class="sig-name descname"><span class="pre">get_g1g2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IaTransform.get_g1g2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IaTransform.get_g1g2" title="Link to this definition"></a></dt>
+<dd><p>Compute reduced-shear components for coordinates relative to center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Coordinates relative to the transform center. Integer arrays are
+promoted to floating point before the radial amplitude law is
+evaluated.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em>) – Coordinates relative to the transform center. Integer arrays are
+promoted to floating point before the radial amplitude law is
+evaluated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(g1,</span> <span class="pre">g2)</span></code> reduced-shear components using the same backend as the
+input arrays.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of array-like</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Raised if the requested distortion amplitude exceeds one.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.transforms.IATransform">
+<span class="sig-name descname"><span class="pre">IATransform</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#IATransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.IATransform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="batsim.transforms.LensTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LensTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#LensTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.LensTransform" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#batsim.transforms.Transform" title="batsim.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p>
+<p>Affine lensing transform supporting either NumPy or CuPy arrays.</p>
+<p>If CuPy is available and the input coordinates are CuPy arrays, the
+transform runs natively on GPU.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.LensTransform._backend_array_attributes">
+<span class="sig-name descname"><span class="pre">_backend_array_attributes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('ref_vec',</span> <span class="pre">'lens_mat')</span></em><a class="reference internal" href="../../../_modules/batsim/transforms.html#LensTransform._backend_array_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.LensTransform._backend_array_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="batsim.transforms.LensTransform.lens_mat">
+<span class="sig-name descname"><span class="pre">lens_mat</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#LensTransform.lens_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.LensTransform.lens_mat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.LensTransform._transform_relative">
+<span class="sig-name descname"><span class="pre">_transform_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_relative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#LensTransform._transform_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.LensTransform._transform_relative" title="Link to this definition"></a></dt>
+<dd><p>Transform coordinates relative to <code class="docutils literal notranslate"><span class="pre">self.center</span></code>.</p>
+<p>Subclasses should override this method and return an array with shape
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">npoints)</span></code> using the supplied backend <code class="docutils literal notranslate"><span class="pre">xp</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="batsim.transforms.LensTransform.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#LensTransform.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.LensTransform.transform" title="Link to this definition"></a></dt>
+<dd><p>Transform pixel-centre coordinates from lensed plane to pre-lensed plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – Coordinate array with shape (2, npoints). Can be NumPy or CuPy.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed coordinates using the configured backend.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="batsim.transforms.AffineLensingTransform">
+<span class="sig-name descname"><span class="pre">AffineLensingTransform</span></span><a class="reference internal" href="../../../_modules/batsim/transforms.html#AffineLensingTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.AffineLensingTransform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="batsim.transforms.e_to_g">
+<span class="sig-name descname"><span class="pre">e_to_g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absesq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/batsim/transforms.html#e_to_g"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#batsim.transforms.e_to_g" title="Link to this definition"></a></dt>
+<dd><p>Convert distortion amplitude squared to reduced shear scale factor.</p>
+<p>This is a helper function not currently used in the transforms provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>absesq</strong> (<em>float</em><em> or </em><em>array-like</em>) – Squared distortion amplitude. Values near zero use a Taylor
+expansion for numerical stability.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multiplicative factor that maps distortion components to reduced
+shear components.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../stamp/index.html" class="btn btn-neutral float-left" title="batsim.stamp" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

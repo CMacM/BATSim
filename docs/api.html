@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="batsim" href="autoapi/batsim/index.html" />
+    <link rel="prev" title="CATSim" href="examples/catsim.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rendering">Rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image-stamps-and-grids">Image Stamps And Grids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coordinate-transforms">Coordinate Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#supporting-modules">Supporting Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#experimental-area">Experimental Area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generated-module-pages">Generated Module Pages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/batsim/index.html">Raw generated package index</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>This page groups the stable BATSim API by how users normally look for it. The
+generated module pages are still available at the bottom for lower-level
+implementation details.</p>
+<section id="rendering">
+<h2>Rendering<a class="headerlink" href="#rendering" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">simulate_galaxy</span></code> is the main public entry point. It renders an analytic
+GalSim profile on a BATSim coordinate grid, optionally applying a coordinate
+transform and PSF convolution.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.simulate_galaxy" title="batsim.simulate_galaxy"><code class="xref py py-func docutils literal notranslate"><span class="pre">batsim.simulate_galaxy()</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.clear_backend_memory" title="batsim.clear_backend_memory"><code class="xref py py-func docutils literal notranslate"><span class="pre">batsim.clear_backend_memory()</span></code></a></p></li>
+</ul>
+</section>
+<section id="image-stamps-and-grids">
+<h2>Image Stamps And Grids<a class="headerlink" href="#image-stamps-and-grids" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Stamp</span></code> owns the render grid, backend arrays, and sampling coordinates used by
+the renderer. Most users will not need to construct stamps directly, but it is
+the main lower-level object for debugging or building custom render workflows.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.Stamp" title="batsim.Stamp"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.Stamp</span></code></a></p></li>
+</ul>
+</section>
+<section id="coordinate-transforms">
+<h2>Coordinate Transforms<a class="headerlink" href="#coordinate-transforms" title="Link to this heading"></a></h2>
+<p>Transforms map output coordinates onto source-plane coordinates before profile
+sampling. Built-in transforms cover affine lensing, radial intrinsic alignment,
+and flexion. Subclass <a class="reference internal" href="autoapi/batsim/index.html#batsim.Transform" title="batsim.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.Transform</span></code></a> for custom non-affine fields.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.Transform" title="batsim.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.Transform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.LensTransform" title="batsim.LensTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.LensTransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.AffineLensingTransform" title="batsim.AffineLensingTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.AffineLensingTransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.IaTransform" title="batsim.IaTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.IaTransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.IATransform" title="batsim.IATransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.IATransform</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/index.html#batsim.FlexionTransform" title="batsim.FlexionTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">batsim.FlexionTransform</span></code></a></p></li>
+</ul>
+</section>
+<section id="supporting-modules">
+<h2>Supporting Modules<a class="headerlink" href="#supporting-modules" title="Link to this heading"></a></h2>
+<p>These modules are public enough to inspect and use for advanced work, but the
+stable v1.0 surface is the top-level API above.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/backend/index.html#module-batsim.backend" title="batsim.backend"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.backend</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/grid/index.html#module-batsim.grid" title="batsim.grid"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.grid</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/fft/index.html#module-batsim.fft" title="batsim.fft"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.fft</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/sampling/index.html#module-batsim.sampling" title="batsim.sampling"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.sampling</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/pltutil/index.html#module-batsim.pltutil" title="batsim.pltutil"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.pltutil</span></code></a></p></li>
+</ul>
+</section>
+<section id="experimental-area">
+<h2>Experimental Area<a class="headerlink" href="#experimental-area" title="Link to this heading"></a></h2>
+<p>Experimental helpers are available for development and validation work, but they
+are not part of the stable top-level API.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="autoapi/batsim/experimental/index.html#module-batsim.experimental" title="batsim.experimental"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.experimental</span></code></a></p></li>
+<li><p><a class="reference internal" href="autoapi/batsim/experimental/wcs/index.html#module-batsim.experimental.wcs" title="batsim.experimental.wcs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.experimental.wcs</span></code></a></p></li>
+</ul>
+</section>
+<section id="generated-module-pages">
+<h2>Generated Module Pages<a class="headerlink" href="#generated-module-pages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/batsim/index.html">Raw generated package index</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples/catsim.html" class="btn btn-neutral float-left" title="CATSim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="autoapi/batsim/index.html" class="btn btn-neutral float-right" title="batsim" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
