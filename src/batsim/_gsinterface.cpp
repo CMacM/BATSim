@@ -6,8 +6,93 @@
 #include <cmath>
 #include <complex>
 #include <stdexcept>
+#include <fftw3.h>
+#include <algorithm>
+#include <cstring>
+#include <vector>
 
 namespace py = pybind11;
+
+inline bool is_c_contiguous(const py::array& arr) {
+    return (arr.flags() & py::array::c_style) != 0;
+}
+
+inline int round_up_multiple(int n, int m) {
+    return ((n + m - 1) / m) * m;
+}
+
+inline void copy_centered_into(const double* src, int src_dim, double* dst, int dst_dim) {
+    std::memset(dst, 0, sizeof(double) * dst_dim * dst_dim);
+    const int offset = (dst_dim - src_dim) / 2;
+    for (int y = 0; y < src_dim; ++y) {
+        std::memcpy(
+            dst + (y + offset) * dst_dim + offset,
+            src + y * src_dim,
+            sizeof(double) * src_dim
+        );
+    }
+}
+
+// For even dim, fftshift and ifftshift are identical (both shift by dim/2).
+// padded_dim is always a multiple of 16, so this holds throughout.
+inline void fftshift2d_inplace(double* arr, int dim) {
+    const int half = dim / 2;
+    for (int y = 0; y < dim; ++y) {
+        double* row = arr + y * dim;
+        for (int x = 0; x < half; ++x)
+            std::swap(row[x], row[x + half]);
+    }
+    for (int y = 0; y < half; ++y) {
+        double* top = arr + y * dim;
+        double* bot = arr + (y + half) * dim;
+        for (int x = 0; x < dim; ++x)
+            std::swap(top[x], bot[x]);
+    }
+}
+
+inline void ifftshift2d_inplace(double* arr, int dim) {
+    fftshift2d_inplace(arr, dim);
+}
+
+inline std::vector<double> rfftfreq(int n, double d) {
+    const int nk = n / 2 + 1;
+    std::vector<double> freq(nk);
+    const double factor = 1.0 / (d * static_cast<double>(n));
+    for (int i = 0; i < nk; ++i)
+        freq[i] = static_cast<double>(i) * factor;
+    return freq;
+}
+
+inline std::vector<double> fftfreq(int n, double d) {
+    std::vector<double> freq(n);
+    const double factor = 1.0 / (d * static_cast<double>(n));
+    for (int i = 0; i < (n + 1) / 2; ++i)
+        freq[i] = static_cast<double>(i) * factor;
+    for (int i = (n + 1) / 2; i < n; ++i)
+        freq[i] = static_cast<double>(i - n) * factor;
+    return freq;
+}
+
+inline py::array_t<double> crop_centered_raw(
+    const double* src, int src_dim, int out_dim, double scale_factor
+) {
+    auto result = py::array_t<double>({out_dim, out_dim});
+    double* out = result.mutable_data();
+    std::memset(out, 0, sizeof(double) * out_dim * out_dim);
+
+    const int src_offset = src_dim / 2 - out_dim / 2;
+    const int y_start = std::max(0, -src_offset);
+    const int y_end   = std::min(out_dim, src_dim - src_offset);
+    const int x_start = std::max(0, -src_offset);
+    const int x_end   = std::min(out_dim, src_dim - src_offset);
+
+    for (int oy = y_start; oy < y_end; ++oy) {
+        const int sy = oy + src_offset;
+        for (int ox = x_start; ox < x_end; ++ox)
+            out[oy * out_dim + ox] = src[sy * src_dim + (ox + src_offset)] * scale_factor;
+    }
+    return result;
+}
 
 template <typename CoordT, typename FluxT>
 py::array_t<FluxT> getFluxVecTyped(
