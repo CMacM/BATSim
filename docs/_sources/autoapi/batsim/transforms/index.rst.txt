@@ -36,7 +36,6 @@ Functions
 
    batsim.transforms._coords_backend
    batsim.transforms._coords_dtype
-   batsim.transforms.e_to_g
 
 
 Module Contents
@@ -431,19 +430,4 @@ Module Contents
 
 
 .. py:data:: AffineLensingTransform
-
-.. py:function:: e_to_g(absesq)
-
-   Convert distortion amplitude squared to reduced shear scale factor.
-
-   This is a helper function not currently used in the transforms provided.
-
-   :param absesq: Squared distortion amplitude. Values near zero use a Taylor
-                  expansion for numerical stability.
-   :type absesq: float or array-like
-
-   :returns: Multiplicative factor that maps distortion components to reduced
-             shear components.
-   :rtype: float or array-like
-
 

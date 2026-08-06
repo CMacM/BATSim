@@ -1,11 +1,12 @@
 
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BATSim &mdash; batsim 1.0.0 documentation</title>
+  <title>BATSim &mdash; batsim 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
@@ -13,12 +14,10 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=8d563738"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=7026087e"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -87,21 +86,21 @@ default pipeline uses:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">psf_mode=&quot;kvalue&quot;</span></code> to sample the analytic PSF Fourier profile through the
 compiled BATSim/GalSim bridge.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">force_input_flux=True</span></code> to preserve the input galaxy flux after convolution.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">use_true_center=True</span></code> to align the fine grid with GalSim's true image
+<li><p><code class="docutils literal notranslate"><span class="pre">use_true_center=True</span></code> to align the fine grid with GalSim’s true image
 center convention.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">integration_order=2</span></code> to use Gauss-Legendre block integration before the
 FFT convolution path.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">compensate_integration=&quot;quadrature&quot;</span></code> to remove the matching
 Gauss-Legendre transfer function. Pass <code class="docutils literal notranslate"><span class="pre">&quot;exact_sinc&quot;</span></code> for ideal top-hat
-compensation, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to disable compensation.</p></li>
+compensation, or None to disable compensation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">backend=&quot;np&quot;</span></code> by default. Passing <code class="docutils literal notranslate"><span class="pre">backend=None</span></code> also selects NumPy;
 pass <code class="docutils literal notranslate"><span class="pre">backend=&quot;cp&quot;</span></code> to request CuPy.</p></li>
 </ul>
 </section>
 <section id="quickstart">
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">galsim</span>
-<span class="kn">import</span> <span class="nn">batsim</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
 
 <span class="n">galaxy</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">half_light_radius</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">flux</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 <span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Gaussian</span><span class="p">(</span><span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
@@ -121,7 +120,7 @@ FFT-heavy work.</p>
 </section>
 <section id="installation-notes">
 <h2>Installation Notes<a class="headerlink" href="#installation-notes" title="Link to this heading"></a></h2>
-<p>BATSim links against GalSim's shared C++ library. The recommended installation
+<p>BATSim links against GalSim’s shared C++ library. The recommended installation
 route is currently a conda or mamba environment using conda-forge packages for
 GalSim, Eigen, pybind11, and NumPy, followed by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> for local
 development. See the repository README for full build instructions.</p>
@@ -141,6 +140,8 @@ development. See the repository README for full build instructions.</p>
 <p>Experimental helpers live under <a class="reference internal" href="autoapi/batsim/experimental/index.html#module-batsim.experimental" title="batsim.experimental"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batsim.experimental</span></code></a>. They are available
 for development and validation work, but are not part of the stable top-level
 API.</p>
+<div class="toctree-wrapper compound">
+</div>
 </section>
 </section>
 
