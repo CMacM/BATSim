@@ -49,7 +49,7 @@ jobs:
     - name: Lint with black
       shell: bash -l {0}
       run: |
-        black --check src tests benchmarks setup.py docs_src/conf.py
+        black --check src tests benchmarks setup.py docs-src/conf.py
 
     - name: Test with pytest
       shell: bash -l {0}
