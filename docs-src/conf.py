@@ -16,8 +16,8 @@ sys.path.insert(0, os.path.abspath("../src/"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "batsim"
-copyright = "2023, Andy Park"
-author = "Andy Park"
+copyright = "2026, Batsim Developers"
+author = "Batsim Developers"
 release = version("batsim")
 # for example take major/minor
 version = ".".join(release.split(".")[:2])

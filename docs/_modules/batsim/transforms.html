@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>batsim.transforms &mdash; batsim 1.0.0 documentation</title>
+  <title>batsim.transforms &mdash; batsim 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
@@ -13,9 +13,9 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=8d563738"></script>
-      <script src="../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -799,52 +799,6 @@
 <div class="viewcode-block" id="AffineLensingTransform">
 <a class="viewcode-back" href="../../autoapi/batsim/transforms/index.html#batsim.AffineLensingTransform">[docs]</a>
 <span class="n">AffineLensingTransform</span> <span class="o">=</span> <span class="n">LensTransform</span></div>
-
-
-
-<div class="viewcode-block" id="e_to_g">
-<a class="viewcode-back" href="../../autoapi/batsim/transforms/index.html#batsim.e_to_g">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">e_to_g</span><span class="p">(</span><span class="n">absesq</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Convert distortion amplitude squared to reduced shear scale factor.</span>
-
-<span class="sd">    This is a helper function not currently used in the transforms provided.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    absesq : float or array-like</span>
-<span class="sd">        Squared distortion amplitude. Values near zero use a Taylor</span>
-<span class="sd">        expansion for numerical stability.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    float or array-like</span>
-<span class="sd">        Multiplicative factor that maps distortion components to reduced</span>
-<span class="sd">        shear components.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">xp</span> <span class="o">=</span> <span class="n">_coords_backend</span><span class="p">(</span><span class="n">absesq</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">absesq</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">):</span>
-        <span class="c1"># if absesq is big enough to use the simple calculation, and a</span>
-        <span class="c1"># 0 if the Taylor expansion is needed for stability.</span>
-        <span class="c1"># if there are values greater than 1, continue with a deeper drill</span>
-        <span class="n">stable</span> <span class="o">=</span> <span class="n">absesq</span> <span class="o">&gt;</span> <span class="mf">1e-4</span>
-        <span class="c1"># unstable values set to False, stable values included</span>
-        <span class="n">e2g</span> <span class="o">=</span> <span class="n">stable</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">xp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">absesq</span><span class="p">)))</span>
-        <span class="c1"># now we invert to have unstable values as True</span>
-        <span class="n">unstable</span> <span class="o">=</span> <span class="n">absesq</span> <span class="o">&lt;=</span> <span class="mf">1e-4</span>
-        <span class="c1"># we add the unstable values to the array now, with the stable set to zero</span>
-        <span class="n">e2g</span> <span class="o">+=</span> <span class="n">unstable</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.125</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.0625</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="mf">0.0390625</span><span class="p">)))</span>
-        <span class="c1"># finally, return the array of conversion values</span>
-        <span class="k">return</span> <span class="n">e2g</span>
-    <span class="c1"># for if we just want a single shear value</span>
-    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">absesq</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">absesq</span> <span class="o">&gt;</span> <span class="mf">1.0e-4</span><span class="p">:</span>
-            <span class="c1"># return (1. - np.sqrt(1.-absesq)) / absesq</span>
-            <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">absesq</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Avoid numerical issues near e=0 using Taylor expansion</span>
-            <span class="k">return</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.125</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.0625</span> <span class="o">+</span> <span class="n">absesq</span> <span class="o">*</span> <span class="mf">0.0390625</span><span class="p">))</span></div>
 
 </pre></div>
 
