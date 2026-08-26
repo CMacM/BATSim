@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Configuration &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CATSim" href="catsim.html" />
+    <link rel="prev" title="Batched Rendering" href="batched-rendering.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home page</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simple-render.html">Simple galaxy rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="affine-lensing.html">Affine lensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intrinsic-alignment.html">Intrinsic alignment model example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flexion.html">Flexion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-transforms.html">Custom transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batched-rendering.html">Batched rendering</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Advanced configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catsim.html">CATSim</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Advanced Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Advanced-Configuration">
+<h1>Advanced Configuration<a class="headerlink" href="#Advanced-Configuration" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;serif&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.serif&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cmr10&#39;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;mathtext.fontset&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;cm&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.facecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">unicode_minus</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes.formatter&#39;</span><span class="p">,</span> <span class="n">use_mathtext</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>In building BATSim, we have tried to strike a balance between simulation accuracy and speed for a wide range of galaxy morphologies. However, there is no one size-fits-all approach, and as such, BATSim exposes a variety of advanced configuration options for the renderer.</p>
+<p>The default values have been optimised on galaxy morphologies taken from the COSMOS sample included with Galsim, for images representative of LSST-like results.</p>
+<p>Should you wish to simulate with a very small PSF, high final image resolutions, or very complex galaxy morphologies. You may want to adjust some of these parameters for improved accuracy at the cost of speed.</p>
+<p>On the flip side, if you want to generate a sample with lots of big bright galaxies with simple morphologies, you may be able to gain some performance by adjusting these defaults.</p>
+<p>First, let’s present the full suite of arguments and after we can look at how modifying specific ones may affect our results. The values shown are the defaults.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create GSObjects to render</span>
+<span class="n">gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">e2</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Moffat</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Image params</span>
+<span class="n">pix_scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">npix</span><span class="o">=</span><span class="mi">64</span>
+
+<span class="c1"># Present full set of arguments for batsim.simulate_galaxy</span>
+<span class="n">gal_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal</span><span class="p">,</span> <span class="c1"># GSObject of galaxy</span>
+    <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span> <span class="c1"># Final pixel scale</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="c1"># Final image side length</span>
+    <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># BATSim Transform object</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span> <span class="c1"># GSObject of PSF</span>
+    <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="c1"># turn pixel response on or off</span>
+    <span class="n">safety</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="c1"># safety factor to scale supersampling. Higher values result in more supersampling</span>
+    <span class="n">max_supersample</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="c1"># Maximum supersampling factor. This can be increased for difficult galaxies</span>
+    <span class="n">min_supersample</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1"># Minimum supersampling factor. We suggest not decreasing this.</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="c1"># Order of Gauss-Legendre quadrature block integration</span>
+    <span class="n">max_fine_grid</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="c1"># Maxmium internal grid-size for rendering supersampled images</span>
+    <span class="n">pad</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="c1"># Padding to add before FFT</span>
+    <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="c1"># Floating point precision to use during simulation</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;np&quot;</span><span class="p">,</span> <span class="c1"># Backend for math and array ops. Either NumPy or CuPy</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># Enable timing and verbose output</span>
+    <span class="n">pix_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># Legacy arguement for scale, retained for conmpatibility</span>
+    <span class="n">psf_mode</span><span class="o">=</span><span class="s2">&quot;kvalue&quot;</span><span class="p">,</span> <span class="c1"># Sample the PSF directly in k-space (or not)</span>
+    <span class="n">force_input_flux</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># Re-normalise image flux. This should NOT be set to true for magnification</span>
+    <span class="n">compensate_integration</span><span class="o">=</span><span class="s2">&quot;quadrature&quot;</span><span class="p">,</span> <span class="c1"># Function used to remove smoothing in the Fourier profile</span>
+    <span class="n">use_true_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Match Galsim&#39;s centering convention or not</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Let’s start by taking a look at a particularly challenging galaxy. Small galaxies require finer resolution bumping the supersampling needed, and if they are highly ellipticial they also require larger internal stamps to sufficiently contain their extent.</p>
+<p>For this we will focus on the arguments directly related to supersampling. To assess how this impacts accuracy, we compute the pixel-to-pixel residuals between BATSim and a GalSim reference and report the peak residual, as well as the total flux in each image.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Small, high-n, highly elliptical.</span>
+<span class="n">tricky_gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+<span class="c1"># We will loop over different supersampling limits</span>
+<span class="n">max_super_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">max_super</span> <span class="ow">in</span> <span class="n">max_super_vals</span><span class="p">:</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------------------&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Max supersampling factor:&quot;</span><span class="p">,</span> <span class="n">max_super</span><span class="p">)</span>
+
+    <span class="c1"># Draw with batsim</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">batsim_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">tricky_gal</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+        <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">max_supersample</span><span class="o">=</span><span class="n">max_super</span><span class="p">,</span> <span class="c1"># Maximum supersampling factor. This can be increased for difficult galaxies</span>
+    <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+    <span class="n">gal_conv</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Convolve</span><span class="p">([</span><span class="n">tricky_gal</span><span class="p">,</span> <span class="n">psf</span><span class="p">])</span>
+    <span class="n">galsim_img</span> <span class="o">=</span> <span class="n">gal_conv</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+    <span class="c1"># Look at residuals between images</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">galsim_img</span> <span class="o">-</span> <span class="n">batsim_img</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GalSim flux: </span><span class="si">{</span><span class="n">galsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BATSim flux:    </span><span class="si">{</span><span class="n">batsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">perc_residual</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">galsim_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual as % of max flux: </span><span class="si">{</span><span class="n">perc_residual</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation took </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot galaxy</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">batsim_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------------------------------------
+Max supersampling factor: 16
+GalSim flux: 0.99363410
+BATSim flux:    0.97205180
+Max abs residual: 1.046e-03
+Max abs residual as % of max flux: 3.245%
+Simulation took 0.24 seconds
+------------------------------------
+Max supersampling factor: 32
+GalSim flux: 0.99363410
+BATSim flux:    0.98499560
+Max abs residual: 4.162e-04
+Max abs residual as % of max flux: 1.291%
+Simulation took 0.75 seconds
+------------------------------------
+Max supersampling factor: 64
+GalSim flux: 0.99363410
+BATSim flux:    0.99038339
+Max abs residual: 1.541e-04
+Max abs residual as % of max flux: 0.478%
+Simulation took 1.56 seconds
+------------------------------------
+Max supersampling factor: 128
+GalSim flux: 0.99363410
+BATSim flux:    0.99255240
+Max abs residual: 5.382e-05
+Max abs residual as % of max flux: 0.167%
+Simulation took 1.47 seconds
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_advanced-configuration_5_1.png" src="../_images/examples_advanced-configuration_5_1.png" />
+</div>
+</div>
+<p>Evidently, the agreement between the BATSim and Galsim images improves with increasing supersampling amounts <strong>for this galaxy</strong>. Next we will look at adjusting the maximum internal image size <code class="docutils literal notranslate"><span class="pre">max_fine_grid</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Large, diffuse, highly elliptical.</span>
+<span class="n">tricky_gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">DeVaucouleurs</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+<span class="c1"># We will loop over different supersampling limits</span>
+<span class="n">max_grid_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span> <span class="mi">8192</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">max_grid</span> <span class="ow">in</span> <span class="n">max_grid_vals</span><span class="p">:</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------------------&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Max grid size:&quot;</span><span class="p">,</span> <span class="n">max_grid</span><span class="p">)</span>
+
+    <span class="c1"># Draw with batsim</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">batsim_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">tricky_gal</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+        <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">max_fine_grid</span><span class="o">=</span><span class="n">max_grid</span><span class="p">,</span> <span class="c1"># Maximum internal grid size. This can be increased for difficult galaxies</span>
+    <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+    <span class="n">gal_conv</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Convolve</span><span class="p">([</span><span class="n">tricky_gal</span><span class="p">,</span> <span class="n">psf</span><span class="p">])</span>
+    <span class="n">galsim_img</span> <span class="o">=</span> <span class="n">gal_conv</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+    <span class="c1"># Look at residuals between images</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">galsim_img</span> <span class="o">-</span> <span class="n">batsim_img</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GalSim flux: </span><span class="si">{</span><span class="n">galsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BATSim flux:    </span><span class="si">{</span><span class="n">batsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">perc_residual</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">galsim_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual as % of max flux: </span><span class="si">{</span><span class="n">perc_residual</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation took </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot galaxy</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">batsim_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------------------------------------
+Max grid size: 1024
+GalSim flux: 0.77357638
+BATSim flux:    0.77298665
+Max abs residual: 2.870e-05
+Max abs residual as % of max flux: 0.429%
+Simulation took 0.19 seconds
+------------------------------------
+Max grid size: 2048
+GalSim flux: 0.77357638
+BATSim flux:    0.77298665
+Max abs residual: 2.870e-05
+Max abs residual as % of max flux: 0.429%
+Simulation took 0.39 seconds
+------------------------------------
+Max grid size: 4096
+GalSim flux: 0.77357638
+BATSim flux:    0.77340686
+Max abs residual: 8.292e-06
+Max abs residual as % of max flux: 0.124%
+Simulation took 1.67 seconds
+------------------------------------
+Max grid size: 8192
+GalSim flux: 0.77357638
+BATSim flux:    0.77352965
+Max abs residual: 2.317e-06
+Max abs residual as % of max flux: 0.035%
+Simulation took 6.71 seconds
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_advanced-configuration_7_1.png" src="../_images/examples_advanced-configuration_7_1.png" />
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">max_fine_grid</span></code> is most relevant to galaxies which require huge internal support images. This can occur when a galaxy’s internal rendering resolution is extremely fine and the galaxy is very large and/or highly elliptical. Finally, we will look at the <code class="docutils literal notranslate"><span class="pre">integration_order</span></code> arguement, which controls the number of Gauss-Legendre offsets that are used for integrated sampling of each fine pixel to prevent aliasing.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">integration_order</span></code> of 1 results in no block integration. For many realistic galaxies, this is impractical due to the huge internal stamps that would be required to prevent alaising during point sampling.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Small, high-n, highly elliptical.</span>
+<span class="n">tricky_gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># We will loop over different supersampling limits</span>
+<span class="n">int_order_vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">int_order</span> <span class="ow">in</span> <span class="n">int_order_vals</span><span class="p">:</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------------------&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Integration Order:&quot;</span><span class="p">,</span> <span class="n">int_order</span><span class="p">)</span>
+
+    <span class="c1"># Draw with batsim</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">batsim_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">tricky_gal</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+        <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">integration_order</span><span class="o">=</span><span class="n">int_order</span> <span class="c1"># Integration order for integrated sampling</span>
+    <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+    <span class="n">gal_conv</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Convolve</span><span class="p">([</span><span class="n">tricky_gal</span><span class="p">,</span> <span class="n">psf</span><span class="p">])</span>
+    <span class="n">galsim_img</span> <span class="o">=</span> <span class="n">gal_conv</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+    <span class="c1"># Look at residuals between images</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">galsim_img</span> <span class="o">-</span> <span class="n">batsim_img</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GalSim flux: </span><span class="si">{</span><span class="n">galsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BATSim flux:    </span><span class="si">{</span><span class="n">batsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">perc_residual</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">galsim_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual as % of max flux: </span><span class="si">{</span><span class="n">perc_residual</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation took </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot galaxy</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">batsim_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------------------------------------
+Integration Order: 1
+GalSim flux: 0.99604219
+BATSim flux:    5.10848427
+Max abs residual: 2.001e-01
+Max abs residual as % of max flux: 552.301%
+Simulation took 0.89 seconds
+------------------------------------
+Integration Order: 2
+GalSim flux: 0.99604219
+BATSim flux:    0.98955822
+Max abs residual: 3.130e-04
+Max abs residual as % of max flux: 0.864%
+Simulation took 1.71 seconds
+------------------------------------
+Integration Order: 4
+GalSim flux: 0.99604219
+BATSim flux:    0.99000245
+Max abs residual: 2.912e-04
+Max abs residual as % of max flux: 0.804%
+Simulation took 0.88 seconds
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_advanced-configuration_9_1.png" src="../_images/examples_advanced-configuration_9_1.png" />
+</div>
+</div>
+<p>It is clear for this galaxy with no block integration, the resulting aliasing is extreme, leading to a huge flux residual in the final image. After the FFT, we remove the smoothing kernel from the Fourier. This is controlled by <code class="docutils literal notranslate"><span class="pre">compensate_integration</span></code>, for which we can either choose to use an exact Sinc kernel, the quadrature transfer function, or do no compensation.</p>
+<p>Higher integration orders require more sampling evaluations, but, can also reduce the required supersampling more. Currently, integration order is fixed and is not chosen as part of the renderer sampling heuristic, but this is something we plan to incorporate in future.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Small, high-n, highly elliptical.</span>
+<span class="n">tricky_gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># We will loop over different supersampling limits</span>
+<span class="n">compensation_modes</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;exact_sinc&quot;</span><span class="p">,</span> <span class="s2">&quot;quadrature&quot;</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">compensation_modes</span><span class="p">:</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------------------&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Integration compensation function:&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+    <span class="c1"># Draw with batsim</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">batsim_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+        <span class="n">gal_obj</span><span class="o">=</span><span class="n">tricky_gal</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+        <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span>
+        <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+        <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">compensate_integration</span><span class="o">=</span><span class="n">mode</span> <span class="c1"># Integration order for integrated sampling</span>
+    <span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+    <span class="n">gal_conv</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Convolve</span><span class="p">([</span><span class="n">tricky_gal</span><span class="p">,</span> <span class="n">psf</span><span class="p">])</span>
+    <span class="n">galsim_img</span> <span class="o">=</span> <span class="n">gal_conv</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+    <span class="c1"># Look at residuals between images</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">galsim_img</span> <span class="o">-</span> <span class="n">batsim_img</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GalSim flux: </span><span class="si">{</span><span class="n">galsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BATSim flux:    </span><span class="si">{</span><span class="n">batsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">perc_residual</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">galsim_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual as % of max flux: </span><span class="si">{</span><span class="n">perc_residual</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation took </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot galaxy</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">batsim_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+------------------------------------
+Integration compensation function: None
+GalSim flux: 0.85708648
+BATSim flux:    0.85704029
+Max abs residual: 2.856e-06
+Max abs residual as % of max flux: 0.032%
+Simulation took 1.57 seconds
+------------------------------------
+Integration compensation function: exact_sinc
+GalSim flux: 0.85708648
+BATSim flux:    0.85704041
+Max abs residual: 2.294e-06
+Max abs residual as % of max flux: 0.025%
+Simulation took 1.63 seconds
+------------------------------------
+Integration compensation function: quadrature
+GalSim flux: 0.85708648
+BATSim flux:    0.85704041
+Max abs residual: 2.294e-06
+Max abs residual as % of max flux: 0.025%
+Simulation took 1.62 seconds
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_advanced-configuration_11_1.png" src="../_images/examples_advanced-configuration_11_1.png" />
+</div>
+</div>
+<p>For most galaxies and for integrations orders greater than 2, <code class="docutils literal notranslate"><span class="pre">exact_sinc</span></code> and <code class="docutils literal notranslate"><span class="pre">quadrature</span></code> are identical, but we provide the option for both for the sake of felxibility.</p>
+<p>At this point, we have covered the most important advacned configuration options, and trying to cover them all would result in a painfully long notebook. Below we include the full renderer with all options listed so you can test different things yourself and see how they affect different galaxies.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create GSObjects to render</span>
+<span class="n">gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">shear</span><span class="p">(</span><span class="n">e1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">e2</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Moffat</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Image params</span>
+<span class="n">pix_scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">npix</span><span class="o">=</span><span class="mi">64</span>
+
+<span class="c1"># Present full set of arguments for batsim.simulate_galaxy</span>
+<span class="n">batsim_img</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal</span><span class="p">,</span> <span class="c1"># GSObject of galaxy</span>
+    <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span> <span class="c1"># Final pixel scale</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="c1"># Final image side length</span>
+    <span class="n">transform_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># BATSim Transform object</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span> <span class="c1"># GSObject of PSF</span>
+    <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="c1"># turn pixel response on or off</span>
+    <span class="n">safety</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="c1"># safety factor to scale supersampling. Higher values result in more supersampling</span>
+    <span class="n">max_supersample</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="c1"># Maximum supersampling factor. This can be increased for difficult galaxies</span>
+    <span class="n">min_supersample</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1"># Minimum supersampling factor. We suggest not decreasing this.</span>
+    <span class="n">integration_order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="c1"># Order of Gauss-Legendre quadrature block integration</span>
+    <span class="n">max_fine_grid</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="c1"># Maxmium internal grid-size for rendering supersampled images</span>
+    <span class="n">pad</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="c1"># Padding to add before FFT</span>
+    <span class="n">precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="c1"># Floating point precision to use during simulation</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;np&quot;</span><span class="p">,</span> <span class="c1"># Backend for math and array ops. Either NumPy or CuPy</span>
+    <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># Enable timing and verbose output</span>
+    <span class="n">pix_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># Legacy arguement for scale, retained for conmpatibility</span>
+    <span class="n">psf_mode</span><span class="o">=</span><span class="s2">&quot;kvalue&quot;</span><span class="p">,</span> <span class="c1"># Sample the PSF directly in k-space (or not)</span>
+    <span class="n">force_input_flux</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># Re-normalise image flux. This should NOT be set to true for magnification</span>
+    <span class="n">compensate_integration</span><span class="o">=</span><span class="s2">&quot;quadrature&quot;</span><span class="p">,</span> <span class="c1"># Function used to remove smoothing in the Fourier profile</span>
+    <span class="n">use_true_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Match Galsim&#39;s centering convention or not</span>
+<span class="p">)</span>
+
+<span class="n">gal_conv</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Convolve</span><span class="p">([</span><span class="n">gal</span><span class="p">,</span> <span class="n">psf</span><span class="p">])</span>
+<span class="n">galsim_img</span> <span class="o">=</span> <span class="n">gal_conv</span><span class="o">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="n">npix</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>
+
+<span class="c1"># Look at residuals between images</span>
+<span class="n">residual</span> <span class="o">=</span> <span class="n">galsim_img</span> <span class="o">-</span> <span class="n">batsim_img</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GalSim flux: </span><span class="si">{</span><span class="n">galsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;BATSim flux:    </span><span class="si">{</span><span class="n">batsim_img</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.8f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">perc_residual</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">galsim_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max abs residual as % of max flux: </span><span class="si">{</span><span class="n">perc_residual</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation took </span><span class="si">{</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot galaxy</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">batsim_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+GalSim flux: 0.98687613
+BATSim flux:    0.98671603
+Max abs residual: 6.250e-06
+Max abs residual as % of max flux: 0.059%
+Simulation took 1.62 seconds
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_advanced-configuration_13_1.png" src="../_images/examples_advanced-configuration_13_1.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="batched-rendering.html" class="btn btn-neutral float-left" title="Batched Rendering" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="catsim.html" class="btn btn-neutral float-right" title="CATSim" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Batched Rendering &mdash; batsim 1.0.0 documentation</title>
+  <title>Batched Rendering &mdash; batsim 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -15,12 +15,12 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=8d563738"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -91,6 +91,7 @@
 <h1>Batched Rendering<a class="headerlink" href="#Batched-Rendering" title="Link to this heading"></a></h1>
 <p>Currently, for batched processing with BATSim, we recomend setting <code class="docutils literal notranslate"><span class="pre">OMP</span></code> threads to 1 and using Python multiprocessing. This is because by default Galsim’s C++ sampler will try and multi-thread, and for large samples, processing a single galaxy per thread is usually fastest.</p>
 <p>Be aware that <code class="docutils literal notranslate"><span class="pre">OMP</span></code> threads must be set <strong>before</strong> Galsim is imported.</p>
+<p>OBS: MacOS might have issues with the way bactch processing is done within notebooks. This shouldn’t be an issue if the function being run by the <code class="docutils literal notranslate"><span class="pre">Pool.starmap</span></code> is defined in a separate <code class="docutils literal notranslate"><span class="pre">.py</span></code> file instead of inside the notebook</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
 </pre></div>
@@ -265,7 +266,7 @@ CPU seconds per galaxy: 0.4531566262245178
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Andy Park.</p>
+    <p>&#169; Copyright 2026, Batsim Developers.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

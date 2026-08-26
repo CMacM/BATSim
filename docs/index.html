@@ -85,7 +85,7 @@ default pipeline uses:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">psf_mode=&quot;kvalue&quot;</span></code> to sample the analytic PSF Fourier profile through the
 compiled BATSim/GalSim bridge.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">force_input_flux=True</span></code> to preserve the input galaxy flux after convolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">force_input_flux=False</span></code> to allow the input galaxy flux to be modified by magnification effects where relevant.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">use_true_center=True</span></code> to align the fine grid with GalSim’s true image
 center convention.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">integration_order=2</span></code> to use Gauss-Legendre block integration before the
@@ -155,7 +155,7 @@ API.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Andy Park.</p>
+    <p>&#169; Copyright 2026, Batsim Developers.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

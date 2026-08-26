@@ -14,7 +14,7 @@ default pipeline uses:
 
 * ``psf_mode="kvalue"`` to sample the analytic PSF Fourier profile through the
   compiled BATSim/GalSim bridge.
-* ``force_input_flux=True`` to preserve the input galaxy flux after convolution.
+* ``force_input_flux=False`` to allow the input galaxy flux to be modified by magnification effects where relevant.
 * ``use_true_center=True`` to align the fine grid with GalSim's true image
   center convention.
 * ``integration_order=2`` to use Gauss-Legendre block integration before the

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flexion &mdash; batsim 1.0.0 documentation</title>
+  <title>Flexion &mdash; batsim 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -15,12 +15,12 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=8d563738"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -90,7 +90,7 @@
   <section id="Flexion">
 <h1>Flexion<a class="headerlink" href="#Flexion" title="Link to this heading"></a></h1>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
@@ -137,7 +137,7 @@ F_1-G_1 &amp; 3F_2-G_2
 <p>As such, <code class="docutils literal notranslate"><span class="pre">FlexionTransform</span></code> is controlled using the usual lensing matrix parameters, <span class="math notranslate nohighlight">\(\gamma_1, \gamma_2, \kappa\)</span> plus additional flexion terms <span class="math notranslate nohighlight">\(F_1, F_2, G_1, G_2\)</span>.</p>
 <p>Using <code class="docutils literal notranslate"><span class="pre">FlexionTransform</span></code> is much the same as using the standard <code class="docutils literal notranslate"><span class="pre">LensTransform</span></code>, just with added parameters. First, lets compare the two when the flexion terms are zero.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define galaxy profile, psf, and image params</span>
@@ -213,7 +213,7 @@ Total residual: 0.0
 <p>Evidently, with the flexion terms set to zero, the transform simplifies to the usual affine, lensing transform. So let’s see what happens when we give them values.</p>
 <p><span class="math notranslate nohighlight">\(F_1\)</span> and <span class="math notranslate nohighlight">\(F_2\)</span> are associated with gradients in convergence, and as such, produce skewed, comet-like distortions, with <span class="math notranslate nohighlight">\(F_1\)</span> controling horizontal distortions, and <span class="math notranslate nohighlight">\(F_2\)</span> controling vertical ones.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set F1 and F2 to something non-zero</span>
@@ -248,12 +248,12 @@ Total residual: 0.0
 <img alt="../_images/examples_flexion_5_0.png" src="../_images/examples_flexion_5_0.png" />
 </div>
 </div>
-<p>As we can see, the galaxy clearly starts to skew towards the right of the image. <span class="math notranslate nohighlight">\(G_1\)</span> and <span class="math notranslate nohighlight">\(G_2\)</span> produce arc-like distortions. Together they represent a spin-3 field, so it not easy to intiutively think about the direction or type of distortion each controls, but to oversimplify, <span class="math notranslate nohighlight">\(G_1\)</span> defines a refernce pattern, and <span class="math notranslate nohighlight">\(G_2\)</span> controls the rotation of that pattern.</p>
+<p>As we can see, the galaxy clearly starts to skew towards the right of the image. <span class="math notranslate nohighlight">\(G_1\)</span> and <span class="math notranslate nohighlight">\(G_2\)</span> produce arc-like distortions. Together they represent a spin-3 field, so it not easy to intiutively think about the direction or type of distortion each controls, but to oversimplify, <span class="math notranslate nohighlight">\(G_1\)</span> defines a reference pattern, and <span class="math notranslate nohighlight">\(G_2\)</span> controls the rotation of that pattern.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set F1 and F2 to something non-zero</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set G1 and G2 to something non-zero</span>
 <span class="n">flexion_transform</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">FlexionTransform</span><span class="p">(</span>
     <span class="n">gamma1</span><span class="o">=</span><span class="n">gamma1</span><span class="p">,</span>
     <span class="n">gamma2</span><span class="o">=</span><span class="n">gamma2</span><span class="p">,</span>
@@ -287,7 +287,7 @@ Total residual: 0.0
 </div>
 <p>We can start to see an arc forming, but if we want to get some really unique transformations. To help make it clearer what each parameter does, let’s plot an 8-figure panel</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Flexion amplitudes</span>
@@ -340,7 +340,7 @@ Total residual: 0.0
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use one normalization across all panels so brightness differences remain</span>
@@ -420,7 +420,7 @@ Total residual: 0.0
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Andy Park.</p>
+    <p>&#169; Copyright 2026, Batsim Developers.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

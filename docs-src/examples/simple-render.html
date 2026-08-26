@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Simplest Render &mdash; batsim 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Affine Lensing" href="affine-lensing.html" />
+    <link rel="prev" title="Examples" href="../examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            batsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home page</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Simple galaxy rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="affine-lensing.html">Affine lensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intrinsic-alignment.html">Intrinsic alignment model example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flexion.html">Flexion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom-transforms.html">Custom transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batched-rendering.html">Batched rendering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-configuration.html">Advanced configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catsim.html">CATSim</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">batsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">The Simplest Render</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">batsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">galsim</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.family&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;serif&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.serif&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cmr10&#39;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;mathtext.fontset&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;cm&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.facecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">unicode_minus</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes.formatter&#39;</span><span class="p">,</span> <span class="n">use_mathtext</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>In this example notebook, we cover calling the BATSim renderer without providing a transform.</p>
+<p>Given BATSim’s function as a non-affine shear renderer, this example is not representative of real usage, but is intended to provide an overview of how to use the renderer and some of the less advanced configuration options that are available through it.</p>
+<p>BATSim is intended to operate as an extension to Galsim, and as such, its renderer is designed to operate on Galsim objects. We recomend familiarising yourself with Galsim’s API if necessary, as our examples assume existing experience running Galsim.</p>
+<p><a class="reference external" href="https://galsim-developers.github.io/GalSim/_build/html/index.html">https://galsim-developers.github.io/GalSim/_build/html/index.html</a></p>
+<section id="The-Simplest-Render">
+<h1>The Simplest Render<a class="headerlink" href="#The-Simplest-Render" title="Link to this heading"></a></h1>
+<p>First, let’s directly compare drawing a galaxy with BATSim to Galsim. We define our galaxy object, image size, and pixel scale.</p>
+<p>The workhorse function of BATSim is <code class="docutils literal notranslate"><span class="pre">batsim.simulate_galaxy()</span></code> this function applies coordinate transforms, determines the necessary internal rendering resolution (which is typically 4x-64x higher than the requested resolution), samples the galaxy profile, applys any convolutions, and returns us the final image at the requested size and pixel scale in the form of a numpy array.</p>
+<p>Currently, BATSim only supports square images.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define our galaxy profile as a GSObject</span>
+<span class="n">gal</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Sersic</span><span class="p">(</span><span class="n">half_light_radius</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Define image parameters</span>
+<span class="n">ngrid</span> <span class="o">=</span> <span class="mi">64</span> <span class="c1"># number of pixels along x and y. Total pixels is n_grid*n_grid</span>
+<span class="n">pix_scale</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="c1"># number of arcseconds each pixels should cover</span>
+
+<span class="c1"># Call BATSim&#39;s renderer, returns np.array</span>
+<span class="n">gal_image</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal</span><span class="p">,</span> <span class="c1"># pass the GSObject profile</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="n">ngrid</span><span class="p">,</span> <span class="c1"># If None, BATSim chooses a sensible size based on scale</span>
+    <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span> <span class="c1"># pixel scale of the FINAL output image</span>
+<span class="p">)</span>
+
+<span class="c1"># Call BATSim&#39;s plotting utility to get a nicely normalised image</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">gal_image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_simple-render_3_0.png" src="../_images/examples_simple-render_3_0.png" />
+</div>
+</div>
+<p>If desired, and as would typically be the case, a PSF can also be provided which will be convolved with the image</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define PSF</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Moffat</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Call renderer passing PSF as well</span>
+<span class="n">gal_with_psf_image</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal</span><span class="p">,</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># This time lets omit it to see what BATSim chooses</span>
+    <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span>
+<span class="p">)</span>
+
+<span class="c1"># Call BATSim&#39;s plotting utility to get a nicely normalised image</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">gal_with_psf_image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_simple-render_5_0.png" src="../_images/examples_simple-render_5_0.png" />
+</div>
+</div>
+<p>By default the BATSim renderer applies a pixel response function to the image. This is an additional top-hat smoothing kernel that accounts for the fact real detectors are composed of finite pixels with hard edges. If you wish to simulate images representative of an atypical detector with non-square pixels or a different response function, you can disable this through the <code class="docutils literal notranslate"><span class="pre">draw_method</span></code> argument.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define PSF</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">galsim</span><span class="o">.</span><span class="n">Moffat</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Call renderer passing PSF as well</span>
+<span class="n">gal_with_psf_image</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">simulate_galaxy</span><span class="p">(</span>
+    <span class="n">gal_obj</span><span class="o">=</span><span class="n">gal</span><span class="p">,</span>
+    <span class="n">psf_obj</span><span class="o">=</span><span class="n">psf</span><span class="p">,</span>
+    <span class="n">ngrid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># This time lets omit it to see what BATSim chooses</span>
+    <span class="n">scale</span><span class="o">=</span><span class="n">pix_scale</span><span class="p">,</span>
+    <span class="n">draw_method</span><span class="o">=</span><span class="s2">&quot;no_pixel&quot;</span> <span class="c1"># alternative is &quot;auto&quot;, which applies pixel response</span>
+<span class="p">)</span>
+
+<span class="c1"># Call BATSim&#39;s plotting utility to get a nicely normalised image</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">batsim</span><span class="o">.</span><span class="n">pltutil</span><span class="o">.</span><span class="n">make_plot_image</span><span class="p">(</span><span class="n">gal_with_psf_image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_simple-render_7_0.png" src="../_images/examples_simple-render_7_0.png" />
+</div>
+</div>
+<p>It is important to note that, due to the nature of non-affine shear, BATSim’s renderer is significantly slower than Galsim’s. As such, for work like this where no transform is required, we recomend simply sticking to Galsim’s own drawing methods.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="affine-lensing.html" class="btn btn-neutral float-right" title="Affine Lensing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andy Park.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
