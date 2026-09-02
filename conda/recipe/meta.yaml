@@ -14,6 +14,9 @@ build:
   skip: true  # [py<310 or py>=313]
 
 requirements:
+  build:
+    - {{ compiler('c')}}
+    - {{ compiler('cxx')}}
   host:
     - python {{ python }}
     - pip
@@ -24,6 +27,7 @@ requirements:
     - numpy >=1.26,<2.0
     - galsim
     - fitsio
+    - llvm-openmp # [osx]
   run:
     - python >=3.10,<3.13
     - numpy >=1.26,<2.0
@@ -31,6 +35,7 @@ requirements:
     - fitsio
     - matplotlib >=3.8,<3.9
     - astropy
+    - llvm-openmp # [osx]
 
 test:
   imports:
