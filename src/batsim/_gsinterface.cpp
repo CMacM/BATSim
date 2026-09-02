@@ -1,6 +1,5 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include <pybind11/conduit/pybind11_conduit_v1.h>
 #include "GalSim.h"
 #include <omp.h>
 #include <cmath>

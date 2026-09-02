@@ -127,9 +127,11 @@ without reinstalling:
 ```bash
 mamba create -n batsim-dev -c conda-forge -c defaults \
     python=3.11 \
+    compilers \
+    llvm-openmp \
     galsim \
     eigen \
-    pybind11 \
+    "pybind11>=3,<3.1" \
     numpy \
     fitsio \
     astropy \

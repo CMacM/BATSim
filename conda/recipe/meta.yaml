@@ -22,7 +22,7 @@ requirements:
     - pip
     - setuptools
     - wheel
-    - pybind11 >=3,<4
+    - pybind11 >=3, <3.1
     - eigen
     - numpy >=1.26,<2.0
     - galsim
