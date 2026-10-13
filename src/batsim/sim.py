@@ -139,6 +139,9 @@ def simulate_galaxy(
         output size from the GalSim object support at ``scale``.
     transform_obj : object or sequence of objects, optional
         Coordinate transform(s) applied before sampling the galaxy profile.
+        If a sequence is provided, it must be in REVERSE PHYSICAL ORDER
+        e.g. [LensTransform, IATransform] describes IA with subsequent lensing
+        deflection. This is due to the 'pull' map implementation of the transforms.
         Each transform must provide ``transform(coords)`` where ``coords`` has
         shape ``(2, npoints)``.  Transforms with a ``to_backend`` method
         are moved to the selected array backend before use.
